@@ -1,0 +1,42 @@
+{
+  "name": "sistema-control-operativo-tienda",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "test": "node --experimental-strip-types --loader ./tests/domain/resolver.mjs --test tests/domain/validators.test.mjs tests/domain/payloads.test.mjs tests/domain/submissions.test.mjs tests/services/operation-inserts.test.mjs tests/supabase/operation-inserts.test.mjs tests/app/operation-submitters.test.mjs tests/app/operation-submit-flow.test.mjs tests/app/current-profile.test.mjs tests/app/auth-profile.test.mjs tests/app/submission-history.test.mjs tests/app/product-catalog.test.mjs tests/app/evidence-attachment.test.mjs tests/app/history-filters.test.mjs tests/app/history-export.test.mjs tests/app/history-import.test.mjs tests/app/history-ui-state.test.mjs tests/app/runtime-mode.test.mjs tests/app/app-bootstrap.test.mjs tests/app/instructions-repository.test.mjs tests/app/instructions-flow.test.mjs tests/app/instructions-ui.test.mjs tests/app/waste-repository.test.mjs tests/app/waste-flow.test.mjs tests/app/waste-ui.test.mjs tests/app/product-repository.test.mjs tests/app/product-seed.test.mjs tests/app/waste-storage.test.mjs tests/app/products-ui.test.mjs tests/app/auth.test.mjs tests/app/profile-repository.test.mjs"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "@supabase/ssr": "^0.10.3",
+    "@supabase/supabase-js": "^2.107.0",
+    "@types/web-push": "^3.6.4",
+    "date-fns": "^4.4.0",
+    "dotenv": "^17.4.2",
+    "idb-keyval": "^6.2.5",
+    "lucide-react": "^1.20.0",
+    "next": "16.2.7",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-zxing": "^3.0.0",
+    "recharts": "^3.8.1",
+    "sharp": "^0.34.5",
+    "sonner": "^2.0.7",
+    "web-push": "^3.6.7",
+    "xlsx": "^0.18.5",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.7",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}

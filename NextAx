@@ -1,0 +1,60 @@
+# NEXT_ACTION
+
+### ID de tarea
+V-08 (Migración Visual: Dashboard Final e Historial)
+
+### Modelo recomendado
+MiMo V2.5 Free Gratis o DeepSeek V4 Flash
+
+### Justificación del modelo seleccionado
+Esta es la tarea de cierre visual. Implica inyectar los últimos registros de merma en el Dashboard principal (re-usando la WasteCard recién estilizada) y unificar los estilos de las pestañas en el Historial.
+
+### Objetivo
+Completar el Dashboard añadiendo la sección "Registros de Merma Recientes" debajo de las instrucciones (tal como revela la última captura de pantalla), y darle un estilo moderno tipo "Segmented Control" a las pestañas de Historial (`/history`).
+
+### Contexto
+Gracias a las capturas sabemos que el Dashboard principal es un "Scroll infinito" que muestra primero las tareas y luego las mermas recientes. Actualmente solo muestra las instrucciones. Además, la página de Historial (`/history`) que creamos hace unos pasos necesita que sus pestañas ("Instrucciones" / "Merma") se vean como botones redondeados integrados al nuevo sistema visual.
+
+### Archivos permitidos
+- `src/app/page.tsx`
+- `src/app/history/page.tsx`
+- `src/components/history/HistoryTabs.tsx`
+
+### Archivos prohibidos
+- Los archivos `WasteCard.tsx` y `InstructionCard.tsx` (ya están perfectos).
+- `actions.ts`.
+
+### Instrucciones detalladas
+
+1. **Adición de Mermas al Dashboard (`src/app/page.tsx`):**
+   - Importa `WasteCard` al inicio.
+   - En la lógica del servidor (arriba), haz una consulta a Supabase para traer los 3 registros de merma más recientes: `supabase.from('waste_records').select('*, products(name)').order('created_at', { ascending: false }).limit(3)`.
+   - Abajo de la sección "Instrucciones del Día", crea una nueva sección "Registros de Merma Recientes".
+   - Encabezado: Título negro fuerte (`text-xl font-bold`), subtítulo "Trazabilidad de averías y mermas en tienda". A la derecha "Ver Todo >" en rojo (`text-red-600 font-semibold text-sm`) que apunte a `/waste`.
+   - Renderiza la lista de mermas obtenidas usando `<WasteCard />` dentro de un `flex flex-col gap-4`.
+
+2. **Pulido del Historial (`src/app/history/page.tsx` y `src/components/history/HistoryTabs.tsx`):**
+   - Asegúrate de que el título del historial ("Historial Operativo") tenga el mismo estilo `text-2xl font-bold text-slate-800` y padding amplio en el layout de `page.tsx`.
+   - En `HistoryTabs.tsx`, cambia el diseño para que parezca un selector nativo moderno (Segmented Control).
+   - Crea un contenedor padre gris claro: `flex w-full bg-slate-100 rounded-full p-1 mb-6`.
+   - Los dos botones adentro deben tener `flex-1 text-center py-2.5 rounded-full text-sm font-semibold transition-all`.
+   - El tab activo debe tener `bg-white text-slate-900 shadow-sm` (parece que es una pestaña resaltada).
+   - El tab inactivo debe ser transparente con texto tenue: `text-slate-500 hover:text-slate-700`.
+
+### Criterios de aceptación
+- El Dashboard muestra instrucciones y mermas recientes con el diseño final de las tarjetas.
+- El cambio entre pestañas en Historial se siente como usar una app de iOS/Android moderna, no como botones viejos.
+- No hay errores de compilación ni de queries.
+
+### Resultado visual esperado
+La pantalla principal de la app ya no tiene nada que envidiarle a la maqueta nativa. Muestra el estado total de la tienda. El historial se siente pulido y rápido.
+
+### Pruebas mínimas
+- Abrir `localhost:3000` y confirmar que ves las mermas en la parte inferior.
+- Abrir `/history` y probar el selector de pestañas.
+
+### Qué NO debe hacer
+- No alteres `WasteCard` ni `InstructionCard`.
+
+### Prompt listo para copiar al modelo ejecutor
+"Actúa como Frontend Engineer. Último pulido visual. 1) En `app/page.tsx`, haz una query para sacar los 3 `waste_records` más recientes (con `.select('*, products(name)')`). Abajo de las instrucciones, renderiza una sección 'Registros de Merma Recientes' usando `<WasteCard />` con el mismo formato de título y 'Ver Todo >' que las instrucciones. 2) En `HistoryTabs.tsx`, cambia el diseño a un Segmented Control: Contenedor `bg-slate-100 rounded-full p-1`. Botones `flex-1 rounded-full py-2.5 text-sm font-semibold`. El activo tiene `bg-white shadow-sm text-slate-900`, el inactivo `text-slate-500`. No toques las tarjetas de diseño."
