@@ -38,7 +38,7 @@ export async function updateStoreInfo(formData: FormData) {
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.errors[0].message };
+    return { error: parsed.error.issues[0]?.message || "Error de validación" };
   }
 
   const { profileId, storeName, storeCode, supervisorName } = parsed.data;
@@ -80,7 +80,7 @@ export async function createSupervisor(formData: FormData) {
   });
 
   if (!parsed.success) {
-    return { error: parsed.error.errors[0].message };
+    return { error: parsed.error.issues[0]?.message || "Error de validación" };
   }
 
   const { email, password, supervisorName, storeCode, storeName } = parsed.data;
