@@ -5,7 +5,7 @@ export async function checkRateLimit(ipOrUser: string, limit: number, windowMs: 
   const windowStart = new Date(Date.now() - windowMs).toISOString();
 
   // Eliminar registros viejos (opcional, aunque lo hace el pg_cron o un trigger idealmente)
-  await supabase.rpc("cleanup_rate_limits").catch(() => {});
+  await supabase.rpc("cleanup_rate_limits");
 
   // Buscar si ya existe el registro en la ventana actual
   const { data } = await supabase

@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     // Build the payload team
     const realNames: Record<string, string> = {};
-    const team = [];
+    const team: any[] = [];
     
     let operatorIndex = 1;
     const addMember = (realName: string, role: string, contract: string) => {
