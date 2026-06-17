@@ -3,6 +3,9 @@ import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { startOfMonth, format } from "date-fns";
 import AdminClientPage from "./AdminClientPage";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export default async function AdminPage() {
   const supabase = await createClient();
 
