@@ -18,8 +18,8 @@ type WasteProduct = Tables<"products">;
 export default function NewWastePage() {
   const router = useRouter();
   const { profile } = useProfile();
-  const operator = profile?.display_name;
-  const assistants = profile?.assistants.map((a: any) => a.name) || [];
+  const operator = profile?.display_name?.toUpperCase();
+  const assistants = profile?.assistants.map((a: any) => a.name?.toUpperCase()) || [];
   const teamMembers = Array.from(new Set(operator ? [operator, ...assistants] : assistants)) as string[];
   const areas = profile?.areas || [];
 
@@ -256,6 +256,18 @@ export default function NewWastePage() {
               toast.error("Se requiere conexión a internet para registrar merma con fotos obligatorias.");
               return;
             }
+
+            // Validar fotos manualmente para evitar el error de hidden input
+            for (const req of photoRequirements) {
+              if (!req.optional) {
+                const file = formData.get(req.id) as File | null;
+                if (!file || file.size === 0) {
+                  toast.error(`Por favor, sube la ${req.label}.`);
+                  return;
+                }
+              }
+            }
+
             startTransition(async () => {
               try {
                 await submitWaste(formData);
@@ -412,7 +424,6 @@ export default function NewWastePage() {
                   type="file"
                   accept="image/*"
                   capture="environment"
-                  required={!req.optional}
                   onChange={(e) => handleFileChange(e, req.id)}
                   className="hidden"
                 />
