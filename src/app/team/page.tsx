@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 import { updateTeam } from "./actions";
 import { useProfile } from "@/components/ui/ProfileContext";
 import CreateEncargadoForm from "@/components/team/CreateEncargadoForm";
+import SecurityPinModal from "@/components/team/SecurityPinModal";
 import type { AssistantContractType, Profile, BasicTaskConfig, TaskType } from "@/lib/domain/types";
 
 const ASSISTANT_CONTRACT_OPTIONS = [
@@ -34,6 +35,10 @@ export default function TeamPage() {
   const [localMessage, setLocalMessage] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
 
+  const [hasPin, setHasPin] = useState(true);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+
   useEffect(() => {
     setLocalMessage("Cargando perfil desde DB...");
     const loadProfile = async () => {
@@ -55,6 +60,10 @@ export default function TeamPage() {
           };
           setProfile(profileData as Profile);
           setLocalMessage("ÉXITO: " + data.store_name);
+          if (!data.security_pin) {
+            setHasPin(false);
+            setShowPinModal(true);
+          }
         } else if (error) {
           if (error.code === 'PGRST116') {
             // PGRST116 significa que no encontro filas. Lo reparamos creando el perfil ahora.
@@ -198,10 +207,18 @@ export default function TeamPage() {
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    startTransition(() => {
-      updateTeam(formData);
-    });
+    setPendingFormData(new FormData(event.currentTarget));
+    setShowPinModal(true);
+  }
+
+  function handlePinSuccess() {
+    setShowPinModal(false);
+    if (!hasPin) setHasPin(true);
+    if (pendingFormData) {
+      startTransition(() => {
+        updateTeam(pendingFormData);
+      });
+    }
   }
 
   return (
@@ -603,6 +620,18 @@ export default function TeamPage() {
           </div>
         )}
       </form>
+      <SecurityPinModal 
+        isOpen={showPinModal} 
+        onClose={() => {
+          if (!hasPin) {
+            alert("Debes crear un PIN por seguridad para continuar.");
+            return;
+          }
+          setShowPinModal(false);
+        }} 
+        onSuccess={handlePinSuccess} 
+        isFirstTime={!hasPin}
+      />
     </div>
   );
 }

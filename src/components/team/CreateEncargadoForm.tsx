@@ -1,9 +1,10 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import { createEncargado } from "@/app/team/actions";
 import { UserPlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import SecurityPinModal from "./SecurityPinModal";
 
 export default function CreateEncargadoForm() {
   const [state, formAction, isPending] = useActionState(async (prevState: any, formData: FormData) => {
@@ -16,12 +17,30 @@ export default function CreateEncargadoForm() {
     return { success: true };
   }, null);
 
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
+
   useEffect(() => {
     if (state?.success) {
       const form = document.getElementById("create-encargado-form") as HTMLFormElement;
       if (form) form.reset();
     }
   }, [state]);
+
+  const handleInitialSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPendingFormData(new FormData(e.currentTarget));
+    setShowPinModal(true);
+  };
+
+  const handlePinSuccess = () => {
+    setShowPinModal(false);
+    if (pendingFormData) {
+      startTransition(() => {
+        formAction(pendingFormData);
+      });
+    }
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden mb-6">
@@ -35,7 +54,7 @@ export default function CreateEncargadoForm() {
           Se le pedira que cambie la contrasea al entrar por primera vez.
         </p>
 
-        <form id="create-encargado-form" action={formAction} className="space-y-4">
+        <form id="create-encargado-form" onSubmit={handleInitialSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Rol</label>
@@ -71,6 +90,13 @@ export default function CreateEncargadoForm() {
           </button>
         </form>
       </div>
+
+      <SecurityPinModal 
+        isOpen={showPinModal} 
+        onClose={() => setShowPinModal(false)} 
+        onSuccess={handlePinSuccess} 
+        isFirstTime={false} // Assume PIN is already created by TeamPage
+      />
     </div>
   );
 }
