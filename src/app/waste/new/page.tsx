@@ -251,7 +251,10 @@ export default function NewWastePage() {
         </div>
       ) : (
         <form
-          action={async (formData) => {
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            
             if (!navigator.onLine) {
               toast.error("Se requiere conexión a internet para registrar merma con fotos obligatorias.");
               return;
@@ -273,8 +276,8 @@ export default function NewWastePage() {
                 await submitWaste(formData);
                 await set("waste_draft", null);
                 router.push("/waste");
-              } catch (e: any) {
-                toast.error(e.message);
+              } catch (err: any) {
+                toast.error(err.message);
               }
             });
           }}
