@@ -228,9 +228,14 @@ export async function updateWasteRecord(formData: FormData) {
 }
 
 export async function deleteWasteRecord(id: string) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireSupervisor();
 
-  const { error } = await supabase
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await adminClient
     .from("waste_records")
     .delete()
     .eq("id", id)
