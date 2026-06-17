@@ -278,6 +278,7 @@ export default function NewWastePage() {
                   toast.error(result.error);
                   return;
                 }
+                toast.success("Merma registrada exitosamente.");
                 await set("waste_draft", null);
                 router.push("/waste");
               } catch (err: any) {

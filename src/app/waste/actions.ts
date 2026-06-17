@@ -62,7 +62,7 @@ const submitWasteSchema = z.object({
 });
 
 export async function submitWaste(formData: FormData): Promise<{ error?: string }> {
-  const { profile, supabase } = await requireAuth();
+  const { profile, supabase, user } = await requireAuth();
 
   const rawData = {
     barcodeId: getString(formData, "barcode_id"),
@@ -163,7 +163,7 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     transport_comment: validatedData.transportComment || null,
     transport_evidence: transportEvidenceUrls,
     store_code: profile.store_code,
-    created_by: profile.id, // Se usa profile.id y no user.id
+    created_by: user.id, // Modificado a user.id en vez de profile.id para cumplir con las politicas RLS ocultas
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
   };
 
