@@ -4,11 +4,11 @@ import { useActionState, useEffect } from "react";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { createTeamMember } from "./actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 export default function InvitesPage() {
   const [state, formAction, pending] = useActionState(createTeamMember, undefined);
-  const { profile } = useOperator();
+  const { profile } = useProfile();
 
   useEffect(() => {
     if (state?.success) {

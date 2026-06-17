@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
 import AppShell from "@/components/AppShell";
-import { OperatorProvider } from "@/components/ui/OperatorContext";
+import { ProfileProvider } from "@/components/ui/ProfileContext";
 import SyncManager from "@/components/ui/SyncManager";
 import PushManager from "@/components/ui/PushManager";
 import { AutoLogout } from "@/components/ui/AutoLogout";
@@ -32,12 +32,12 @@ export default function ClientLayout({
       className={`${fontClassName} min-h-dvh bg-slate-50 text-zinc-900 antialiased`}
       suppressHydrationWarning={true}
     >
-      <OperatorProvider initialProfile={initialProfile} initialOperator={initialOperator}>
+      <ProfileProvider initialProfile={initialProfile}>
         <SyncManager />
         <PushManager />
         {!isPublic && <AutoLogout />}
         <AppShell>{children}</AppShell>
-      </OperatorProvider>
+      </ProfileProvider>
 
       <Toaster position="top-center" richColors />
     </body>

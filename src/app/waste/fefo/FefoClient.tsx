@@ -8,7 +8,7 @@ import { addFefoRecord, updateFefoStatus } from "./actions";
 import { searchProducts } from "@/app/products/actions";
 import { Search, X } from "lucide-react";
 import { get, set } from "idb-keyval";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 type ProductCatalogEntry = {
   id: string;
@@ -20,7 +20,8 @@ type ProductCatalogEntry = {
 };
 
 export default function FefoClient({ records, profileId }: { records: any[]; profileId: string }) {
-  const { operator } = useOperator();
+  const { profile } = useProfile();
+  const operator = profile?.display_name;
   const [isAdding, setIsAdding] = useState(false);
   const [isPending, startTransition] = useTransition();
 

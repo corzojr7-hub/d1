@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste } from "./actions";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
 import { TrendingUp, Target, Save, Calendar, AlertCircle } from "lucide-react";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 export default function SalesClient({
   initialBudgets,
@@ -17,7 +17,7 @@ export default function SalesClient({
   initialSales: DailySale[];
   initialWaste: WeeklyWaste[];
 }) {
-  const { profile } = useOperator();
+  const { profile } = useProfile();
   const isSupervisor = profile?.role === "supervisor";
 
   const [isMounted, setIsMounted] = useState(false);

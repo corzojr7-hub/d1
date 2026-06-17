@@ -5,10 +5,11 @@ import Link from "next/link";
 import { ArrowLeft, Plus, CheckCircle2, Circle, Clock, Target, PlayCircle, MoreHorizontal } from "lucide-react";
 import { toast } from "sonner";
 import { generateRoutineTasks, updateTaskStatus } from "./actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 export default function RoutineClient({ initialTasks, assistants, currentUser }: { initialTasks: any[]; assistants: any[]; currentUser: string }) {
-  const { operator } = useOperator();
+  const { profile } = useProfile();
+  const operator = profile?.display_name;
   const [tasks, setTasks] = useState(initialTasks);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPending, startTransition] = useTransition();

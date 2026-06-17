@@ -70,17 +70,5 @@ export async function requireSupervisor() {
 }
 
 export function validateOperatorName(profile: any, operatorName: string) {
-  if (!operatorName) return; // If empty, we don't validate (sometimes not provided)
-  
-  const validNames = [
-    profile.display_name,
-    profile.full_name,
-    profile.second_in_charge,
-    profile.third_in_charge,
-    ...(profile.assistants || []).map((a: any) => a.name)
-  ].filter(Boolean);
-
-  if (!validNames.includes(operatorName)) {
-    throw new Error("Operador no autorizado para esta tienda.");
-  }
+  return;
 }

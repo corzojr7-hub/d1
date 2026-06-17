@@ -3,13 +3,13 @@
 import { usePathname } from "next/navigation";
 import TopBar from "@/components/ui/TopBar";
 import BottomNav from "@/components/ui/BottomNav";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 const PUBLIC_ROUTES = ["/login"];
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { profile } = useOperator();
+  const { profile } = useProfile();
   const isPublic = PUBLIC_ROUTES.includes(pathname);
 
   if (isPublic) {

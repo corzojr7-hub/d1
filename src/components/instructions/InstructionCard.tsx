@@ -4,7 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { ClipboardList } from "lucide-react";
 import { updateInstructionStatus } from "@/app/instructions/actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 type Instruction = {
   id: string;
@@ -55,7 +55,8 @@ export default function InstructionCard({
   instruction: Instruction;
 }) {
   const [pending, startTransition] = useTransition();
-  const { operator } = useOperator();
+  const { profile } = useProfile();
+  const operator = profile?.display_name;
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;

@@ -10,14 +10,15 @@ import BarcodeScanner from "@/components/waste/BarcodeScanner";
 import { WASTE_REASONS } from "@/lib/domain/catalogs";
 import type { Tables } from "@/lib/supabase/database.types";
 import { findProductByBarcode, submitWaste } from "@/app/waste/actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 import { useMemo } from "react";
 
 type WasteProduct = Tables<"products">;
 
 export default function NewWastePage() {
   const router = useRouter();
-  const { operator, profile } = useOperator();
+  const { profile } = useProfile();
+  const operator = profile?.display_name;
   const assistants = profile?.assistants.map((a: any) => a.name) || [];
   const areas = profile?.areas || [];
 

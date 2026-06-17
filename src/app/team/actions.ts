@@ -107,5 +107,66 @@ export async function updateTeam(formData: FormData): Promise<void> {
 
   revalidatePath("/");
   revalidatePath("/team");
-  redirect("/");
+  redirect("/team?success=1");
+}
+
+import { createAdminClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { checkRateLimit } from "@/lib/rate-limit";
+
+const createEncargadoSchema = z.object({
+  email: z.string().email("Correo invalido"),
+  password: z.string().min(6, "Minimo 6 caracteres"),
+  name: z.string().min(1, "El nombre es obligatorio"),
+  role: z.enum(["segundo", "tercero"])
+});
+
+export async function createEncargado(formData: FormData) {
+  const { profile } = await requireSupervisor();
+  
+  if (!(await checkRateLimit(profile.id, 10, 60000))) return { error: "Rate limit exceeded" };
+
+  const parsed = createEncargadoSchema.safeParse({
+    email: formData.get("email") as string,
+    password: formData.get("password") as string,
+    name: formData.get("name") as string,
+    role: formData.get("role") as string,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Error de validacion" };
+  }
+
+  const { email, password, name, role } = parsed.data;
+  const adminSupabase = await createAdminClient();
+
+  const { data: authData, error: authError } = await adminSupabase.auth.admin.createUser({
+    email,
+    password,
+    email_confirm: true,
+  });
+
+  if (authError) {
+    return { error: authError.message };
+  }
+
+  const newUserId = authData.user.id;
+
+  const { error: profileError } = await adminSupabase.from("profiles").insert({
+    user_id: newUserId,
+    role: role,
+    display_name: name,
+    store_code: profile.store_code,
+    store_name: profile.store_name,
+    force_password_change: true,
+    status: 'activo'
+  });
+
+  if (profileError) {
+    await adminSupabase.auth.admin.deleteUser(newUserId);
+    return { error: profileError.message };
+  }
+
+  revalidatePath("/team");
+  return { success: true };
 }

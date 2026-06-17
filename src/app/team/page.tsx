@@ -5,7 +5,8 @@ import { useMemo, useState, useTransition, useEffect } from "react";
 import { Plus, Save, UsersRound, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { updateTeam } from "./actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from "@/components/ui/ProfileContext";
+import CreateEncargadoForm from "@/components/team/CreateEncargadoForm";
 import type { AssistantContractType, Profile, BasicTaskConfig, TaskType } from "@/lib/domain/types";
 
 const ASSISTANT_CONTRACT_OPTIONS = [
@@ -19,7 +20,7 @@ function generateId() {
 }
 
 export default function TeamPage() {
-  const { profile: contextProfile } = useOperator();
+  const { profile: contextProfile } = useProfile();
   const initialProfile = contextProfile || {
     store_code: "",
     store_name: "Mi Tienda",
@@ -238,10 +239,14 @@ export default function TeamPage() {
         </div>
       </header>
 
+      <div className="p-4">
+        {contextProfile?.role === "supervisor" && <CreateEncargadoForm />}
+      </div>
+
       <form
         action={updateTeam}
         onSubmit={handleSubmit}
-        className="p-4"
+        className="p-4 pt-0"
       >
         {/* Datos de Tienda */}
         <section className="mb-6 rounded-3xl bg-slate-50/50 p-5 shadow-sm ring-1 ring-slate-200/60">

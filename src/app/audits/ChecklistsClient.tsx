@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Clock, AlertTriangle, ChevronRight, XCircle } from "lucide-react";
 import { assignDailyTasks, updateDailyTaskStatus } from "./actions";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 import type { DailyBasic, BasicTaskConfig, StoreAssistant, DailyBasicStatus, DailyBasicFault } from "@/lib/domain/types";
 import { toast } from "sonner";
 
@@ -19,7 +19,8 @@ export default function ChecklistsClient({
   assistants: StoreAssistant[];
   today: string;
 }) {
-  const { operator } = useOperator();
+  const { profile } = useProfile();
+  const operator = profile?.display_name;
   const [activeTab, setActiveTab] = useState<"asignacion" | "verificacion">("verificacion");
   const [isPending, startTransition] = useTransition();
 

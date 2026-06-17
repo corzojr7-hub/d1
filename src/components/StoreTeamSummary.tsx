@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { UsersRound } from "lucide-react";
-import { useOperator } from "@/components/ui/OperatorContext";
+import { useProfile } from '@/components/ui/ProfileContext';
 
 function getContractLabel(contractType: string): string {
   if (contractType === "part_time") return "PT";
@@ -11,7 +11,7 @@ function getContractLabel(contractType: string): string {
 }
 
 export default function StoreTeamSummary() {
-  const { profile } = useOperator();
+  const { profile } = useProfile();
 
   if (!profile) return null;
 

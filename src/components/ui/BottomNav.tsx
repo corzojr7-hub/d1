@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, ClipboardList, Trash2, UsersRound, ClipboardCheck, BarChart3 } from "lucide-react";
-import { useOperator } from "./OperatorContext";
+import { useProfile } from "./ProfileContext";
 
 const allNavItems = [
   { href: "/", label: "Panel", icon: LayoutDashboard },
@@ -17,16 +17,22 @@ const allNavItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const { operator, profile } = useOperator();
+  const { profile } = useProfile();
   
   const isAdmin = profile?.role === "admin";
+  const isSegundoOrTercero = profile?.role === "segundo" || profile?.role === "tercero";
 
-  const navItems = allNavItems.map(item => {
+  let navItems = allNavItems.map(item => {
     if (!isAdmin) return item;
     // Redirigir rutas operativas a dashboards administrativos
     if (item.href === "/") return { ...item, href: "/admin" };
     return { ...item, href: `/admin${item.href}` };
   });
+
+  // Ocultar "Equipo" para segundos y terceros
+  if (isSegundoOrTercero) {
+    navItems = navItems.filter(item => item.href !== "/team");
+  }
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-zinc-100 bg-white pb-[env(safe-area-inset-bottom)]">
