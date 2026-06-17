@@ -75,7 +75,7 @@ export default function AdminClientPage({
               Backoffice Central
             </h1>
             <p className="text-xs text-zinc-400">
-              Gestin Maestra de Tiendas
+              Gestión Maestra de Tiendas
             </p>
           </div>
           <Link
@@ -101,7 +101,7 @@ export default function AdminClientPage({
           className={`flex flex-1 items-center justify-center gap-2 border-b-2 py-4 text-sm font-bold transition-colors ${activeTab === 'tiendas' ? 'border-zinc-900 text-zinc-900' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           <Store className="h-4 w-4" />
-          Gestin de Tiendas
+          Gestión de Tiendas
         </button>
       </div>
 
@@ -257,7 +257,7 @@ export default function AdminClientPage({
                 <div className="col-span-full py-12 text-center">
                   <Store className="mx-auto mb-3 h-12 w-12 text-slate-300" />
                   <p className="text-sm font-medium text-slate-500">
-                    An no has creado ninguna tienda o supervisor.
+                    Aún no has creado ninguna tienda o supervisor.
                   </p>
                 </div>
               )}
@@ -310,7 +310,7 @@ export default function AdminClientPage({
 
               <label className="block">
                 <span className="mb-1.5 block text-xs font-semibold text-slate-600">
-                  Cdigo de Tienda
+                  Código de Tienda
                 </span>
                 <input
                   name="store_code"
@@ -352,7 +352,7 @@ export default function AdminClientPage({
         </div>
       )}
 
-      {/* Modal de Creacin */}
+      {/* Modal de Creación */}
       {isCreating && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4 backdrop-blur-sm">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-xl max-h-[90vh] overflow-y-auto">
@@ -396,7 +396,7 @@ export default function AdminClientPage({
 
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">
-                  Contrasea Temporal
+                  Contraseña Temporal
                 </span>
                 <input
                   name="password"
@@ -406,7 +406,7 @@ export default function AdminClientPage({
                   minLength={6}
                   className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="pl-2 text-[10px] text-slate-400">Se le pedirǭ cambiarla al iniciar sesin.</span>
+                <span className="pl-2 text-[10px] text-slate-400">Se le pedirá cambiarla al iniciar sesión.</span>
               </label>
 
               <label className="flex flex-col gap-1.5">
@@ -423,7 +423,7 @@ export default function AdminClientPage({
 
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">
-                  Cdigo de Tienda
+                  Código de Tienda
                 </span>
                 <input
                   name="store_code"
