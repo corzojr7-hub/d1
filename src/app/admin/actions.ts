@@ -43,6 +43,12 @@ export async function updateStoreInfo(formData: FormData) {
 
   const { profileId, storeName, storeCode, supervisorName } = parsed.data;
 
+  // Asegurar que la tienda exista en stores para evitar error de foreign key
+  await supabase.from("stores").upsert({
+    code: storeCode.trim(),
+    name: storeName.trim(),
+  }, { onConflict: "code" });
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -107,6 +113,12 @@ export async function createSupervisor(formData: FormData) {
 
   const newUserId = authData.user.id;
 
+  // 1.5. Asegurar que la tienda exista en la tabla stores para evitar error de llave foránea
+  await supabaseAdmin.from("stores").upsert({
+    code: storeCode.trim(),
+    name: storeName.trim(),
+  }, { onConflict: "code" });
+
   // 2. Crear el perfil de la tienda en la tabla profiles
   const { error: profileError } = await supabaseAdmin
     .from("profiles")
@@ -123,10 +135,10 @@ export async function createSupervisor(formData: FormData) {
     });
 
   if (profileError) {
-    // Intentar borrar el usuario si falló el perfil para evitar basura
+    console.error("Profile Create Error:", profileError);
+    // Intentar revertir la creación de auth si falla el perfil (no bloqueante para la UI pero buena práctica)
     await supabaseAdmin.auth.admin.deleteUser(newUserId);
-    console.error("Profile creation error:", profileError);
-    return { error: "Error al crear el perfil del supervisor" };
+    return { error: `Error al crear el perfil del supervisor: ${profileError.message}` };
   }
 
   // 3. Registrar auditoria inmutable
