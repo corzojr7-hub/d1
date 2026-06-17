@@ -4,6 +4,7 @@ import { startOfMonth, format } from "date-fns";
 import AdminClientPage from "./AdminClientPage";
 
 export const dynamic = "force-dynamic";
+export const fetchCache = "force-no-store";
 export const revalidate = 0;
 
 export default async function AdminPage() {
