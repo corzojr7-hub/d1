@@ -390,21 +390,6 @@ export default function TeamPage() {
                   </label>
                   <label className="block">
                     <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                      PIN (4 dítigos)
-                    </span>
-                    <input
-                      name={`assistant_pin_${index}`}
-                      type="password"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={4}
-                      defaultValue={profile.operator_pins?.[assistant.name] || ""}
-                      className={fieldClassName}
-                      placeholder="1234"
-                    />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
                       Contrato
                     </span>
                     <select

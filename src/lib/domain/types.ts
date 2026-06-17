@@ -84,7 +84,7 @@ export interface Profile {
   assistants: StoreAssistant[];
   areas: string[];
   basic_tasks: BasicTaskConfig[];
-  operator_pins?: Record<string, string>;
+
   created_at: string;
   updated_at: string;
 }

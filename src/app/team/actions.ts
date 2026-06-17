@@ -74,17 +74,7 @@ export async function updateTeam(formData: FormData): Promise<void> {
   const secondInCharge = getString(formData, "second_in_charge");
   const thirdInCharge = getString(formData, "third_in_charge");
   const displayName = getString(formData, "display_name");
-  
-  // Extraer PINs
-  const operatorPins: Record<string, string> = {};
-  const assistantCount = Number(getString(formData, "assistant_count"));
-  for (let i = 0; i < assistantCount; i++) {
-    const name = getString(formData, `assistant_name_${i}`);
-    const pin = getString(formData, `assistant_pin_${i}`);
-    if (name && pin) {
-      operatorPins[name] = pin;
-    }
-  }
+
 
   const { error } = await supabase
     .from("profiles")
@@ -97,7 +87,6 @@ export async function updateTeam(formData: FormData): Promise<void> {
       assistants: assistants.map(a => ({ name: a.name, contract_type: a.contract_type })),
       areas,
       basic_tasks,
-      operator_pins: operatorPins,
     })
     .eq("id", profile.id);
 
