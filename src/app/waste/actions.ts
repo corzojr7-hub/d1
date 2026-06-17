@@ -226,3 +226,19 @@ export async function updateWasteRecord(formData: FormData) {
   revalidatePath("/waste");
   revalidatePath("/");
 }
+
+export async function deleteWasteRecord(id: string) {
+  const { profile, supabase } = await requireSupervisor();
+
+  const { error } = await supabase
+    .from("waste_records")
+    .delete()
+    .eq("id", id)
+    .eq("store_code", profile.store_code); // Solo puede borrar de su tienda
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/waste");
+  revalidatePath("/");
+}
+

@@ -2,8 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Camera, CameraOff, X, Pencil } from "lucide-react";
-import { updateWasteStatus } from "@/app/waste/actions";
+import { Camera, CameraOff, X, Pencil, Trash2 } from "lucide-react";
+import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
 import EditWasteModal from "./EditWasteModal";
 
 type WasteRecord = {
@@ -64,6 +64,7 @@ export default function WasteCard({ record }: { record: WasteRecord }) {
   const [pending, startTransition] = useTransition();
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;
@@ -83,16 +84,38 @@ export default function WasteCard({ record }: { record: WasteRecord }) {
     <>
       <div
         className={`relative rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm transition ${
-          pending ? "opacity-50" : "hover:shadow-md"
+          pending || isDeleting ? "opacity-50" : "hover:shadow-md"
         }`}
       >
-        <button
-          onClick={() => setShowEdit(true)}
-          className="absolute right-4 top-4 rounded-full p-1.5 text-slate-300 hover:bg-slate-50 hover:text-blue-500 transition-colors"
-          title="Editar merma"
-        >
-          <Pencil className="h-4 w-4" />
-        </button>
+        <div className="absolute right-4 top-4 flex items-center gap-1">
+          <button
+            onClick={() => setShowEdit(true)}
+            disabled={isDeleting}
+            className="rounded-full p-1.5 text-slate-300 hover:bg-slate-50 hover:text-blue-500 transition-colors disabled:opacity-50"
+            title="Editar merma"
+          >
+            <Pencil className="h-4 w-4" />
+          </button>
+          <button
+            onClick={async () => {
+              if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
+                setIsDeleting(true);
+                try {
+                  await deleteWasteRecord(record.id);
+                  toast.success("Merma eliminada");
+                } catch (error) {
+                  toast.error("Error al eliminar la merma");
+                  setIsDeleting(false);
+                }
+              }
+            }}
+            disabled={isDeleting}
+            className="rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+            title="Eliminar merma"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
 
         {/* Fila 1: Categoría / Área + Fecha */}
         <div className="flex items-center gap-3 pr-8">
