@@ -4,8 +4,16 @@ import { revalidatePath } from "next/cache";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
 import type { DailyBasicStatus, DailyBasicFault, TaskType } from "@/lib/domain/types";
 import { z } from "zod";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 
-const taskStatusSchema = z.enum(["en_espera", "completado", "fallado", "no_aplica"]);
+const taskStatusSchema = z.enum(["en_espera", "completado", "fallado", "no_aplica", "realizado"]);
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function assignDailyTasks(
   assignments: {
@@ -16,7 +24,8 @@ export async function assignDailyTasks(
   }[],
   operatorName: string = ""
 ) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireSupervisor();
+  const adminClient = getAdminClient();
 
   const insertData = assignments.map((a) => ({
     profile_id: profile.id,
@@ -29,7 +38,7 @@ export async function assignDailyTasks(
     status: "en_espera",
   }));
 
-  const { error } = await supabase.from("daily_basics").insert(insertData);
+  const { error } = await adminClient.from("daily_basics").insert(insertData);
 
   if (error) {
     console.error(error);
@@ -37,6 +46,7 @@ export async function assignDailyTasks(
   }
 
   revalidatePath("/audits");
+  revalidatePath("/audits/daily");
 }
 
 export async function updateDailyTaskStatus(
@@ -45,13 +55,17 @@ export async function updateDailyTaskStatus(
   fault: DailyBasicFault = null,
   operatorName: string = ""
 ) {
-  const { profile, supabase } = await requireAuth();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
-  validateOperatorName(profile, operatorName);
+  // Validate operator unless they are supervisor doing verification
+  if (status !== 'realizado') {
+     validateOperatorName(profile, operatorName);
+  }
 
   const validatedStatus = taskStatusSchema.parse(status) as DailyBasicStatus;
 
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("daily_basics")
     .update({ status: validatedStatus, fault, operator_name: operatorName })
     .eq("id", taskId)
@@ -63,4 +77,5 @@ export async function updateDailyTaskStatus(
   }
 
   revalidatePath("/audits");
+  revalidatePath("/audits/daily");
 }
