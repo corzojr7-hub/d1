@@ -9,6 +9,47 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      feedbacks: {
+        Row: {
+          id: string;
+          store_code: string;
+          type: "retroalimentacion" | "llamado_atencion";
+          created_by: string;
+          directed_to: string;
+          reason: string;
+          description: string;
+          commitment: string;
+          status: "activo" | "resuelto" | "anulado";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          store_code: string;
+          type: "retroalimentacion" | "llamado_atencion";
+          created_by: string;
+          directed_to: string;
+          reason: string;
+          description: string;
+          commitment: string;
+          status?: "activo" | "resuelto" | "anulado";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          store_code?: string;
+          type?: "retroalimentacion" | "llamado_atencion";
+          created_by?: string;
+          directed_to?: string;
+          reason?: string;
+          description?: string;
+          commitment?: string;
+          status?: "activo" | "resuelto" | "anulado";
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       profiles: {
         Row: {
           id: string;

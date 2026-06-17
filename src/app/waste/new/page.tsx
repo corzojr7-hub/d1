@@ -47,6 +47,44 @@ export default function NewWastePage() {
     });
   }, []);
 
+  // PDA Scanner Global Listener
+  useEffect(() => {
+    let barcodeBuffer = "";
+    let lastKeyTime = 0;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ignore if user is typing in an input/textarea
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        e.target instanceof HTMLSelectElement
+      ) {
+        return;
+      }
+
+      const currentTime = Date.now();
+      
+      // If time between keystrokes is too long (> 50ms), it's not a PDA scanner
+      if (currentTime - lastKeyTime > 50) {
+        barcodeBuffer = "";
+      }
+
+      if (e.key === "Enter" && barcodeBuffer.length > 3) {
+        e.preventDefault();
+        searchBarcode(barcodeBuffer);
+        barcodeBuffer = "";
+      } else if (e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        barcodeBuffer += e.key;
+      }
+
+      lastKeyTime = currentTime;
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const activeBarcode = searchedBarcode || barcode.trim();
 
   function searchBarcode(nextBarcode: string) {
@@ -162,6 +200,7 @@ export default function NewWastePage() {
                     onChange={(e) => setBarcode(e.target.value)}
                     inputMode="numeric"
                     autoComplete="off"
+                    autoFocus
                     placeholder="Ej. 7701234567890"
                     className={`${inputBase} pl-12 text-lg font-semibold`}
                   />
