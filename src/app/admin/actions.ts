@@ -130,6 +130,7 @@ export async function createSupervisor(formData: FormData) {
       store_name: storeName.trim(),
       display_name: supervisorName.trim(),
       full_name: supervisorName.trim(),
+      email: authData.user?.email || (username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mid1.com`),
       assistant_count: 0,
       requires_password_change: true // obligar a cambiar clave temporal
     });
