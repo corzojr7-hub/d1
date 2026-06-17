@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { TablesInsert } from "@/lib/supabase/database.types";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
-import { createAdminClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
 export async function findProductByBarcode(
@@ -167,7 +167,11 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
   };
 
-    const adminClient = await createAdminClient();
+    // Usamos el cliente nativo con la Service Role Key para saltarnos RLS completamente y evitar problemas de políticas desincronizadas
+    const adminClient = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
     const { error } = await adminClient.from("waste_records").insert(payload);
 
     if (error) {
