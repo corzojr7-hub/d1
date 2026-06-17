@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText, ClipboardPlus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import WasteCard from "@/components/waste/WasteCard";
@@ -36,28 +37,51 @@ export default async function Home() {
     redirect("/update-password");
   }
 
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  // Start of week (Monday)
+  const today = new Date();
+  const day = today.getDay(); // 0 is Sunday, 1 is Monday...
+  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+  const startOfWeek = new Date(today.setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfWeekIso = startOfWeek.toISOString();
+
   const [
     { count: pendingCount },
     { data: recentInstructions },
     { count: wasteCount },
+    { count: wasteCountWeek },
     { data: allWaste },
     { data: storeProfiles }
   ] = await Promise.all([
     supabase
       .from("instructions")
       .select("*", { count: "exact", head: true })
-      .in("status", ["pendiente", "en_proceso"]),
+      .in("status", ["pendiente", "en_proceso"])
+      .eq("store_code", storeCode),
     supabase
       .from("instructions")
       .select("*")
+      .eq("store_code", storeCode)
       .order("created_at", { ascending: false })
       .limit(3),
-    supabase
+    adminClient
       .from("waste_records")
-      .select("*", { count: "exact", head: true }),
-    supabase
+      .select("*", { count: "exact", head: true })
+      .eq("store_code", storeCode),
+    adminClient
+      .from("waste_records")
+      .select("*", { count: "exact", head: true })
+      .eq("store_code", storeCode)
+      .gte("created_at", startOfWeekIso),
+    adminClient
       .from("waste_records")
       .select("*, products(name)")
+      .eq("store_code", storeCode)
       .order("created_at", { ascending: false })
       .limit(50),
     supabase
@@ -131,31 +155,36 @@ export default async function Home() {
       )}
 
       {/* Metricas gigantes */}
-      <div className="grid grid-cols-2 px-6 pt-6 pb-2">
-        <div className="flex flex-col border-r border-slate-100/60 pr-4">
+      <div className="grid grid-cols-3 px-4 pt-6 pb-2">
+        <div className="flex flex-col border-r border-slate-100/60 pr-3">
           <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
-            Tareas pendientes
+            Tareas
           </span>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-5xl font-extrabold tracking-tight text-[#0a58ca] tabular-nums">
+            <span className="text-4xl font-extrabold tracking-tight text-[#0a58ca] tabular-nums">
               {String(pendingCount ?? 0).padStart(2, '0')}
-            </span>
-            <span className="text-[9px] font-bold uppercase text-[#0a58ca]">
-              Pendientes
             </span>
           </div>
         </div>
 
-        <div className="flex flex-col pl-6">
+        <div className="flex flex-col border-r border-slate-100/60 px-3">
           <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
-            Merma Total Histórica
+            Merma Sem
           </span>
           <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-5xl font-extrabold tracking-tight text-[#e51d2e] tabular-nums">
-              {wasteCount ?? 0}
+            <span className="text-4xl font-extrabold tracking-tight text-[#e51d2e] tabular-nums">
+              {wasteCountWeek ?? 0}
             </span>
-            <span className="text-[9px] font-bold uppercase text-[#e51d2e]">
-              Registros
+          </div>
+        </div>
+
+        <div className="flex flex-col pl-3">
+          <span className="text-[9px] font-bold uppercase tracking-widest text-slate-500">
+            Merma Total
+          </span>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-4xl font-extrabold tracking-tight text-[#e51d2e] tabular-nums">
+              {wasteCount ?? 0}
             </span>
           </div>
         </div>
