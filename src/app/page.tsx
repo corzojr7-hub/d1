@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { FileText, ClipboardPlus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import WasteCard from "@/components/waste/WasteCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
