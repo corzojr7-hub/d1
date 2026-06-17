@@ -64,18 +64,18 @@ export default function TopBar() {
       </div>
 
       {(() => {
-        const dias = ["Domingo", "Lunes", "Martes", "MiǸrcoles", "Jueves", "Viernes", "Sǭbado"];
+        const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
         const alertas = [
-          "Atencin al cliente y revisin de abandonados",
-          "Da de limpieza de polvo y fechas (FEFO)",
-          "Da de actualizar precios y limpiar acrlicos",
-          "Da de limpieza de parales y rotacin interna",
-          "Da de raspar piso, chicles y revisar exhibiciones",
-          "Da de facing milimǸtrico y remover basuras ocultas",
+          "Atención al cliente y revisión de abandonados",
+          "Día de limpieza de polvo y fechas (FEFO)",
+          "Día de actualizar precios y limpiar acrílicos",
+          "Día de limpieza de parales y rotación interna",
+          "Día de raspar piso, chicles y revisar exhibiciones",
+          "Día de facing milimétrico y remover basuras ocultas",
           "Mantenimiento visual ligero de fin de semana"
         ];
         const today = new Date().getDay();
-        const mensaje = `Y"O Hoy es ${dias[today]} ?" Enfoque de pasillo: ${alertas[today]}`;
+        const mensaje = `✨ Hoy es ${dias[today]} ✨ Enfoque de pasillo: ${alertas[today]}`;
         
         return (
           <div className="w-full overflow-hidden bg-[#c41525] py-1 border-t border-[#e51d2e]/20 flex items-center shadow-inner relative">
@@ -83,9 +83,9 @@ export default function TopBar() {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#c41525] to-transparent z-10" />
             <div className="animate-marquee whitespace-nowrap text-[11px] font-bold tracking-wide text-white/90">
               <span className="mx-8">{mensaje}</span>
-              <span className="mx-8 opacity-50">?</span>
+              <span className="mx-8 opacity-50">•</span>
               <span className="mx-8">{mensaje}</span>
-              <span className="mx-8 opacity-50">?</span>
+              <span className="mx-8 opacity-50">•</span>
               <span className="mx-8">{mensaje}</span>
             </div>
           </div>
