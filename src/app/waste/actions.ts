@@ -183,7 +183,7 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
 
   revalidatePath("/");
   revalidatePath("/waste");
-  redirect("/waste");
+  return {};
 }
 
 const wasteStatusSchema = z.enum(["pendiente_revision", "revisado", "anulado", "recuperado"]);
