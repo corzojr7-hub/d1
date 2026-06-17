@@ -402,8 +402,9 @@ export default function AdminClientPage({
                   name="password"
                   type="password"
                   required
-                  placeholder="Mnimo 6 caracteres"
+                  placeholder="Mínimo 6 caracteres"
                   minLength={6}
+                  autoComplete="new-password"
                   className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
                 />
                 <span className="pl-2 text-[10px] text-slate-400">Se le pedirá cambiarla al iniciar sesión.</span>
