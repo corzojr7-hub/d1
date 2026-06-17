@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { Store, Users, Edit3, X, TrendingUp, AlertCircle, BarChart3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { updateStoreInfo } from "./actions";
 import { toast } from "sonner";
 import type { Profile, DailySale, SalesBudget, WeeklyWaste } from "@/lib/domain/types";
@@ -21,6 +22,7 @@ export default function AdminClientPage({
   const [selectedStore, setSelectedStore] = useState<Profile | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [activeTab, setActiveTab] = useState<"tiendas" | "dashboard">("dashboard");
+  const router = useRouter();
 
   // Filtrar solo tiendas reales (que no sean el admin central)
   const realStores = stores.filter(s => s.role === 'supervisor');
@@ -377,6 +379,7 @@ export default function AdminClientPage({
                 } else {
                   toast.success("Supervisor creado correctamente.");
                   setIsCreating(false);
+                  router.refresh();
                 }
               }}
               className="flex flex-col gap-4"
