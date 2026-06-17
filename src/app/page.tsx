@@ -7,6 +7,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
+import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
 
 export const metadata: Metadata = {
   title: "Inicio — Sistema de Control Operativo de Tienda",
@@ -52,7 +53,8 @@ export default async function Home() {
     { count: pendingCount },
     { data: recentInstructions },
     { count: wasteCount },
-    { count: wasteCountWeek }
+    { count: wasteCountWeek },
+    { data: storeData }
   ] = await Promise.all([
     supabase
       .from("instructions")
@@ -73,12 +75,78 @@ export default async function Home() {
       .from("waste_records")
       .select("*", { count: "exact", head: true })
       .eq("store_code", storeCode)
-      .gte("created_at", startOfWeekIso)
+      .gte("created_at", startOfWeekIso),
+    adminClient
+      .from("stores")
+      .select("monthly_budget, accumulated_sales")
+      .eq("code", storeCode)
+      .single()
   ]);
+
+  const monthlyBudget = storeData?.monthly_budget || 0;
+  const accumulatedSales = storeData?.accumulated_sales || 0;
+  
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+  const currentDay = today.getDate();
+  const remainingDays = Math.max(1, daysInMonth - currentDay);
+  const dailyGoal = Math.max(0, (monthlyBudget - accumulatedSales) / remainingDays);
 
   return (
     <div className="mx-auto max-w-md bg-white min-h-screen pb-24">
       <StoreTeamSummary />
+
+      {/* Banner Meta del Día */}
+      <div className="bg-emerald-600 px-4 py-3 flex items-center justify-between shadow-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">🎯</span>
+          <div>
+            <p className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest">Meta del Día</p>
+            <p className="text-lg font-extrabold text-white">
+              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(dailyGoal)}
+            </p>
+          </div>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold text-emerald-100 uppercase tracking-widest">Días Restantes</p>
+          <p className="text-lg font-extrabold text-white tabular-nums">{remainingDays}</p>
+        </div>
+      </div>
+
+      {/* Bloque Presupuesto */}
+      <div className="mx-4 mt-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-sm font-bold text-slate-800">Control de Presupuesto</h2>
+          <BudgetEditModal 
+            storeCode={storeCode || ""} 
+            currentBudget={monthlyBudget} 
+            currentAccumulated={accumulatedSales} 
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Objetivo Mes</p>
+            <p className="mt-1 text-sm font-bold text-slate-800">
+              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(monthlyBudget)}
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Venta Acumulada</p>
+            <p className="mt-1 text-sm font-bold text-blue-600">
+              {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(accumulatedSales)}
+            </p>
+          </div>
+        </div>
+        <div className="mt-3 bg-slate-50 rounded-xl p-2">
+           <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
+             <div className="bg-blue-600 h-1.5 rounded-full" style={{ width: `${Math.min(100, (accumulatedSales / (monthlyBudget || 1)) * 100)}%` }}></div>
+           </div>
+           <div className="flex justify-between text-[9px] font-bold text-slate-500">
+             <span>0%</span>
+             <span>{Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}% Cumplimiento</span>
+           </div>
+        </div>
+      </div>
+
 
       {/* Instruccion Activa Card */}
       {recentInstructions && recentInstructions.length > 0 && (
