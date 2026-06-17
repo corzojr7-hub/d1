@@ -69,7 +69,7 @@ export async function updateTeam(formData: FormData): Promise<void> {
 
   const assistants = parseAssistants(formData);
   const areas = parseAreas(formData);
-  const basic_tasks = parseBasicTasks(formData);
+
   const assistantNames = new Set(assistants.map((assistant) => assistant.name));
   const secondInCharge = getString(formData, "second_in_charge");
   const thirdInCharge = getString(formData, "third_in_charge");
@@ -86,7 +86,6 @@ export async function updateTeam(formData: FormData): Promise<void> {
       assistant_count: assistants.map(a => ({ name: a.name, contract_type: a.contract_type })).length,
       assistants: assistants.map(a => ({ name: a.name, contract_type: a.contract_type })),
       areas,
-      basic_tasks,
     })
     .eq("id", profile.id);
 

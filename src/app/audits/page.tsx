@@ -15,7 +15,7 @@ export default async function AuditsPage() {
   // Get current store profile to get the id
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, basic_tasks, assistants")
+    .select("id, role, basic_tasks, assistants")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -46,6 +46,7 @@ export default async function AuditsPage() {
       configuredBasics={profile.basic_tasks || []}
       assistants={profile.assistants || []}
       today={today}
+      isSupervisor={profile.role === 'supervisor' || profile.role === 'admin'}
     />
   );
 }

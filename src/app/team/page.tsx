@@ -180,30 +180,7 @@ export default function TeamPage() {
     }));
   }
 
-  function addBasicTask() {
-    setProfile((current) => ({
-      ...current,
-      basic_tasks: [
-        ...(current.basic_tasks || []),
-        { id: generateId(), name: "", type: "apertura", deadline_time: "08:00" },
-      ],
-    }));
-  }
 
-  function removeBasicTask(indexToRemove: number) {
-    setProfile((current) => ({
-      ...current,
-      basic_tasks: (current.basic_tasks || []).filter((_, idx) => idx !== indexToRemove),
-    }));
-  }
-
-  function updateBasicTask(index: number, field: keyof BasicTaskConfig, value: string) {
-    setProfile((current) => {
-      const nextTasks = [...(current.basic_tasks || [])];
-      nextTasks[index] = { ...nextTasks[index], [field]: value };
-      return { ...current, basic_tasks: nextTasks };
-    });
-  }
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -500,103 +477,7 @@ export default function TeamPage() {
           <input type="hidden" name="area_count" value={profile.areas?.length || 0} />
         </section>
 
-        {/* Básicos Operativos */}
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
-              Básicos Operativos
-            </h2>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
-              {profile.basic_tasks?.length || 0}
-            </span>
-          </div>
 
-          <div className="space-y-4">
-            {(profile.basic_tasks || []).map((task, index) => (
-              <div
-                key={task.id}
-                className="relative rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
-              >
-                {profile.role === 'supervisor' && (
-                  <button
-                    type="button"
-                    onClick={() => removeBasicTask(index)}
-                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100"
-                    title="Eliminar básico"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
-                )}
-                
-                <div className="mb-3 text-[10px] font-bold uppercase text-slate-400">
-                  Básico {index + 1}
-                </div>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-12 pr-8">
-                  <div className="sm:col-span-6">
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                        Nombre del básico
-                      </span>
-                      <input
-                        name={`task_name_${index}`}
-                        value={task.name}
-                        onChange={(e) => updateBasicTask(index, "name", e.target.value)}
-                        className={fieldClassName}
-                        placeholder="Ej. Pisos limpios"
-                      />
-                    </label>
-                  </div>
-                  
-                  <div className="sm:col-span-3">
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                        Tipo
-                      </span>
-                      <select
-                        name={`task_type_${index}`}
-                        value={task.type}
-                        onChange={(e) => updateBasicTask(index, "type", e.target.value as TaskType)}
-                        className={fieldClassName}
-                      >
-                        <option value="apertura">Apertura</option>
-                        <option value="cierre">Cierre</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="sm:col-span-3">
-                    <label className="block">
-                      <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                        Hora Límite
-                      </span>
-                      <input
-                        type="time"
-                        name={`task_deadline_${index}`}
-                        value={task.deadline_time}
-                        onChange={(e) => updateBasicTask(index, "deadline_time", e.target.value)}
-                        className={fieldClassName}
-                      />
-                    </label>
-                  </div>
-                </div>
-                <input type="hidden" name={`task_id_${index}`} value={task.id} />
-              </div>
-            ))}
-
-            {profile.role === 'supervisor' && (
-              <button
-                type="button"
-                onClick={addBasicTask}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-sm font-bold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
-              >
-                <Plus className="h-4 w-4" />
-                Agregar Básico
-              </button>
-            )}
-          </div>
-          <input type="hidden" name="basic_task_count" value={profile.basic_tasks?.length || 0} />
-        </section>
 
         {profile.role === 'supervisor' ? (
           <button

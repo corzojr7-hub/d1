@@ -79,3 +79,20 @@ export async function updateDailyTaskStatus(
   revalidatePath("/audits");
   revalidatePath("/audits/daily");
 }
+
+export async function saveBasicTasksConfig(basic_tasks: any[]) {
+  const { profile, supabase } = await requireSupervisor();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ basic_tasks })
+    .eq("id", profile.id);
+
+  if (error) {
+    console.error("Error al guardar configuración de básicos:", error);
+    throw new Error("Error al guardar configuración.");
+  }
+
+  revalidatePath("/audits");
+  revalidatePath("/instructions");
+}

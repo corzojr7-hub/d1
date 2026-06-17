@@ -3,7 +3,8 @@
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Clock, AlertTriangle, ChevronRight, XCircle } from "lucide-react";
-import { assignDailyTasks, updateDailyTaskStatus } from "./actions";
+import { assignDailyTasks, updateDailyTaskStatus, saveBasicTasksConfig } from "./actions";
+import { Trash2, Plus, Save } from "lucide-react";
 import { useProfile } from '@/components/ui/ProfileContext';
 import type { DailyBasic, BasicTaskConfig, StoreAssistant, DailyBasicStatus, DailyBasicFault } from "@/lib/domain/types";
 import { toast } from "sonner";
@@ -13,16 +14,21 @@ export default function ChecklistsClient({
   configuredBasics,
   assistants,
   today,
+  isSupervisor = false,
 }: {
   initialTasks: DailyBasic[];
   configuredBasics: BasicTaskConfig[];
   assistants: StoreAssistant[];
   today: string;
+  isSupervisor?: boolean;
 }) {
   const { profile } = useProfile();
   const operator = profile?.display_name;
-  const [activeTab, setActiveTab] = useState<"asignacion" | "verificacion">("verificacion");
+  const [activeTab, setActiveTab] = useState<"asignacion" | "verificacion" | "configuracion">("verificacion");
   const [isPending, startTransition] = useTransition();
+
+  // State for configuration tab
+  const [localBasics, setLocalBasics] = useState<BasicTaskConfig[]>(configuredBasics);
 
   // State for assignment tab
   const [assignments, setAssignments] = useState<Record<string, string>>({});
@@ -73,6 +79,40 @@ export default function ChecklistsClient({
     });
   }
 
+  function generateId() {
+    return Math.random().toString(36).substring(2, 9);
+  }
+
+  function addBasicTask() {
+    setLocalBasics([
+      ...localBasics,
+      { id: generateId(), name: "", type: "apertura", deadline_time: "08:00" },
+    ]);
+  }
+
+  function removeBasicTask(indexToRemove: number) {
+    setLocalBasics(localBasics.filter((_, idx) => idx !== indexToRemove));
+  }
+
+  function updateBasicTask(index: number, field: keyof BasicTaskConfig, value: string) {
+    const nextTasks = [...localBasics];
+    nextTasks[index] = { ...nextTasks[index], [field]: value };
+    setLocalBasics(nextTasks);
+  }
+
+  function handleSaveConfig(e: React.FormEvent) {
+    e.preventDefault();
+    const validTasks = localBasics.filter((task) => task.name.trim().length > 0 && task.deadline_time.length > 0);
+    startTransition(async () => {
+      try {
+        await saveBasicTasksConfig(validTasks);
+        toast.success("Configuración de básicos guardada.");
+      } catch {
+        toast.error("Error al guardar configuración.");
+      }
+    });
+  }
+
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
       <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
@@ -112,6 +152,16 @@ export default function ChecklistsClient({
         >
           Asignar
         </button>
+        {isSupervisor && (
+          <button
+            onClick={() => setActiveTab("configuracion")}
+            className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-colors ${
+              activeTab === "configuracion" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+            }`}
+          >
+            Configurar
+          </button>
+        )}
         <Link
           href="/audits/analytics"
           className="flex items-center justify-center px-3 py-2 text-[13px] font-bold rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
@@ -288,6 +338,92 @@ export default function ChecklistsClient({
               })
             )}
           </div>
+        )}
+
+        {activeTab === "configuracion" && isSupervisor && (
+          <form onSubmit={handleSaveConfig} className="space-y-4">
+            <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100">
+              <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase mb-4">
+                Configuración de Básicos
+              </h2>
+              
+              <div className="space-y-4">
+                {localBasics.map((task, index) => (
+                  <div key={task.id} className="relative rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => removeBasicTask(index)}
+                      className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100"
+                      title="Eliminar básico"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                    
+                    <div className="mb-3 text-[10px] font-bold uppercase text-slate-400">
+                      Básico {index + 1}
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-12 pr-8">
+                      <div className="sm:col-span-6">
+                        <label className="block">
+                          <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">Nombre del básico</span>
+                          <input
+                            value={task.name}
+                            onChange={(e) => updateBasicTask(index, "name", e.target.value)}
+                            className="min-h-10 w-full rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                            placeholder="Ej. Pisos limpios"
+                          />
+                        </label>
+                      </div>
+                      
+                      <div className="sm:col-span-3">
+                        <label className="block">
+                          <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">Tipo</span>
+                          <select
+                            value={task.type}
+                            onChange={(e) => updateBasicTask(index, "type", e.target.value as any)}
+                            className="min-h-10 w-full rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="apertura">Apertura</option>
+                            <option value="cierre">Cierre</option>
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="sm:col-span-3">
+                        <label className="block">
+                          <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">Hora Límite</span>
+                          <input
+                            type="time"
+                            value={task.deadline_time}
+                            onChange={(e) => updateBasicTask(index, "deadline_time", e.target.value)}
+                            className="min-h-10 w-full rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={addBasicTask}
+                  className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-sm font-bold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Plus className="h-4 w-4" /> Agregar Básico
+                </button>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isPending}
+              className="mt-6 w-full flex items-center justify-center gap-2 rounded-full bg-[#e51d2e] py-3.5 text-sm font-bold text-white shadow-lg active:scale-95 disabled:opacity-70 transition-all"
+            >
+              <Save className="h-5 w-5" />
+              {isPending ? "Guardando..." : "Guardar Configuración"}
+            </button>
+          </form>
         )}
       </div>
     </div>

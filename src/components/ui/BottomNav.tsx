@@ -11,7 +11,6 @@ const allNavItems = [
   { href: "/dashboard", label: "KPIs", icon: BarChart3 },
   { href: "/instructions", label: "Tareas", icon: ClipboardList },
   { href: "/waste", label: "Merma", icon: Trash2 },
-  { href: "/audits", label: "Checklist", icon: ClipboardCheck },
   { href: "/team", label: "Equipo", icon: UsersRound },
 ] as const;
 
