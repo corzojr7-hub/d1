@@ -136,7 +136,7 @@ export default async function WasteIndex({
       </div>
 
       {/* Paginación Nativa SSR */}
-      {totalRecords && totalRecords > pageSize && (
+      {totalRecords !== null && totalRecords > pageSize && (
         <div className="mt-8 flex items-center justify-between px-2 text-sm font-bold text-slate-600">
           {page > 1 ? (
             <Link
