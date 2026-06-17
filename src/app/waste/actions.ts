@@ -60,7 +60,7 @@ const submitWasteSchema = z.object({
   transportEvidence: z.any().optional()
 });
 
-export async function submitWaste(formData: FormData): Promise<void> {
+export async function submitWaste(formData: FormData): Promise<{ error?: string }> {
   const { profile, supabase } = await requireAuth();
 
   const rawData = {
@@ -78,7 +78,13 @@ export async function submitWaste(formData: FormData): Promise<void> {
     transportEvidence: formData.get("transport_evidence") ? JSON.parse(getString(formData, "transport_evidence")) : undefined
   };
 
-  const validatedData = submitWasteSchema.parse(rawData);
+  let validatedData;
+  try {
+    validatedData = submitWasteSchema.parse(rawData);
+  } catch (err: any) {
+    return { error: err.errors ? err.errors[0].message : err.message };
+  }
+
   if (validatedData.depositedBy) {
     validateOperatorName(profile, validatedData.depositedBy);
   }
@@ -111,6 +117,8 @@ export async function submitWaste(formData: FormData): Promise<void> {
     if (error) throw new Error(`Error subiendo ${label}: ${error.message}`);
     return filePath;
   }
+
+  try {
 
   if (reason === "averia_transporte" || reason === "reporte_calidad") {
     const urls: { novedad: string; lote: string; proveedor: string; cantidades: string } = {
@@ -158,10 +166,13 @@ export async function submitWaste(formData: FormData): Promise<void> {
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
   };
 
-  const { error } = await supabase.from("waste_records").insert(payload);
+    const { error } = await supabase.from("waste_records").insert(payload);
 
-  if (error) {
-    throw new Error(error.message);
+    if (error) {
+      return { error: error.message };
+    }
+  } catch (err: any) {
+    return { error: err.message };
   }
 
   revalidatePath("/");

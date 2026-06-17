@@ -273,7 +273,11 @@ export default function NewWastePage() {
 
             startTransition(async () => {
               try {
-                await submitWaste(formData);
+                const result = await submitWaste(formData);
+                if (result?.error) {
+                  toast.error(result.error);
+                  return;
+                }
                 await set("waste_draft", null);
                 router.push("/waste");
               } catch (err: any) {
