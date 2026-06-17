@@ -6,9 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
-import WasteCard from "@/components/waste/WasteCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
-import DashboardCharts from "@/components/dashboard/DashboardCharts";
 
 export const metadata: Metadata = {
   title: "Inicio — Sistema de Control Operativo de Tienda",
@@ -54,9 +52,7 @@ export default async function Home() {
     { count: pendingCount },
     { data: recentInstructions },
     { count: wasteCount },
-    { count: wasteCountWeek },
-    { data: allWaste },
-    { data: storeProfiles }
+    { count: wasteCountWeek }
   ] = await Promise.all([
     supabase
       .from("instructions")
@@ -77,53 +73,8 @@ export default async function Home() {
       .from("waste_records")
       .select("*", { count: "exact", head: true })
       .eq("store_code", storeCode)
-      .gte("created_at", startOfWeekIso),
-    adminClient
-      .from("waste_records")
-      .select("*, products(name)")
-      .eq("store_code", storeCode)
-      .order("created_at", { ascending: false })
-      .limit(50),
-    supabase
-      .from("profiles")
-      .select("user_id, display_name")
-      .eq("store_code", storeCode)
+      .gte("created_at", startOfWeekIso)
   ]);
-
-  const profileMap = new Map((storeProfiles || []).map((p) => [p.user_id, p.display_name]));
-
-  const recentWaste = allWaste ? allWaste.slice(0, 3) : [];
-
-  // Aggregation for Dashboard
-  const productWasteMap = new Map<string, number>();
-  const reasonMap = new Map<string, number>();
-  const userWasteMap = new Map<string, number>();
-
-  if (allWaste) {
-    for (const record of allWaste) {
-      const productName = record.products?.name ?? record.barcode_id;
-      productWasteMap.set(productName, (productWasteMap.get(productName) || 0) + record.qty);
-      
-      const reason = record.reason;
-      reasonMap.set(reason, (reasonMap.get(reason) || 0) + record.qty);
-      
-      const author = profileMap.get(record.created_by) || "Desconocido";
-      userWasteMap.set(author, (userWasteMap.get(author) || 0) + record.qty);
-    }
-  }
-
-  const topProducts = Array.from(productWasteMap.entries())
-    .map(([name, qty]) => ({ name, qty }))
-    .sort((a, b) => b.qty - a.qty)
-    .slice(0, 5);
-
-  const reasonData = Array.from(reasonMap.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
-
-  const userWasteData = Array.from(userWasteMap.entries())
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value);
 
   return (
     <div className="mx-auto max-w-md bg-white min-h-screen pb-24">
@@ -227,31 +178,6 @@ export default async function Home() {
         </Link>
       </div>
 
-      {/* Analytics Dashboard */}
-      <section className="mt-10 px-4">
-        <div className="mb-4">
-          <h2 className="text-[17px] font-bold text-[#1d1b20]">
-            Métricas de Merma
-          </h2>
-          <p className="mt-0.5 text-[11px] text-[#64748b]">
-            Estadísticas globales de la tienda
-          </p>
-        </div>
-        {allWaste && allWaste.length > 0 ? (
-          <DashboardCharts
-            topProducts={topProducts}
-            reasonData={reasonData}
-            userWasteData={userWasteData}
-          />
-        ) : (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-8 text-center">
-            <p className="text-xs font-medium text-slate-500">
-              No hay mermas registradas todavía para generar gráficas.
-            </p>
-          </div>
-        )}
-      </section>
-
       {/* Herramientas Adicionales (Siempre visibles) */}
       <section className="mt-10 px-4">
         <div className="mb-4 flex items-end justify-between">
@@ -333,34 +259,6 @@ export default async function Home() {
             Crear primera instrucción
           </Link>
         </div>
-      )}
-
-      {/* Registros de Merma Recientes */}
-      {recentWaste && recentWaste.length > 0 && (
-        <section className="mt-10 px-4">
-          <div className="mb-4 flex items-end justify-between">
-            <div>
-              <h2 className="text-[17px] font-bold text-[#1d1b20]">
-                Registros Recientes
-              </h2>
-              <p className="mt-0.5 text-[11px] text-[#64748b]">
-                Últimas 3 mermas procesadas
-              </p>
-            </div>
-            <Link
-              href="/waste"
-              className="text-xs font-bold text-[#e51d2e]"
-            >
-              Ver Todo &gt;
-            </Link>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            {recentWaste.map((rec) => (
-              <WasteCard key={rec.id} record={rec} />
-            ))}
-          </div>
-        </section>
       )}
     </div>
   );
