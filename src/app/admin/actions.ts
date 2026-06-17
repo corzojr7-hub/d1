@@ -14,7 +14,7 @@ const updateStoreSchema = z.object({
 });
 
 const createSupervisorSchema = z.object({
-  email: z.string().email("Correo inválido"),
+  username: z.string().min(3, "Mínimo 3 caracteres"),
   password: z.string().min(6, "Mínimo 6 caracteres"),
   supervisorName: z.string().min(1, "El nombre es obligatorio"),
   storeCode: z.string().regex(/^[A-Z0-9_-]{2,20}$/, "El store_code debe tener 2-20 caracteres alfanuméricos"),
@@ -72,7 +72,7 @@ export async function createSupervisor(formData: FormData) {
   if (!(await checkRateLimit(profile.id, 10, 60000))) return { error: "Rate limit exceeded" };
 
   const parsed = createSupervisorSchema.safeParse({
-    email: formData.get("email") as string,
+    username: formData.get("username") as string,
     password: formData.get("password") as string,
     supervisorName: formData.get("supervisor_name") as string,
     storeCode: formData.get("store_code") as string,
@@ -83,7 +83,7 @@ export async function createSupervisor(formData: FormData) {
     return { error: parsed.error.issues[0]?.message || "Error de validación" };
   }
 
-  const { email, password, supervisorName, storeCode, storeName } = parsed.data;
+  const { username, password, supervisorName, storeCode, storeName } = parsed.data;
 
   // Usamos el cliente admin que creamos, con permisos para saltar RLS y crear usuarios
   const { createAdminClient } = await import("@/lib/supabase/admin");
@@ -91,7 +91,7 @@ export async function createSupervisor(formData: FormData) {
 
   // 1. Crear el usuario en Auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: email.trim(),
+    email: username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mid1.com`,
     password: password,
     email_confirm: true,
     user_metadata: {
@@ -135,7 +135,7 @@ export async function createSupervisor(formData: FormData) {
     store_code: profile.store_code, // el admin original tiene un store_code "ADMIN" o global
     action_type: "CREATE_SUPERVISOR",
     target_id: newUserId,
-    details: { role: "supervisor", email: email.trim(), store_code: storeCode.trim() }
+    details: { role: "supervisor", email: authData.user?.email || username.trim(), store_code: storeCode.trim() }
   });
 
   revalidatePath("/admin");

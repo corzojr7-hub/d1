@@ -383,13 +383,13 @@ export default function AdminClientPage({
             >
               <label className="flex flex-col gap-1.5">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wider pl-2">
-                  Correo Electrnico (Login)
+                  Usuario (Login)
                 </span>
                 <input
-                  name="email"
-                  type="email"
+                  name="username"
+                  type="text"
                   required
-                  placeholder="ej. dairo@tiendad1.com"
+                  placeholder="ej. dairo o dairo@tiendad1.com"
                   className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
                 />
               </label>

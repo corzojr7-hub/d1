@@ -32,10 +32,10 @@ export default function LoginPage() {
         <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
           <form action={loginAction} className="space-y-4">
             <TextField
-              label="Correo o Usuario"
+              label="Usuario"
               name="email"
               type="text"
-              placeholder="Ej. mi.tienda@d1.com"
+              placeholder="Ej. mi.tienda o mi.tienda@mid1.com"
               autoComplete="username"
               required
             />

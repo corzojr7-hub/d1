@@ -57,8 +57,8 @@ export async function login(
   emailOrUser = emailOrUser.trim();
   // Convert username to fake email if it doesn't have @
   if (!emailOrUser.includes("@")) {
-    const cleanUser = emailOrUser.toLowerCase().replace(/[^a-z0-9]/g, "");
-    emailOrUser = `${cleanUser}@tiendad1.com`;
+    const cleanUser = emailOrUser.toLowerCase().trim();
+    emailOrUser = `${cleanUser}@mid1.com`;
   }
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
