@@ -20,6 +20,7 @@ export default function NewWastePage() {
   const { profile } = useProfile();
   const operator = profile?.display_name;
   const assistants = profile?.assistants.map((a: any) => a.name) || [];
+  const teamMembers = Array.from(new Set(operator ? [operator, ...assistants] : assistants)) as string[];
   const areas = profile?.areas || [];
 
   const [barcode, setBarcode] = useState("");
@@ -348,15 +349,15 @@ export default function NewWastePage() {
                 <span className="mb-2 block text-sm font-semibold text-slate-700">
                   Depositado por
                 </span>
-                {assistants.length > 0 ? (
+                {teamMembers.length > 0 ? (
                   <select
                     name="deposited_by"
-                    defaultValue={assistants.includes(operator) ? operator : ""}
+                    defaultValue={teamMembers.includes(operator) ? operator : ""}
                     required
                     className={`${inputBase} appearance-none`}
                   >
                     <option value="" disabled>Seleccionar...</option>
-                    {assistants.map((name: string) => (
+                    {teamMembers.map((name: string) => (
                       <option key={name} value={name}>{name}</option>
                     ))}
                   </select>
