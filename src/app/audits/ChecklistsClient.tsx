@@ -160,6 +160,9 @@ export default function ChecklistsClient({
                         className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
                       >
                         <option value="">-- Seleccionar Asistente --</option>
+                        {operator && (
+                          <option value={operator}>{operator} (Tú)</option>
+                        )}
                         {assistants.map((a, i) => (
                           <option key={i} value={a.name}>{a.name}</option>
                         ))}
