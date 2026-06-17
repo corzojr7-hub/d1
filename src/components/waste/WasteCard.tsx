@@ -60,7 +60,7 @@ const reasonColors: Record<string, string> = {
   otro: "text-slate-600",
 };
 
-export default function WasteCard({ record }: { record: WasteRecord }) {
+export default function WasteCard({ record, userRole }: { record: WasteRecord, userRole?: string }) {
   const [pending, startTransition] = useTransition();
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -88,33 +88,38 @@ export default function WasteCard({ record }: { record: WasteRecord }) {
         }`}
       >
         <div className="absolute right-4 top-4 flex items-center gap-1">
-          <button
-            onClick={() => setShowEdit(true)}
-            disabled={isDeleting}
-            className="rounded-full p-1.5 text-slate-300 hover:bg-slate-50 hover:text-blue-500 transition-colors disabled:opacity-50"
-            title="Editar merma"
-          >
-            <Pencil className="h-4 w-4" />
-          </button>
-          <button
-            onClick={async () => {
-              if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
-                setIsDeleting(true);
-                try {
-                  await deleteWasteRecord(record.id);
-                  toast.success("Merma eliminada");
-                } catch (error) {
-                  toast.error("Error al eliminar la merma");
-                  setIsDeleting(false);
+          {userRole === "supervisor" && (
+            <button
+              onClick={() => setShowEdit(true)}
+              disabled={isDeleting}
+              className="rounded-full p-1.5 text-slate-300 hover:bg-slate-50 hover:text-blue-500 transition-colors disabled:opacity-50"
+              title="Editar merma"
+            >
+              <Pencil className="h-4 w-4" />
+            </button>
+          )}
+          
+          {userRole === "supervisor" && (
+            <button
+              onClick={async () => {
+                if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
+                  setIsDeleting(true);
+                  try {
+                    await deleteWasteRecord(record.id);
+                    toast.success("Merma eliminada");
+                  } catch (error) {
+                    toast.error("Error al eliminar la merma");
+                    setIsDeleting(false);
+                  }
                 }
-              }
-            }}
-            disabled={isDeleting}
-            className="rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
-            title="Eliminar merma"
-          >
-            <Trash2 className="h-4 w-4" />
-          </button>
+              }}
+              disabled={isDeleting}
+              className="rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+              title="Eliminar merma"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
 
         {/* Fila 1: Categoría / Área + Fecha */}
@@ -211,7 +216,7 @@ export default function WasteCard({ record }: { record: WasteRecord }) {
           <select
             value={record.status}
             onChange={handleChange}
-            disabled={pending}
+            disabled={pending || userRole !== "supervisor"}
             className={`rounded-lg border-0 bg-transparent px-1 py-0.5 text-xs font-bold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
               statusTextColors[record.status] ?? "text-slate-600"
             }`}
