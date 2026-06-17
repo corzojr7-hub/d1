@@ -14,6 +14,12 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const supabase = await createClient();
+  const { profile } = await requireAuth();
+
+  // Redirigir si es el administrador central
+  if (profile.role === "admin") {
+    redirect("/admin");
+  }
 
   // Obtener el perfil del usuario actual para saber el store_code
   const { data: { user } } = await supabase.auth.getUser();

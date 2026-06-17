@@ -32,6 +32,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 2. CORRECCION POLITICA RLS DE PROFILES
 -- Eliminar la politica permisiva si existe
 DROP POLICY IF EXISTS "Users can update their own profile" ON profiles;
+DROP POLICY IF EXISTS "profiles_update_own_display_name_only" ON profiles;
 
 -- Recrear politica de update estrictamente restrictiva (solo nombre y password)
 CREATE POLICY "profiles_update_own_display_name_only" ON profiles

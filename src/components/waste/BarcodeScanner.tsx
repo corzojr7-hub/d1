@@ -18,10 +18,8 @@ export default function BarcodeScanner({
 
   const { ref } = useZxing({
     paused,
-    formats: ["retail_codes", "code_128", "code_39", "qr_code"],
-    trySkew: true,
     onDecodeResult(result) {
-      const value = result.rawValue.trim();
+      const value = result.getText().trim();
       if (!value) return;
       setPaused(true);
       onScan(value);

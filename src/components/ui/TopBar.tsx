@@ -49,7 +49,7 @@ export default function TopBar() {
             
             {/* Simple dropdown menu on click */}
             {isOpen && (
-              <div className="absolute right-0 mt-1 flex w-48 flex-col rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5">
+              <div className="absolute right-0 mt-1 flex w-48 flex-col rounded-xl bg-white p-1 shadow-lg ring-1 ring-black/5 z-50">
                 <div className="px-3 py-2 text-xs font-bold text-slate-400">Seleccionar Rol</div>
                 <button
                   onClick={() => { setOperator(profile.display_name || "Supervisor"); setIsOpen(false); }}
