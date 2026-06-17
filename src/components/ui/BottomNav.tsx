@@ -19,7 +19,14 @@ export default function BottomNav() {
   const pathname = usePathname();
   const { operator, profile } = useOperator();
   
-  const navItems = allNavItems;
+  const isAdmin = profile?.role === "admin";
+
+  const navItems = allNavItems.map(item => {
+    if (!isAdmin) return item;
+    // Redirigir rutas operativas a dashboards administrativos
+    if (item.href === "/") return { ...item, href: "/admin" };
+    return { ...item, href: `/admin${item.href}` };
+  });
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-zinc-100 bg-white pb-[env(safe-area-inset-bottom)]">

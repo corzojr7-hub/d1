@@ -21,8 +21,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col">
       <TopBar />
-      <main className={`flex-1 ${!isAdmin ? 'pb-20' : ''}`}>{children}</main>
-      {!isAdmin && <BottomNav />}
+      <main className="flex-1 pb-20">{children}</main>
+      <BottomNav />
     </div>
   );
 }

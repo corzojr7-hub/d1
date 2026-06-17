@@ -13,10 +13,10 @@ export default function BarcodeScannerClient({ onDetect, onClose }: BarcodeScann
 
   const { ref } = useZxing({
     onDecodeResult(result) {
-      onDetect(result.getText());
+      onDetect(result.rawValue);
     },
     onError(error) {
-      if (error.message.includes("Permission denied") || error.name === "NotAllowedError") {
+      if (error instanceof Error && (error.message.includes("Permission denied") || error.name === "NotAllowedError")) {
         setCameraError("Permiso de cámara denegado. Por favor, habilítalo en tu navegador.");
       }
     },
