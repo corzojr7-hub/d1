@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
@@ -22,8 +25,13 @@ export default async function DashboardPage() {
 
   if (!profile) return <div>Cargando...</div>;
 
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   // 1. Fetch Waste (Merma) (Límite rápido por rendimiento)
-  const wastePromise = supabase
+  const wastePromise = adminClient
     .from("waste_records")
     .select("*, products(name)")
     .eq("store_code", profile.store_code)
@@ -31,7 +39,7 @@ export default async function DashboardPage() {
     .limit(300); // Acortado a 300 para gráficos de 30 días según auditoría
 
   // 2. Fetch Impulse Records (Límite rápido)
-  const impulsePromise = supabase
+  const impulsePromise = adminClient
     .from("impulse_records")
     .select("*")
     .eq("store_code", profile.store_code)
@@ -39,8 +47,16 @@ export default async function DashboardPage() {
     .limit(30); // Acortado a 30 días
 
   // 3. Fetch POS Metrics (Límite rápido)
-  const posPromise = supabase
+  const posPromise = adminClient
     .from("pos_metrics")
+    .select("*")
+    .eq("store_code", profile.store_code)
+    .order("date", { ascending: false })
+    .limit(30); // Acortado a 30 días
+
+  // 4. Fetch Audits (Auditorías completadas)
+  const auditsPromise = adminClient
+    .from("audits")
     .select("*")
     .eq("store_code", profile.store_code)
     .order("date", { ascending: false })

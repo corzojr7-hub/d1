@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import WasteCard from "@/components/waste/WasteCard";
 
 export const metadata: Metadata = {
@@ -32,17 +33,22 @@ export default async function WasteIndex({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   const [
     { data: records, count: totalRecords },
     { data: storeProfiles }
   ] = await Promise.all([
-    supabase
+    adminClient
       .from("waste_records")
       .select("*, products(name)", { count: "exact" })
       .eq("store_code", storeCode)
       .order("created_at", { ascending: false })
       .range(from, to),
-    supabase
+    adminClient
       .from("profiles")
       .select("user_id, display_name")
       .eq("store_code", storeCode)
