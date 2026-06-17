@@ -90,8 +90,8 @@ export async function submitWaste(formData: FormData): Promise<void> {
   let imageUrl: string | null = null;
   let transportEvidenceUrls: { novedad: string; lote: string; proveedor: string; cantidades: string } | null = null;
 
-  async function processAndUploadImage(file: File | null, label: string): Promise<string | null> {
-    if (!file || file.size === 0) return null;
+  async function processAndUploadImage(file: any, label: string): Promise<string | null> {
+    if (!file || typeof file === 'string' || !file.arrayBuffer || file.size === 0) return null;
     const fileExt = "jpg";
     const fileName = `${label}_${dateStr}_${productName}.${fileExt}`;
     const filePath = `${profile.store_code}/${profile.id}/${Date.now()}_${fileName}`;
@@ -118,15 +118,15 @@ export async function submitWaste(formData: FormData): Promise<void> {
     };
 
     if (reason === "averia_transporte") {
-      urls.proveedor = await processAndUploadImage(formData.get("evidence_detra") as File | null, "DETRA") || "";
-      urls.lote = await processAndUploadImage(formData.get("evidence_rotulo") as File | null, "ROTULO") || "";
-      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad") as File | null, "NOVEDAD") || "";
-      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades") as File | null, "UNIDADES") || "";
+      urls.proveedor = await processAndUploadImage(formData.get("evidence_detra"), "DETRA") || "";
+      urls.lote = await processAndUploadImage(formData.get("evidence_rotulo"), "ROTULO") || "";
+      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad"), "NOVEDAD") || "";
+      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades"), "UNIDADES") || "";
     } else {
-      urls.proveedor = await processAndUploadImage(formData.get("evidence_proveedor") as File | null, "PROVEEDOR") || "";
-      urls.lote = await processAndUploadImage(formData.get("evidence_lote") as File | null, "LOTE_VENCIMIENTO") || "";
-      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad") as File | null, "NOVEDAD") || "";
-      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades") as File | null, "UNIDADES") || "";
+      urls.proveedor = await processAndUploadImage(formData.get("evidence_proveedor"), "PROVEEDOR") || "";
+      urls.lote = await processAndUploadImage(formData.get("evidence_lote"), "LOTE_VENCIMIENTO") || "";
+      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad"), "NOVEDAD") || "";
+      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades"), "UNIDADES") || "";
     }
     
     // We check if at least one photo was uploaded successfully before storing JSON
@@ -135,7 +135,7 @@ export async function submitWaste(formData: FormData): Promise<void> {
     }
   } else {
     // Normal single evidence upload
-    imageUrl = await processAndUploadImage(formData.get("evidence") as File | null, "EVIDENCIA");
+    imageUrl = await processAndUploadImage(formData.get("evidence"), "EVIDENCIA");
   }
 
   const payload: TablesInsert<"waste_records"> = {
