@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { TablesInsert } from "@/lib/supabase/database.types";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
+import { createAdminClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 export async function findProductByBarcode(
@@ -166,7 +167,8 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
   };
 
-    const { error } = await supabase.from("waste_records").insert(payload);
+    const adminClient = await createAdminClient();
+    const { error } = await adminClient.from("waste_records").insert(payload);
 
     if (error) {
       return { error: error.message };
