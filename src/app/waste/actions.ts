@@ -83,39 +83,60 @@ export async function submitWaste(formData: FormData): Promise<void> {
     validateOperatorName(profile, validatedData.depositedBy);
   }
 
-  const evidence = formData.get("evidence");
-  let imageUrl: string | null = null;
+  const reason = validatedData.reason;
+  const productName = getString(formData, "product_name")?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
+  const dateStr = new Date().toISOString().split('T')[0];
 
-  if (evidence instanceof File && evidence.size > 0) {
-    const fileExt = "jpg"; // Forzamos jpg post-compresión
-    const fileName = `${Date.now()}-${Math.random()}.${fileExt}`;
-    const filePath = `${profile.store_code}/${profile.id}/${fileName}`;
+  let imageUrl: string | null = null;
+  let transportEvidenceUrls: { novedad: string; lote: string; proveedor: string; cantidades: string } | null = null;
+
+  async function processAndUploadImage(file: File | null, label: string): Promise<string | null> {
+    if (!file || file.size === 0) return null;
+    const fileExt = "jpg";
+    const fileName = `${label}_${dateStr}_${productName}.${fileExt}`;
+    const filePath = `${profile.store_code}/${profile.id}/${Date.now()}_${fileName}`;
     
-    // Convertir a buffer y comprimir
-    const arrayBuffer = await evidence.arrayBuffer();
+    const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    
-    // Usar import() normal en lugar de eval
     const sharp = (await import("sharp")).default;
     const compressedBuffer = await sharp(buffer)
-      .resize({ width: 1200, withoutEnlargement: true }) // Máximo 1200px de ancho
-      .jpeg({ quality: 70 }) // Comprimir al 70%
+      .resize({ width: 1200, withoutEnlargement: true })
+      .jpeg({ quality: 70 })
       .toBuffer();
 
     const { error } = await supabase.storage
       .from("waste-evidence")
-      .upload(filePath, compressedBuffer, {
-        contentType: "image/jpeg",
-      });
+      .upload(filePath, compressedBuffer, { contentType: "image/jpeg" });
 
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    imageUrl = filePath; // Guardamos solo el path porque el bucket ahora es privado
+    if (error) throw new Error(`Error subiendo ${label}: ${error.message}`);
+    return filePath;
   }
 
+  if (reason === "averia_transporte" || reason === "reporte_calidad") {
+    const urls: { novedad: string; lote: string; proveedor: string; cantidades: string } = {
+      novedad: "", lote: "", proveedor: "", cantidades: ""
+    };
 
+    if (reason === "averia_transporte") {
+      urls.proveedor = await processAndUploadImage(formData.get("evidence_detra") as File | null, "DETRA") || "";
+      urls.lote = await processAndUploadImage(formData.get("evidence_rotulo") as File | null, "ROTULO") || "";
+      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad") as File | null, "NOVEDAD") || "";
+      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades") as File | null, "UNIDADES") || "";
+    } else {
+      urls.proveedor = await processAndUploadImage(formData.get("evidence_proveedor") as File | null, "PROVEEDOR") || "";
+      urls.lote = await processAndUploadImage(formData.get("evidence_lote") as File | null, "LOTE_VENCIMIENTO") || "";
+      urls.novedad = await processAndUploadImage(formData.get("evidence_novedad") as File | null, "NOVEDAD") || "";
+      urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades") as File | null, "UNIDADES") || "";
+    }
+    
+    // We check if at least one photo was uploaded successfully before storing JSON
+    if (Object.values(urls).some(Boolean)) {
+      transportEvidenceUrls = urls;
+    }
+  } else {
+    // Normal single evidence upload
+    imageUrl = await processAndUploadImage(formData.get("evidence") as File | null, "EVIDENCIA");
+  }
 
   const payload: TablesInsert<"waste_records"> = {
     barcode_id: validatedData.barcodeId,
@@ -131,7 +152,7 @@ export async function submitWaste(formData: FormData): Promise<void> {
     transport_driver: validatedData.transportDriver || null,
     transport_plate: validatedData.transportPlate || null,
     transport_comment: validatedData.transportComment || null,
-    transport_evidence: validatedData.transportEvidence || null,
+    transport_evidence: transportEvidenceUrls,
     store_code: profile.store_code,
     created_by: profile.id, // Se usa profile.id y no user.id
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado

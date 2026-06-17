@@ -24,6 +24,7 @@ export default function NewWastePage() {
   const areas = profile?.areas || [];
 
   const [barcode, setBarcode] = useState("");
+  const [reason, setReason] = useState("vencido");
   const [searchedBarcode, setSearchedBarcode] = useState("");
   const [showScanner, setShowScanner] = useState(false);
   const [showForm, setShowForm] = useState(false);
@@ -31,8 +32,7 @@ export default function NewWastePage() {
   const [hasSearched, setHasSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [fileNames, setFileNames] = useState<Record<string, string>>({});
   const [transportComment, setTransportComment] = useState("");
   const [transportEvidence, setTransportEvidence] = useState<{novedad: string, lote: string, proveedor: string, cantidades: string} | null>(null);
 
@@ -98,14 +98,35 @@ export default function NewWastePage() {
     setError(null);
   }
 
-  function handleFileClick() {
-    fileInputRef.current?.click();
+  function handleFileClick(id: string) {
+    document.getElementById(id)?.click();
   }
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    setFileName(file ? file.name : null);
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>, id: string) {
+    if (e.target.files && e.target.files[0]) {
+      setFileNames((prev) => ({ ...prev, [id]: e.target.files![0].name }));
+    }
   }
+
+  const REQUIRED_PHOTOS_TRANSPORTE = [
+    { id: 'evidence_detra', label: 'Foto de DETRA (Llegada)', optional: false },
+    { id: 'evidence_rotulo', label: 'Foto de Rótulo (Conductor, Placa, Fecha)', optional: false },
+    { id: 'evidence_novedad', label: 'Foto de la Novedad (Daño)', optional: false },
+    { id: 'evidence_unidades', label: 'Foto de Unidades afectadas', optional: false }
+  ];
+
+  const REQUIRED_PHOTOS_CALIDAD = [
+    { id: 'evidence_proveedor', label: 'Foto de Proveedor', optional: false },
+    { id: 'evidence_lote', label: 'Foto de Lote y Vencimiento', optional: false },
+    { id: 'evidence_novedad', label: 'Foto de la Novedad (Daño)', optional: false },
+    { id: 'evidence_unidades', label: 'Foto de Unidades afectadas', optional: false }
+  ];
+
+  const photoRequirements = reason === "averia_transporte" 
+    ? REQUIRED_PHOTOS_TRANSPORTE 
+    : reason === "reporte_calidad" 
+    ? REQUIRED_PHOTOS_CALIDAD 
+    : [{ id: 'evidence', label: 'Foto de evidencia (Opcional)', optional: true }];
 
   const inputBase =
     "w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-2xl px-4 py-3.5 text-base transition-shadow placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none";
@@ -232,52 +253,18 @@ export default function NewWastePage() {
         <form
           action={async (formData) => {
             if (!navigator.onLine) {
-              const evidenceFile = formData.get("evidence") as File | null;
-              let evidenceBase64 = null;
-
-              if (evidenceFile && evidenceFile.size > 0) {
-                evidenceBase64 = await new Promise<string>((resolve) => {
-                  const reader = new FileReader();
-                  reader.onloadend = () => resolve(reader.result as string);
-                  reader.readAsDataURL(evidenceFile);
-                });
-              }
-
-              const payload = {
-                idempotency_key: crypto.randomUUID(),
-                barcode_id: activeBarcode,
-                product_id: product?.id || null,
-                qty: Number(formData.get("qty")),
-                unit: formData.get("unit"),
-                reason: formData.get("reason"),
-                deposited_by: formData.get("deposited_by"),
-                area: formData.get("area"),
-                observation: formData.get("observation"),
-                transport_driver: formData.get("transport_driver")?.toString() || null,
-                transport_plate: formData.get("transport_plate")?.toString() || null,
-                transport_comment: formData.get("transport_comment")?.toString() || null,
-                transport_evidence: formData.get("transport_evidence")?.toString() || null,
-                evidence_base64: evidenceBase64,
-                timestamp: Date.now()
-              };
-              
-              const queue: any = (await get("wasteOfflineQueue")) || [];
-              queue.push(payload);
-              await set("wasteOfflineQueue", queue);
-              
-              toast.success("Sin conexión: Merma guardada localmente.");
-              router.push("/waste");
-            } else {
-              startTransition(async () => {
-                try {
-                  await submitWaste(formData);
-                  await set("waste_draft", null);
-                  router.push("/waste");
-                } catch (e: any) {
-                  toast.error(e.message);
-                }
-              });
+              toast.error("Se requiere conexión a internet para registrar merma con fotos obligatorias.");
+              return;
             }
+            startTransition(async () => {
+              try {
+                await submitWaste(formData);
+                await set("waste_draft", null);
+                router.push("/waste");
+              } catch (e: any) {
+                toast.error(e.message);
+              }
+            });
           }}
           onChange={(e) => {
             const form = e.currentTarget;
@@ -289,6 +276,7 @@ export default function NewWastePage() {
           className="mt-6 rounded-3xl bg-white p-6 shadow-sm border border-zinc-100"
         >
           <input type="hidden" name="barcode_id" value={activeBarcode} />
+          <input type="hidden" name="product_name" value={product?.name || "DESCONOCIDO"} />
           <input type="hidden" name="deposited_by" value={operator || profile?.display_name || "Desconocido"} />
           {transportEvidence && (
             <input type="hidden" name="transport_evidence" value={JSON.stringify(transportEvidence)} />
@@ -332,13 +320,14 @@ export default function NewWastePage() {
               </span>
               <select
                 name="reason"
-                defaultValue="vencido"
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
                 required
                 className={`${inputBase} appearance-none`}
               >
-                {WASTE_REASONS.map((reason) => (
-                  <option key={reason.value} value={reason.value}>
-                    {reason.label}
+                {WASTE_REASONS.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
                   </option>
                 ))}
               </select>
@@ -412,41 +401,44 @@ export default function NewWastePage() {
               />
             </label>
 
-            <label className="block">
-              <span className="mb-2 block text-sm font-semibold text-slate-700">
-                Foto de evidencia
-              </span>
-              <input
-                ref={fileInputRef}
-                name="evidence"
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <button
-                type="button"
-                onClick={handleFileClick}
-                className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-slate-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
-              >
-                <Camera className="mb-2 h-8 w-8" />
-                {fileName ? (
-                  <span className="text-sm font-semibold text-slate-700">
-                    {fileName}
-                  </span>
-                ) : (
-                  <>
-                    <span className="text-sm font-semibold">
-                      Toca para tomar foto
+            {photoRequirements.map(req => (
+              <label key={req.id} className="block mb-4">
+                <span className="mb-2 block text-sm font-semibold text-slate-700">
+                  {req.label}
+                </span>
+                <input
+                  id={req.id}
+                  name={req.id}
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  required={!req.optional}
+                  onChange={(e) => handleFileChange(e, req.id)}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleFileClick(req.id)}
+                  className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-slate-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                >
+                  <Camera className="mb-2 h-8 w-8" />
+                  {fileNames[req.id] ? (
+                    <span className="text-sm font-semibold text-slate-700 break-all px-4 text-center">
+                      {fileNames[req.id]}
                     </span>
-                    <span className="mt-1 text-xs text-slate-400">
-                      JPG, PNG o captura directa
-                    </span>
-                  </>
-                )}
-              </button>
-            </label>
+                  ) : (
+                    <>
+                      <span className="text-sm font-semibold">
+                        Toca para tomar foto
+                      </span>
+                      <span className="mt-1 text-xs text-slate-400">
+                        JPG, PNG o captura directa
+                      </span>
+                    </>
+                  )}
+                </button>
+              </label>
+            ))}
           </div>
 
           <div className="mt-8 flex flex-col gap-3">
