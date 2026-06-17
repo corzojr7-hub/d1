@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { toast } from "sonner";
 import { Camera, CameraOff, X, Pencil, Trash2 } from "lucide-react";
 import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
@@ -65,6 +65,18 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [formattedDate, setFormattedDate] = useState<string>("");
+
+  useEffect(() => {
+    setFormattedDate(
+      new Date(record.created_at).toLocaleDateString("es-MX", {
+        day: "numeric",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    );
+  }, [record.created_at]);
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;
@@ -128,12 +140,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             {record.area || "Sin área"}
           </span>
           <span className="text-[10px] text-slate-400">
-            {new Date(record.created_at).toLocaleDateString("es-MX", {
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
+            {formattedDate || "\u00A0"}
           </span>
         </div>
 
