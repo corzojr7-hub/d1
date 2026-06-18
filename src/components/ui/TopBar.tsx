@@ -14,12 +14,12 @@ export default function TopBar() {
     : profile.store_name;
 
   return (
-    <header className="sticky top-0 z-40 bg-[#e51d2e]">
+    <header className="relative z-40 bg-[#e51d2e]">
       <div className="flex items-center justify-between px-4 py-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-extrabold text-[#e51d2e] shadow-sm">
+          <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-base font-extrabold text-[#e51d2e] shadow-sm transition-transform hover:scale-105 active:scale-95">
             D1
-          </div>
+          </Link>
           <div className="flex min-w-0 flex-col">
             <span className="max-w-[150px] truncate text-base font-bold leading-tight text-white sm:max-w-none">
               {profile.store_name || "Tiendas D1"}

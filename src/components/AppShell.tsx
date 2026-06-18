@@ -16,12 +16,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  const isAdmin = profile?.role === "admin";
-  const isHome = pathname === "/";
-
   return (
     <div className="flex min-h-dvh flex-col">
-      {isHome && <TopBar />}
+      <TopBar />
       <main className="flex-1 pb-20">{children}</main>
       <BottomNav />
     </div>
