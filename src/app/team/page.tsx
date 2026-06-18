@@ -6,7 +6,6 @@ import { Plus, Save, UsersRound, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
 import { updateTeam } from "./actions";
 import { useProfile } from "@/components/ui/ProfileContext";
-import CreateEncargadoForm from "@/components/team/CreateEncargadoForm";
 import SecurityPinModal from "@/components/team/SecurityPinModal";
 import type { AssistantContractType, Profile, BasicTaskConfig, TaskType } from "@/lib/domain/types";
 
@@ -229,10 +228,6 @@ export default function TeamPage() {
             </Link>
           )}
         </div>
-      </div>
-
-      <div className="p-4">
-        {contextProfile?.role === "supervisor" && <CreateEncargadoForm />}
       </div>
 
       <form
