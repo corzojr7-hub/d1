@@ -55,6 +55,22 @@ export default async function InstructionsIndex() {
         </Link>
 
         <Link 
+          href="/audits/daily" 
+          className="w-full flex items-center justify-between bg-gradient-to-r from-emerald-600 to-emerald-500 text-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-white/20 p-2 rounded-xl">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            </div>
+            <div className="text-left">
+              <h2 className="font-bold text-sm">Checklist Operativo</h2>
+              <p className="text-[11px] text-white/80 font-medium mt-0.5">Aseo, baño, cafetín y puntos clave</p>
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-80"><path d="m9 18 6-6-6-6"/></svg>
+        </Link>
+
+        <Link 
           href="/instructions/feedback" 
           className="w-full flex items-center justify-between bg-gradient-to-r from-amber-600 to-amber-500 text-white p-4 rounded-2xl shadow-sm hover:shadow-md transition-all active:scale-[0.98]"
         >
