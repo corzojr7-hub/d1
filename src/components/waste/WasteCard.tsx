@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Camera, CameraOff, X, Pencil, Trash2 } from "lucide-react";
 import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
 import EditWasteModal from "./EditWasteModal";
+import { WASTE_REASONS, getLabel } from "@/lib/domain/catalogs";
+import type { WasteReason } from "@/lib/domain/types";
 
 type WasteRecord = {
   id: string;
@@ -167,7 +169,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         {/* Fila 4: Motivo + Lugar */}
         <div className="mt-3 flex items-center justify-between text-sm">
           <span className={`font-semibold ${reasonColors[record.reason] ?? "text-slate-600"}`}>
-            Motivo: {record.reason}
+            Motivo: {getLabel(WASTE_REASONS, record.reason as WasteReason)}
           </span>
           <span className="text-slate-400">
             Lugar: {record.area}
