@@ -13,7 +13,7 @@ export async function saveImpulseRecord(formData: FormData) {
   const quantity = Number(formData.get("quantity"));
 
   if (!assistant || !impulse_type || !product_name || quantity <= 0) {
-    throw new Error("Faltan campos obligatorios o la cantidad es inválida.");
+    return { success: false, error: "Faltan campos obligatorios o la cantidad es inválida." };
   }
 
   const { error: insertError } = await supabase.from("impulse_records").insert({
@@ -29,7 +29,7 @@ export async function saveImpulseRecord(formData: FormData) {
 
   if (insertError) {
     console.error(insertError);
-    throw new Error("Error al guardar el impulso.");
+    return { success: false, error: insertError.message || "Error al guardar el impulso." };
   }
 
   revalidatePath("/impulses");

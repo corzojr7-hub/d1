@@ -42,7 +42,11 @@ export default function ClientImpulses({ assistants }: { assistants: any[] }) {
 
     startTransition(async () => {
       try {
-        await saveImpulseRecord(formData);
+        const res = await saveImpulseRecord(formData);
+        if (res?.error) {
+          toast.error(res.error);
+          return;
+        }
         toast.success("Registro de impulso guardado con éxito.");
         setQuantity(1);
         setSelectedProduct(null);
