@@ -2,6 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAuth, requireSupervisor } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function addFefoRecord(data: {
   barcode_id: string;
@@ -12,7 +20,9 @@ export async function addFefoRecord(data: {
 }) {
   const { profile, supabase } = await requireAuth();
 
-  const { error } = await supabase.from("fefo_records").insert({
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient.from("fefo_records").insert({
     ...data,
     profile_id: profile.id, // Ignoramos el que venía del cliente (si es que venía) y usamos el real
     store_code: profile.store_code,
@@ -30,9 +40,10 @@ export async function addFefoRecord(data: {
 }
 
 export async function updateFefoStatus(id: string, status: string) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
-  const { error } = await supabase.from("fefo_records")
+  const { error } = await adminClient.from("fefo_records")
     .update({ status })
     .eq("id", id)
     .eq("store_code", profile.store_code);

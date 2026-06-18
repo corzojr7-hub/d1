@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { Suspense } from "react";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
@@ -14,14 +14,7 @@ export const metadata: Metadata = {
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
 
 export default async function DashboardPage() {
-  const supabase = await createClient();
-
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("id, store_code")
-    .eq("user_id", user?.id)
-    .single();
+  const { profile } = await requireAuth();
 
   if (!profile) return <div>Cargando...</div>;
 

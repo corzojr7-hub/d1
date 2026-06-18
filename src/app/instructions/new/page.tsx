@@ -1,21 +1,15 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import NewInstructionForm from "./NewInstructionForm";
 
 export default async function NewInstructionPage() {
-  const supabase = await createClient();
+
   
-  // Obtener los perfiles del equipo (Supervisor, encargados y asistentes)
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("display_name, role, second_in_charge, third_in_charge, assistants")
-    .eq("user_id", user?.id)
-    .single();
+  const { profile } = await requireAuth();
 
   const teamOptions = [];
   if (profile) {
-    teamOptions.push({ id: 'sup', display_name: profile.display_name, role: profile.role });
+    teamOptions.push({ id: 'sup', display_name: profile.supervisor_name, role: 'supervisor' });
     if (profile.second_in_charge) teamOptions.push({ id: 'seg', display_name: profile.second_in_charge, role: 'segunda encargada' });
     if (profile.third_in_charge) teamOptions.push({ id: 'ter', display_name: profile.third_in_charge, role: 'tercero encargado' });
     

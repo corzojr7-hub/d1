@@ -24,7 +24,7 @@ export async function assignDailyTasks(
   }[],
   operatorName: string = ""
 ) {
-  const { profile } = await requireSupervisor();
+  const { profile } = await requireAuth();
   const adminClient = getAdminClient();
 
   const insertData = assignments.map((a) => ({
@@ -81,9 +81,10 @@ export async function updateDailyTaskStatus(
 }
 
 export async function saveBasicTasksConfig(basic_tasks: any[]) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("profiles")
     .update({ basic_tasks })
     .eq("id", profile.id);

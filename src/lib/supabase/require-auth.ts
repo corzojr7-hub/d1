@@ -18,7 +18,7 @@ export async function getHydratedProfile(supabase: any, userId: string) {
   if (profile.role === "segundo_al_mando" || profile.role === "tercero_al_mando") {
     const { data: supervisorProfile } = await supabase
       .from("profiles")
-      .select("assistants, areas, basic_tasks, assistant_count")
+      .select("display_name, second_in_charge, third_in_charge, assistants, areas, basic_tasks, assistant_count")
       .eq("store_code", profile.store_code)
       .eq("role", "supervisor")
       .eq("status", "activo")
@@ -26,11 +26,16 @@ export async function getHydratedProfile(supabase: any, userId: string) {
       .maybeSingle();
 
     if (supervisorProfile) {
+      profile.supervisor_name = supervisorProfile.display_name;
+      profile.second_in_charge = supervisorProfile.second_in_charge;
+      profile.third_in_charge = supervisorProfile.third_in_charge;
       profile.assistants = supervisorProfile.assistants;
       profile.areas = supervisorProfile.areas;
       profile.basic_tasks = supervisorProfile.basic_tasks;
       profile.assistant_count = supervisorProfile.assistant_count;
     }
+  } else if (profile.role === "supervisor") {
+    profile.supervisor_name = profile.display_name;
   }
 
   return profile;

@@ -1,14 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { Plus, CheckCircle2, MessageSquareWarning, ShieldAlert } from "lucide-react";
-import { requireSupervisor } from "@/lib/supabase/require-auth";
+import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const metadata = {
   title: "Retroalimentaciones — SCO",
 };
 
 export default async function FeedbackIndex() {
-  const { profile } = await requireSupervisor();
+  const { profile } = await requireAuth();
   const supabase = await createClient();
 
   const { data: feedbacks } = await supabase

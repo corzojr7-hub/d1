@@ -1,13 +1,21 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireSupervisor } from "@/lib/supabase/require-auth";
+import { requireAuth } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 import type { Database } from "@/lib/supabase/database.types";
 
 type FeedbackInsert = Database["public"]["Tables"]["feedbacks"]["Insert"];
 
 export async function createFeedback(data: Omit<FeedbackInsert, "store_code" | "created_by">) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
 
   const payload: FeedbackInsert = {
     ...data,
@@ -16,7 +24,8 @@ export async function createFeedback(data: Omit<FeedbackInsert, "store_code" | "
     status: "activo",
   };
 
-  const { error } = await supabase.from("feedbacks").insert(payload);
+  const adminClient = getAdminClient();
+  const { error } = await adminClient.from("feedbacks").insert(payload);
 
   if (error) throw new Error(error.message);
 
@@ -25,9 +34,10 @@ export async function createFeedback(data: Omit<FeedbackInsert, "store_code" | "
 }
 
 export async function resolveFeedback(id: string) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
 
-  const { error } = await supabase
+  const adminClient = getAdminClient();
+  const { error } = await adminClient
     .from("feedbacks")
     .update({ status: "resuelto" })
     .eq("id", id)

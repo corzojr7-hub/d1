@@ -146,6 +146,99 @@ export interface Database {
           updated_at?: string;
         };
       };
+      daily_logbook: {
+        Row: {
+          id: string;
+          store_code: string;
+          author: string;
+          content: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          store_code: string;
+          author: string;
+          content: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          store_code?: string;
+          author?: string;
+          content?: string;
+          created_at?: string;
+        };
+      };
+      pre_shifts: {
+        Row: {
+          id: string;
+          store_code: string;
+          created_by: string;
+          date: string;
+          daily_sales_goal: number;
+          impulse_focus: string;
+          priority: string;
+          average_ticket_goal: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          store_code: string;
+          created_by: string;
+          date?: string;
+          daily_sales_goal?: number;
+          impulse_focus: string;
+          priority: string;
+          average_ticket_goal?: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          store_code?: string;
+          created_by?: string;
+          date?: string;
+          daily_sales_goal?: number;
+          impulse_focus?: string;
+          priority?: string;
+          average_ticket_goal?: number;
+          created_at?: string;
+        };
+      };
+      quadrant_assignments: {
+        Row: {
+          id: string;
+          store_code: string;
+          assigned_by: string;
+          assigned_to: string;
+          quadrant_name: string;
+          status: string;
+          notes: string | null;
+          created_at: string;
+          accepted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          store_code: string;
+          assigned_by: string;
+          assigned_to: string;
+          quadrant_name: string;
+          status?: string;
+          notes?: string | null;
+          created_at?: string;
+          accepted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          store_code?: string;
+          assigned_by?: string;
+          assigned_to?: string;
+          quadrant_name?: string;
+          status?: string;
+          notes?: string | null;
+          created_at?: string;
+          accepted_at?: string | null;
+        };
+      };
       products: {
         Row: {
           id: string;

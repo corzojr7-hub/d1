@@ -4,6 +4,14 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
 import { requireAuth } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function submitDailyAudit(formData: FormData) {
   const { profile, supabase } = await requireAuth();
@@ -12,41 +20,44 @@ export async function submitDailyAudit(formData: FormData) {
   const operatorName = formData.get("operator") as string || ""; 
   const operator = operatorName; 
   const answers = JSON.parse(formData.get("answers") as string || "{}");
-  const photo = formData.get("photo") as File | null;
+  const photoKeys = ["bodega", "aforo", "cafetin", "bano"];
+  const uploadedPaths: string[] = [];
+  const adminClient = getAdminClient();
 
-  let photoPath = null;
+  for (const key of photoKeys) {
+    const photo = formData.get(`photo_${key}`) as File | null;
+    if (photo) {
+      const MAX_SIZE = 5 * 1024 * 1024;
+      if (photo.size > MAX_SIZE) {
+        return { error: `La imagen de ${key} supera los 5MB.` };
+      }
 
-  if (photo) {
-    const MAX_SIZE = 5 * 1024 * 1024;
-    if (photo.size > MAX_SIZE) {
-      return { error: "La imagen supera los 5MB." };
+      const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
+      if (!ALLOWED_MIME.includes(photo.type)) {
+        return { error: `Formato de imagen no permitido para ${key}.` };
+      }
+
+      const fileExt = photo.name.split(".").pop();
+      const fileName = `${Date.now()}-${key}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${profile.store_code}/${profile.id}/${fileName}`;
+
+      const { error: uploadError } = await adminClient.storage
+        .from("handover_photos")
+        .upload(filePath, photo);
+
+      if (uploadError) {
+        console.error(uploadError);
+        return { error: `Error al subir la foto de ${key}.` };
+      }
+
+      uploadedPaths.push(filePath);
     }
-
-    const ALLOWED_MIME = ["image/jpeg", "image/png", "image/webp"];
-    if (!ALLOWED_MIME.includes(photo.type)) {
-      return { error: "Formato de imagen no permitido." };
-    }
-
-    // Subir la foto
-    const fileExt = photo.name.split(".").pop();
-    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
-    const filePath = `${profile.store_code}/${profile.id}/${fileName}`;
-
-    // Using handover_photos bucket because it already exists and is public
-    const { error: uploadError } = await supabase.storage
-      .from("handover_photos")
-      .upload(filePath, photo);
-
-    if (uploadError) {
-      console.error(uploadError);
-      return { error: "Error al subir la foto de evidencia." };
-    }
-
-    photoPath = filePath;
   }
 
+  const photoPath = uploadedPaths.length > 0 ? uploadedPaths.join(",") : null;
+
   // Guardar en la tabla audits
-  const { error: insertError } = await supabase.from("audits").insert({
+  const { error: insertError } = await adminClient.from("audits").insert({
     audit_type: auditType,
     operator: operator,
     operator_name: operatorName,

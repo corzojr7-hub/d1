@@ -2,8 +2,15 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 import { z } from "zod";
 
 const instructionStatusSchema = z.enum(["pendiente", "en_progreso", "completado", "anulada"]);
@@ -22,9 +29,10 @@ export async function fetchInstructions() {
 }
 
 export async function removeInstruction(id: string) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("instructions")
     .delete()
     .eq("id", id)
@@ -36,9 +44,10 @@ export async function removeInstruction(id: string) {
 }
 
 export async function clearInstructions() {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
-  const { error } = await supabase
+  const { error } = await adminClient
     .from("instructions")
     .delete()
     .eq("store_code", profile.store_code)
@@ -50,7 +59,8 @@ export async function clearInstructions() {
 }
 
 export async function createInstruction(_prev: unknown, formData: FormData) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
 
   const responsible = formData.get("responsible") as string;
   const content = formData.get("content") as string;
@@ -67,7 +77,7 @@ export async function createInstruction(_prev: unknown, formData: FormData) {
 
 
 
-  const { error } = await supabase.from("instructions").insert({
+  const { error } = await adminClient.from("instructions").insert({
     responsible,
     content,
     priority: priority.toLowerCase(),
@@ -93,7 +103,9 @@ export async function updateInstructionStatus(id: string, newStatus: string, ope
     throw new Error("Solo un supervisor puede anular instrucciones.");
   }
 
-  const { error } = await supabase
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient
     .from("instructions")
     .update({ status: validatedStatus, updated_at: new Date().toISOString(), operator_name: operatorName })
     .eq("id", id)

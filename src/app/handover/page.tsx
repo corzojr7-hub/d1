@@ -1,24 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import ClientHandover from "./ClientHandover";
 
 export default async function HandoverPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) return null;
-
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("id, assistants, display_name, second_in_charge, third_in_charge")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (error) {
-    return <div className="p-4 text-red-500">Error: {error.message}</div>;
-  }
+  const { profile } = await requireAuth();
 
   if (!profile) {
     return (
@@ -28,7 +12,7 @@ export default async function HandoverPage() {
     );
   }
 
-  const supervisors = [profile.display_name, profile.second_in_charge, profile.third_in_charge].filter(Boolean);
+  const supervisors = [profile.supervisor_name, profile.second_in_charge, profile.third_in_charge].filter(Boolean);
 
   return (
     <ClientHandover

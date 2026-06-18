@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 
 export async function submitHandover(formData: FormData) {
   const { profile, supabase } = await requireAuth();
@@ -31,7 +39,8 @@ export async function submitHandover(formData: FormData) {
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
   const filePath = `${profile.store_code}/${profile.id}/${fileName}`;
 
-  const { error: uploadError } = await supabase.storage
+  const adminClient = getAdminClient();
+  const { error: uploadError } = await adminClient.storage
     .from("handover_photos")
     .upload(filePath, photo);
 
@@ -41,7 +50,7 @@ export async function submitHandover(formData: FormData) {
   }
 
   // Guardar en base de datos
-  const { error: insertError } = await supabase.from("shift_handovers").insert({
+  const { error: insertError } = await adminClient.from("shift_handovers").insert({
     profile_id: profile.id,
     store_code: profile.store_code,
     handed_by,

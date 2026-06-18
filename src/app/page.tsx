@@ -54,7 +54,8 @@ export default async function Home() {
     { data: recentInstructions },
     { count: wasteCount },
     { count: wasteCountWeek },
-    { data: storeData }
+    { data: storeData },
+    { data: preShiftData }
   ] = await Promise.all([
     supabase
       .from("instructions")
@@ -80,6 +81,14 @@ export default async function Home() {
       .from("stores")
       .select("monthly_budget, accumulated_sales")
       .eq("code", storeCode)
+      .single(),
+    adminClient
+      .from("pre_shifts")
+      .select("*")
+      .eq("store_code", storeCode)
+      .eq("date", new Date().toISOString().split('T')[0])
+      .order("created_at", { ascending: false })
+      .limit(1)
       .single()
   ]);
 
@@ -89,7 +98,9 @@ export default async function Home() {
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
   const currentDay = today.getDate();
   const remainingDays = Math.max(1, daysInMonth - currentDay);
-  const dailyGoal = Math.max(0, (monthlyBudget - accumulatedSales) / remainingDays);
+  
+  // Use preshift goal if exists, otherwise fallback to generic daily goal
+  const dailyGoal = preShiftData?.daily_sales_goal || Math.max(0, (monthlyBudget - accumulatedSales) / remainingDays);
 
   return (
     <div className="mx-auto max-w-md bg-white min-h-screen pb-24">
@@ -111,6 +122,27 @@ export default async function Home() {
           <p className="text-lg font-extrabold text-white tabular-nums">{remainingDays}</p>
         </div>
       </div>
+
+      {preShiftData && (
+        <div className="bg-emerald-700 px-4 py-2 flex flex-col gap-1 text-white text-xs">
+           <div className="flex justify-between">
+              <span className="font-bold opacity-80 uppercase tracking-wider text-[9px]">Foco de Impulso</span>
+              <span className="font-medium text-right ml-4 line-clamp-1">{preShiftData.impulse_focus}</span>
+           </div>
+           <div className="flex justify-between">
+              <span className="font-bold opacity-80 uppercase tracking-wider text-[9px]">Prioridad Tareas</span>
+              <span className="font-medium text-right ml-4 line-clamp-1">{preShiftData.priority}</span>
+           </div>
+           {preShiftData.average_ticket_goal > 0 && (
+             <div className="flex justify-between">
+                <span className="font-bold opacity-80 uppercase tracking-wider text-[9px]">Ticket Promedio</span>
+                <span className="font-bold text-emerald-200">
+                  {new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(preShiftData.average_ticket_goal)}
+                </span>
+             </div>
+           )}
+        </div>
+      )}
 
       {/* Bloque Presupuesto */}
       <div className="mx-4 mt-4 rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
@@ -265,12 +297,39 @@ export default async function Home() {
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3 mb-2">
+          <Link href="/preshift" className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col gap-2 items-start active:scale-95 transition-transform">
+            <div className="bg-amber-50 p-2 rounded-xl text-amber-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Pre-Turno</h3>
+              <p className="text-[10px] text-slate-500">Objetivos del día</p>
+            </div>
+          </Link>
+          <Link href="/logbook" className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col gap-2 items-start active:scale-95 transition-transform">
+            <div className="bg-purple-50 p-2 rounded-xl text-purple-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Bitácora Diaria</h3>
+              <p className="text-[10px] text-slate-500">Muro de novedades</p>
+            </div>
+          </Link>
+          <Link href="/quadrants" className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col gap-2 items-start active:scale-95 transition-transform">
+            <div className="bg-orange-50 p-2 rounded-xl text-orange-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-slate-800">Cuadrantes</h3>
+              <p className="text-[10px] text-slate-500">Asignación de pasillos</p>
+            </div>
+          </Link>
           <Link href="/handover" className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex flex-col gap-2 items-start active:scale-95 transition-transform">
             <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
             </div>
             <div>
-              <h3 className="text-sm font-bold text-slate-800">Entrega de Turno</h3>
+              <h3 className="text-sm font-bold text-slate-800">Entrega Turno</h3>
               <p className="text-[10px] text-slate-500">Foto de bodega</p>
             </div>
           </Link>

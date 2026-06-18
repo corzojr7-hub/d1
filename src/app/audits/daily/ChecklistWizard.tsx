@@ -19,14 +19,17 @@ const STEPS: Step[] = [
   { id: "neveras", title: "Neveras y Congeladores", question: "¿Las temperaturas están en rango y el surtido es óptimo?" },
   { id: "fruver", title: "Frutas y Verduras", question: "¿Se retiró el producto dañado y la exhibición está llena?" },
   { id: "puntas", title: "Puntas de Góndola", question: "¿Las puntas promocionales están surtidas y con precios correctos?" },
-  { id: "bodega", title: "Cuarto Frío y Bodega", question: "¿La bodega está ordenada y el cuarto frío limpio?", requiresPhoto: true },
+  { id: "bodega", title: "Bodega", question: "¿La bodega está limpia y ordenada?", requiresPhoto: true },
+  { id: "aforo", title: "Cuarto de Aforo", question: "¿El cuarto de aforo está limpio y los productos rotulados?", requiresPhoto: true },
+  { id: "cafetin", title: "Cafetín", question: "¿El cafetín está limpio y organizado?", requiresPhoto: true },
+  { id: "bano", title: "Baño", question: "¿El baño está limpio y aseado?", requiresPhoto: true },
 ];
 
 export default function ChecklistWizard({ auditType, operator }: { auditType: "apertura" | "cierre"; operator: string }) {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<Record<string, File>>({});
   const [isPending, startTransition] = useTransition();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -39,7 +42,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
 
   const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPhoto(e.target.files[0]);
+      setPhotos({ ...photos, [step.id]: e.target.files[0] });
     }
   };
 
@@ -48,7 +51,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
       toast.error("Debes responder la pregunta para continuar.");
       return;
     }
-    if (step.requiresPhoto && !photo) {
+    if (step.requiresPhoto && !photos[step.id]) {
       toast.error("Esta tarea crítica requiere una foto de evidencia.");
       return;
     }
@@ -62,12 +65,8 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
   const submitChecklist = async () => {
     if (!navigator.onLine) {
       let photoBase64 = null;
-      if (photo) {
-        photoBase64 = await new Promise<string>((resolve) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.readAsDataURL(photo);
-        });
+      if (Object.keys(photos).length > 0) {
+        photoBase64 = "Múltiples fotos no soportadas offline temporalmente";
       }
 
       const payload = {
@@ -92,9 +91,9 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
     formData.append("auditType", auditType);
     formData.append("operator", operator);
     formData.append("answers", JSON.stringify(answers));
-    if (photo) {
-      formData.append("photo", photo);
-    }
+    Object.entries(photos).forEach(([key, file]) => {
+      formData.append(`photo_${key}`, file);
+    });
 
     startTransition(async () => {
       try {
@@ -165,11 +164,11 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
             <button
               onClick={() => fileInputRef.current?.click()}
               className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed ${
-                photo ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-slate-50 text-slate-600"
+                photos[step.id] ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-slate-50 text-slate-600"
               }`}
             >
               <Camera className="h-6 w-6" />
-              <span className="font-bold text-sm">{photo ? "Foto capturada (Tocar para cambiar)" : "Tomar Foto"}</span>
+              <span className="font-bold text-sm">{photos[step.id] ? "Foto capturada (Tocar para cambiar)" : "Tomar Foto"}</span>
             </button>
             <input 
               type="file" 

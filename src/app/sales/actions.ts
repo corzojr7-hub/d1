@@ -3,7 +3,15 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
-import { requireSupervisor, requireAuth } from "@/lib/supabase/require-auth";
+import { requireAuth } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
+
+function getAdminClient() {
+  return createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+}
 import { z } from "zod";
 import { checkRateLimit } from "@/lib/rate-limit";
 
@@ -25,12 +33,13 @@ const setWeeklyWasteSchema = z.object({
 
 export async function setMonthlyBudget(monthYear: string, amount: number) {
   try {
-    const { supabase, profile } = await requireSupervisor();
+    const { profile } = await requireAuth();
     if (!(await checkRateLimit(profile.id, 50, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setMonthlyBudgetSchema.parse({ monthYear, amount });
 
-    const { error } = await supabase
+    const adminClient = getAdminClient();
+    const { error } = await adminClient
       .from("sales_budgets")
       .upsert(
         {
@@ -52,12 +61,13 @@ export async function setMonthlyBudget(monthYear: string, amount: number) {
 
 export async function setDailySale(date: string, amount: number) {
   try {
-    const { supabase, profile } = await requireSupervisor();
+    const { profile } = await requireAuth();
     if (!(await checkRateLimit(profile.id, 100, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setDailySaleSchema.parse({ date, amount });
 
-    const { error } = await supabase
+    const adminClient = getAdminClient();
+    const { error } = await adminClient
       .from("daily_sales")
       .upsert(
         {
@@ -80,12 +90,13 @@ export async function setDailySale(date: string, amount: number) {
 
 export async function setWeeklyWaste(weekStart: string, weekEnd: string, amount: number) {
   try {
-    const { supabase, profile } = await requireSupervisor();
+    const { profile } = await requireAuth();
     if (!(await checkRateLimit(profile.id, 100, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setWeeklyWasteSchema.parse({ weekStart, weekEnd, amount });
 
-    const { error } = await supabase
+    const adminClient = getAdminClient();
+    const { error } = await adminClient
       .from("weekly_waste")
       .upsert(
         {

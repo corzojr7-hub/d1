@@ -189,11 +189,16 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
 const wasteStatusSchema = z.enum(["pendiente_revision", "revisado", "anulado", "recuperado"]);
 
 export async function updateWasteStatus(id: string, newStatus: string) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
 
   const validatedStatus = wasteStatusSchema.parse(newStatus);
 
-  const { error } = await supabase
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await adminClient
     .from("waste_records")
     .update({ status: validatedStatus })
     .eq("id", id)
@@ -206,7 +211,7 @@ export async function updateWasteStatus(id: string, newStatus: string) {
 }
 
 export async function updateWasteRecord(formData: FormData) {
-  const { profile, supabase } = await requireSupervisor();
+  const { profile } = await requireAuth();
   const id = getString(formData, "id");
   const qty = Number(getString(formData, "qty"));
   const unit = getString(formData, "unit");
@@ -215,7 +220,12 @@ export async function updateWasteRecord(formData: FormData) {
   if (!id) throw new Error("ID de registro faltante.");
   if (!Number.isFinite(qty) || qty <= 0) throw new Error("Cantidad inválida.");
 
-  const { error } = await supabase
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await adminClient
     .from("waste_records")
     .update({ qty, unit, reason })
     .eq("id", id)
@@ -228,7 +238,7 @@ export async function updateWasteRecord(formData: FormData) {
 }
 
 export async function deleteWasteRecord(id: string) {
-  const { profile } = await requireSupervisor();
+  const { profile } = await requireAuth();
 
   const adminClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
