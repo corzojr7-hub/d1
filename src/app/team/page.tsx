@@ -179,6 +179,28 @@ export default function TeamPage() {
     }));
   }
 
+  function setAseoSchedule(day: string, assignee: string) {
+    setProfile((current) => {
+      const basicTasks = current.basic_tasks ? [...current.basic_tasks] : [];
+      const aseoIndex = basicTasks.findIndex(t => t.id === "aseo_semanal");
+      
+      if (aseoIndex >= 0) {
+        const aseoTask = { ...basicTasks[aseoIndex] };
+        aseoTask.schedule = { ...(aseoTask.schedule || {}), [day]: assignee };
+        basicTasks[aseoIndex] = aseoTask;
+      } else {
+        basicTasks.push({
+          id: "aseo_semanal",
+          name: "Aseo (Baño, Cafetín, Aforo)",
+          type: "apertura",
+          deadline_time: "10:00",
+          schedule: { [day]: assignee }
+        });
+      }
+      return { ...current, basic_tasks: basicTasks };
+    });
+  }
+
 
 
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -470,7 +492,42 @@ export default function TeamPage() {
           <input type="hidden" name="area_count" value={profile.areas?.length || 0} />
         </section>
 
+        {/* Cronograma de Aseo Semanal */}
+        <section className="mb-6 rounded-3xl bg-blue-50/50 p-5 shadow-sm ring-1 ring-blue-100">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-wide text-blue-800 uppercase flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Cronograma de Aseo Semanal
+            </h2>
+          </div>
+          <p className="text-xs text-blue-600/80 mb-4 font-medium">Asigna la persona encargada del aseo (Baño, Cafetín, Aforo) para cada día de la semana.</p>
 
+          <div className="space-y-3">
+            {["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "domingo"].map((day) => {
+              const aseoTask = (profile.basic_tasks || []).find((t: any) => t.id === "aseo_semanal") as any;
+              const currentAssignee = aseoTask?.schedule?.[day] || "";
+              return (
+                <div key={day} className="flex items-center justify-between bg-white p-3 rounded-2xl ring-1 ring-slate-100">
+                  <span className="text-sm font-bold text-slate-700 capitalize">{day}</span>
+                  <select
+                    value={currentAssignee}
+                    onChange={(e) => setAseoSchedule(day, e.target.value)}
+                    className="w-1/2 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">Sin asignar</option>
+                    {assistantNames.map((name, idx) => (
+                      <option key={idx} value={name}>{name}</option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+          {(() => {
+            const aseoTask = (profile.basic_tasks || []).find((t: any) => t.id === "aseo_semanal");
+            return <input type="hidden" name="aseo_schedule_json" value={JSON.stringify(aseoTask?.schedule || {})} />;
+          })()}
+        </section>
 
         {profile.role === 'supervisor' ? (
           <button

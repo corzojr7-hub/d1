@@ -74,7 +74,28 @@ export async function updateTeam(formData: FormData): Promise<void> {
   const secondInCharge = getString(formData, "second_in_charge");
   const thirdInCharge = getString(formData, "third_in_charge");
   const displayName = getString(formData, "display_name");
-
+  
+  const aseoScheduleRaw = getString(formData, "aseo_schedule_json");
+  let newBasicTasks = profile.basic_tasks || [];
+  if (aseoScheduleRaw) {
+    try {
+      const schedule = JSON.parse(aseoScheduleRaw);
+      const aseoIndex = newBasicTasks.findIndex((t: any) => t.id === "aseo_semanal");
+      if (aseoIndex >= 0) {
+        newBasicTasks[aseoIndex].schedule = schedule;
+      } else {
+        newBasicTasks.push({
+          id: "aseo_semanal",
+          name: "Aseo (Baño, Cafetín, Aforo)",
+          type: "apertura",
+          deadline_time: "10:00",
+          schedule
+        } as any);
+      }
+    } catch (e) {
+      console.error("Failed to parse aseo schedule", e);
+    }
+  }
 
   const { error } = await supabase
     .from("profiles")
@@ -86,6 +107,7 @@ export async function updateTeam(formData: FormData): Promise<void> {
       assistant_count: assistants.map(a => ({ name: a.name, contract_type: a.contract_type })).length,
       assistants: assistants.map(a => ({ name: a.name, contract_type: a.contract_type })),
       areas,
+      basic_tasks: newBasicTasks,
     })
     .eq("id", profile.id);
 
