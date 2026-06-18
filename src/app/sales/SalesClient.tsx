@@ -26,8 +26,6 @@ export default function SalesClient({
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return null;
-
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // States for forms
