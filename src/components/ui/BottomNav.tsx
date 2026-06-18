@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Trash2, UsersRound, ClipboardCheck, BarChart3 } from "lucide-react";
+import { LayoutDashboard, ClipboardList, Trash2, UsersRound, BarChart3 } from "lucide-react";
 import { useProfile } from "./ProfileContext";
 
 const allNavItems = [
@@ -34,7 +34,7 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-zinc-100 bg-white pb-[env(safe-area-inset-bottom)]">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm">
       <div className="flex items-center justify-around px-2 pt-2 pb-2">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
@@ -47,25 +47,25 @@ export default function BottomNav() {
               key={href}
               href={href}
               prefetch={false}
-              className="flex flex-col items-center gap-1 min-w-[70px]"
+              className="flex min-w-[70px] flex-col items-center gap-1 rounded-2xl px-1 py-0.5"
             >
               <div
-                className={`flex h-8 px-5 items-center justify-center transition-all duration-200 ${
+                className={`flex h-9 px-5 items-center justify-center transition-all duration-200 ${
                   isActive
-                    ? "bg-[#e8f1fc] rounded-full"
+                    ? "rounded-full bg-[#fdecef] shadow-[inset_0_0_0_1px_rgba(229,29,46,0.1)]"
                     : "bg-transparent"
                 }`}
               >
                 <Icon
                   className={`h-5 w-5 transition-colors duration-200 ${
-                    isActive ? "text-[#0a3875]" : "text-slate-600"
+                    isActive ? "text-[#e51d2e]" : "text-slate-500"
                   }`}
-                  strokeWidth={isActive ? 2 : 1.5}
+                  strokeWidth={isActive ? 2.2 : 1.8}
                 />
               </div>
               <span
-                className={`text-[10px] font-bold mt-0.5 transition-colors duration-200 ${
-                  isActive ? "text-[#1d1b20]" : "text-slate-600"
+                className={`mt-0.5 text-[11px] font-bold transition-colors duration-200 ${
+                  isActive ? "text-slate-900" : "text-slate-500"
                 }`}
               >
                 {label}

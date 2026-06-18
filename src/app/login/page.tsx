@@ -1,35 +1,30 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
-import { Building2, Plus, UserRound } from "lucide-react";
-import { login, registerUser } from "./actions";
-type Mode = "login" | "register";
+import { useActionState } from "react";
+import { login } from "./actions";
 
 export default function LoginPage() {
-  const [localError, setLocalError] = useState<string | null>(null);
   const [loginState, loginAction, loginPending] = useActionState(
     login,
     undefined,
   );
-  
-  const activeError = loginState?.error || localError;
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#fff1f2_0%,_#f8fafc_42%,_#eef2f7_100%)] px-4 py-8">
       <div className="mx-auto w-full max-w-md">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600 text-lg font-extrabold text-white shadow-lg shadow-red-600/20">
+        <div className="mb-7 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-red-600 text-xl font-black text-white shadow-[0_18px_36px_rgba(229,29,46,0.22)]">
             D1
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-950">
+          <h1 className="text-[30px] font-black tracking-tight text-slate-950">
             Control Operativo
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-2 text-sm font-medium text-slate-600">
             Acceso a plataforma de tienda
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
+        <div className="rounded-[1.75rem] bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/90">
           <form action={loginAction} className="space-y-4">
             <TextField
               label="Usuario"
@@ -46,11 +41,11 @@ export default function LoginPage() {
               autoComplete="current-password"
               required
             />
-            {activeError ? <ErrorMessage message={activeError} /> : null}
+            {loginState?.error ? <ErrorMessage message={loginState.error} /> : null}
             <button
               type="submit"
               disabled={loginPending}
-              className="min-h-14 w-full rounded-full bg-slate-950 px-5 text-sm font-bold text-white shadow-lg shadow-slate-950/20 disabled:opacity-60"
+              className="app-cta-primary w-full px-5 text-sm font-bold"
             >
               {loginPending ? "Entrando..." : "Entrar"}
             </button>
@@ -62,7 +57,7 @@ export default function LoginPage() {
 }
 
 const fieldClassName =
-  "min-h-12 w-full rounded-2xl bg-slate-50 px-4 py-3.5 text-sm text-slate-950 outline-none ring-1 ring-slate-200 transition focus:ring-2 focus:ring-blue-500";
+  "min-h-12 w-full rounded-2xl bg-slate-50 px-4 py-3.5 text-[15px] font-medium text-slate-950 outline-none ring-1 ring-slate-200 transition focus:bg-white focus:ring-2 focus:ring-red-500";
 
 function TextField({
   label,
@@ -74,24 +69,6 @@ function TextField({
         {label}
       </span>
       <input {...props} className={fieldClassName} />
-    </label>
-  );
-}
-
-function SelectField({ label, index }: { label: string; index: number }) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-semibold text-slate-700">
-        {label}
-      </span>
-      <select
-        name={`assistant_contract_${index}`}
-        className="flex min-h-12 w-32 items-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 outline-none transition-all placeholder:text-slate-400 hover:bg-slate-200 focus:bg-white focus:ring-2 focus:ring-slate-900"
-        defaultValue="full_time"
-      >
-        <option value="full_time">TC (240h)</option>
-        <option value="part_time">MT (120h)</option>
-      </select>
     </label>
   );
 }

@@ -8,16 +8,16 @@ export default function UpdatePasswordPage() {
   const [state, formAction, isPending] = useActionState(updatePassword, undefined);
 
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-sm ring-1 ring-slate-200">
+    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,_#fff1f2_0%,_#f8fafc_42%,_#eef2f7_100%)] px-4 py-8">
+      <div className="w-full max-w-md rounded-[1.75rem] bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/90">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-blue-100 text-blue-600">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-red-50 text-red-600 shadow-[inset_0_0_0_1px_rgba(229,29,46,0.08)]">
             <LockKeyhole className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-extrabold text-slate-950">
+          <h1 className="text-[28px] font-black tracking-tight text-slate-950">
             Cambio de Contraseña Obligatorio
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm font-medium leading-relaxed text-slate-600">
             Por seguridad, debes establecer una nueva contraseña para tu cuenta antes de continuar.
           </p>
         </div>
@@ -32,7 +32,7 @@ export default function UpdatePasswordPage() {
               type="password"
               required
               minLength={6}
-              className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-sm font-semibold text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-blue-600"
+              className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-[15px] font-medium text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-red-500"
               placeholder="Minimo 6 caracteres"
             />
           </div>
@@ -45,7 +45,7 @@ export default function UpdatePasswordPage() {
               type="password"
               required
               minLength={6}
-              className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-sm font-semibold text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-blue-600"
+              className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-[15px] font-medium text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-red-500"
               placeholder="Confirmar contraseña"
             />
           </div>
@@ -59,7 +59,7 @@ export default function UpdatePasswordPage() {
           <button
             type="submit"
             disabled={isPending}
-            className="mt-2 min-h-14 w-full rounded-full bg-blue-600 px-5 text-sm font-bold text-white shadow-lg shadow-blue-600/20 disabled:opacity-60 transition-transform active:scale-95"
+            className="app-cta-primary mt-2 w-full px-5 text-sm font-bold"
           >
             {isPending ? "Actualizando..." : "Actualizar Contraseña"}
           </button>
