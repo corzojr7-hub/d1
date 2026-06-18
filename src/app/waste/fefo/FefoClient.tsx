@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Radar, Plus, AlertTriangle, Clock, Target, CheckCircle2, PackageX } from "lucide-react";
 import { toast } from "sonner";
-import { addFefoRecord, updateFefoStatus } from "./actions";
+import { addFefoRecord, updateFefoStatus, subtractFefoQty } from "./actions";
 import { searchProducts } from "@/app/products/actions";
-import { Search, X } from "lucide-react";
+import { Search, X, Minus } from "lucide-react";
 import { get, set } from "idb-keyval";
 import { useProfile } from '@/components/ui/ProfileContext';
+import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
 
 type ProductCatalogEntry = {
   id: string;
@@ -31,6 +32,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
 
   const [quantity, setQuantity] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("otro");
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -60,7 +62,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
         action: "ADD",
         idempotency_key: crypto.randomUUID(),
         barcode_id: selectedProduct.barcode_id || Math.random().toString().slice(2, 8),
-        product_name: selectedProduct.name,
+        product_name: `${selectedProduct.name} ||| ${selectedCategory}`,
         quantity: Number(quantity),
         expiration_date: expirationDate,
         timestamp: Date.now()
@@ -76,6 +78,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
       setCatalogResults([]);
       setQuantity("");
       setExpirationDate("");
+      setSelectedCategory("otro");
       return;
     }
 
@@ -83,7 +86,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
       try {
         const res = await addFefoRecord({
           barcode_id: selectedProduct.barcode_id || Math.random().toString().slice(2, 8),
-          product_name: selectedProduct.name,
+          product_name: `${selectedProduct.name} ||| ${selectedCategory}`,
           quantity: Number(quantity),
           expiration_date: expirationDate,
           operator_name: operator || "",
@@ -97,6 +100,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
           setCatalogResults([]);
           setQuantity("");
           setExpirationDate("");
+          setSelectedCategory("otro");
         } else {
           toast.error(res.error || "Error al añadir");
         }
@@ -131,16 +135,40 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
     });
   };
 
-  const getAlertColor = (days: number) => {
-    if (days <= 1) return "bg-red-50 border-red-200 text-red-700";
-    if (days <= 5) return "bg-amber-50 border-amber-200 text-amber-700";
-    return "bg-emerald-50 border-emerald-200 text-emerald-700";
+  const getAlertColor = (days: number, categoryVal: string) => {
+    const catInfo = FEFO_CATEGORIES.find(c => c.value === categoryVal) || FEFO_CATEGORIES.find(c => c.value === "otro");
+    const threshold = catInfo ? catInfo.retirementDays : 0;
+    const delta = days - threshold;
+
+    if (delta <= 2) return "bg-red-50 border-red-200 text-red-700";
+    if (delta <= 4) return "bg-orange-50 border-orange-200 text-orange-700";
+    if (delta <= 6) return "bg-amber-50 border-amber-200 text-amber-700";
+    if (delta <= 8) return "bg-emerald-50 border-emerald-200 text-emerald-700";
+    return "bg-white border-slate-200 text-slate-700";
   };
 
-  const getAlertIcon = (days: number) => {
-    if (days <= 1) return <AlertTriangle className="h-5 w-5 text-red-600" />;
-    if (days <= 5) return <Clock className="h-5 w-5 text-amber-600" />;
-    return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+  const getAlertIcon = (delta: number) => {
+    if (delta <= 2) return <AlertTriangle className="h-5 w-5 text-red-600" />;
+    if (delta <= 4) return <Clock className="h-5 w-5 text-orange-600" />;
+    if (delta <= 6) return <AlertTriangle className="h-5 w-5 text-amber-600" />;
+    if (delta <= 8) return <CheckCircle2 className="h-5 w-5 text-emerald-600" />;
+    return <CheckCircle2 className="h-5 w-5 text-slate-400" />;
+  };
+
+  const handleSubtract = async (id: string, currentQty: number) => {
+    if (currentQty <= 1) {
+      // Si solo queda 1 y se vende, el producto ya no está en el radar
+      handleStatusChange(id, "vendido");
+      return;
+    }
+    startTransition(async () => {
+      const res = await subtractFefoQty(id);
+      if (res.success) {
+        toast.success("Unidad descontada (-1)");
+      } else {
+        toast.error("Error al restar unidad");
+      }
+    });
   };
 
   return (
@@ -233,6 +261,18 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
                   </div>
                 )}
               </div>
+              <div>
+                <label className="text-xs font-bold text-slate-500 mb-1 block">Categoría FEFO</label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
+                >
+                  {FEFO_CATEGORIES.map(c => (
+                    <option key={c.value} value={c.value}>{c.label} (Retira a {c.retirementDays} días)</option>
+                  ))}
+                </select>
+              </div>
               <div className="flex gap-3">
                 <div className="flex-1">
                   <label className="text-xs font-bold text-slate-500 mb-1 block">Cantidad</label>
@@ -275,17 +315,28 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
           )}
 
           {records.map((rec) => {
+            const nameParts = rec.product_name.split(" ||| ");
+            const rawName = nameParts[0];
+            const categoryVal = nameParts[1] || "otro";
+
             const daysLeft = calculateDaysLeft(rec.expiration_date);
-            const colorClass = getAlertColor(daysLeft);
+            const colorClass = getAlertColor(daysLeft, categoryVal);
+            
+            const catInfo = FEFO_CATEGORIES.find(c => c.value === categoryVal) || FEFO_CATEGORIES.find(c => c.value === "otro");
+            const threshold = catInfo ? catInfo.retirementDays : 0;
+            const delta = daysLeft - threshold;
             
             return (
-              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass}`}>
+              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass} bg-opacity-50`}>
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex gap-2 items-center">
-                    {getAlertIcon(daysLeft)}
-                    <h3 className="font-bold text-sm">{rec.product_name}</h3>
+                    {getAlertIcon(delta)}
+                    <div className="flex flex-col">
+                      <h3 className="font-bold text-sm leading-tight">{rawName}</h3>
+                      <span className="text-[10px] uppercase tracking-wide opacity-70 mt-0.5">{catInfo?.label}</span>
+                    </div>
                   </div>
-                  <span className="text-xs font-black bg-white/50 px-2 py-1 rounded-lg">
+                  <span className="text-xs font-black bg-white/50 px-2 py-1 rounded-lg shrink-0">
                     {rec.quantity} uds
                   </span>
                 </div>
@@ -298,14 +349,14 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
 
                 <div className="flex gap-2 pl-7">
                   <button 
-                    onClick={() => handleStatusChange(rec.id, "impulso")}
-                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-blue-700 font-bold py-2 rounded-xl text-xs transition-colors"
+                    onClick={() => handleSubtract(rec.id, rec.quantity)}
+                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-zinc-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
                   >
-                    <Target className="h-3 w-3" /> Impulsar
+                    <Minus className="h-3 w-3" /> Vendida (-1)
                   </button>
                   <button 
                     onClick={() => handleStatusChange(rec.id, "mermado")}
-                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-red-700 font-bold py-2 rounded-xl text-xs transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-red-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
                   >
                     <PackageX className="h-3 w-3" /> Mermar
                   </button>

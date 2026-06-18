@@ -55,3 +55,31 @@ export async function updateFefoStatus(id: string, status: string) {
   revalidatePath("/waste/fefo");
   return { success: true };
 }
+
+export async function subtractFefoQty(id: string) {
+  const { profile } = await requireAuth();
+  const adminClient = getAdminClient();
+
+  const { data } = await adminClient
+    .from("fefo_records")
+    .select("quantity")
+    .eq("id", id)
+    .eq("store_code", profile.store_code)
+    .single();
+
+  if (!data || data.quantity <= 1) {
+    return { error: "No se puede restar más" };
+  }
+
+  const { error } = await adminClient.from("fefo_records")
+    .update({ quantity: data.quantity - 1 })
+    .eq("id", id)
+    .eq("store_code", profile.store_code);
+
+  if (error) {
+    return { error: "Error al restar" };
+  }
+
+  revalidatePath("/waste/fefo");
+  return { success: true };
+}

@@ -8,6 +8,8 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
 import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
+import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
+import { Radar } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Inicio — Sistema de Control Operativo de Tienda",
@@ -55,7 +57,8 @@ export default async function Home() {
     { count: wasteCount },
     { count: wasteCountWeek },
     { data: storeData },
-    { data: preShiftData }
+    { data: preShiftData },
+    { data: fefoRecords }
   ] = await Promise.all([
     supabase
       .from("instructions")
@@ -89,7 +92,12 @@ export default async function Home() {
       .eq("date", new Date().toISOString().split('T')[0])
       .order("created_at", { ascending: false })
       .limit(1)
-      .single()
+      .single(),
+    adminClient
+      .from("fefo_records")
+      .select("id, product_name, expiration_date, quantity")
+      .eq("store_code", storeCode)
+      .eq("status", "vigente")
   ]);
 
   const monthlyBudget = storeData?.monthly_budget || 0;
@@ -101,6 +109,23 @@ export default async function Home() {
   
   // Use preshift goal if exists, otherwise fallback to generic daily goal
   const dailyGoal = preShiftData?.daily_sales_goal || Math.max(0, (monthlyBudget - accumulatedSales) / remainingDays);
+
+  const calculateDaysLeft = (expDateStr: string) => {
+    const expDate = new Date(expDateStr);
+    expDate.setHours(0,0,0,0);
+    const diffTime = expDate.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  };
+
+  const criticalFefoItems = (fefoRecords || []).filter(rec => {
+    const nameParts = rec.product_name.split(" ||| ");
+    const categoryVal = nameParts[1] || "otro";
+    const daysLeft = calculateDaysLeft(rec.expiration_date);
+    const catInfo = FEFO_CATEGORIES.find(c => c.value === categoryVal) || FEFO_CATEGORIES.find(c => c.value === "otro");
+    const threshold = catInfo ? catInfo.retirementDays : 0;
+    const delta = daysLeft - threshold;
+    return delta <= 6;
+  });
 
   return (
     <div className="mx-auto max-w-md bg-white min-h-screen pb-24">
@@ -202,6 +227,38 @@ export default async function Home() {
               Estado: <span className="font-bold text-[#e51d2e]">{recentInstructions[0].status === 'pendiente' ? 'Pendiente' : 'En Proceso'}</span>
             </span>
           </div>
+        </div>
+      )}
+
+      {/* FEFO Alertas Críticas */}
+      {criticalFefoItems.length > 0 && (
+        <div className="mx-4 mt-4 mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-amber-900 flex items-center gap-2">
+              <Radar className="h-5 w-5 text-amber-600" />
+              Radar FEFO: Atención Requerida
+            </h3>
+            <span className="bg-amber-200 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-full">
+              {criticalFefoItems.length} alertas
+            </span>
+          </div>
+          <div className="space-y-2 max-h-32 overflow-y-auto">
+            {criticalFefoItems.map(item => {
+              const rawName = item.product_name.split(" ||| ")[0];
+              const daysLeft = calculateDaysLeft(item.expiration_date);
+              return (
+                <div key={item.id} className="bg-white/60 p-2 rounded-xl flex justify-between items-center text-xs border border-amber-100">
+                  <span className="font-semibold text-amber-900 truncate pr-2">{rawName}</span>
+                  <span className="shrink-0 text-[10px] font-black bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded">
+                    {daysLeft}d / {item.quantity}u
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          <Link href="/waste/fefo" className="mt-3 block text-center text-xs font-bold text-amber-700 bg-amber-200/50 hover:bg-amber-200 py-2 rounded-xl transition-colors">
+            Ver Radar Completo
+          </Link>
         </div>
       )}
 

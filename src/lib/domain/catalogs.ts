@@ -77,3 +77,25 @@ export function getLabel<T extends string>(
 ): string {
   return catalog.find((item) => item.value === value)?.label ?? value;
 }
+
+export type FefoCategoryInfo = {
+  value: string;
+  label: string;
+  retirementDays: number;
+};
+
+export const FEFO_CATEGORIES: FefoCategoryInfo[] = [
+  { value: "leche_fresca", label: "Leche Fresca", retirementDays: 1 },
+  { value: "postres", label: "Postres (<20 días)", retirementDays: 2 },
+  { value: "bebidas_frescas", label: "Bebidas Líquidas (Frescas)", retirementDays: 1 },
+  { value: "pollo", label: "Carne No Procesada (Pollo)", retirementDays: 1 },
+  { value: "lacteos_frescos", label: "Lácteos (Fresco, Cuajada)", retirementDays: 2 },
+  { value: "carnes", label: "Carne No Procesada (Carnes)", retirementDays: 2 },
+  { value: "panaderia", label: "Panadería", retirementDays: 3 },
+  { value: "arepas", label: "Arepas", retirementDays: 3 },
+  { value: "huevos", label: "Huevos", retirementDays: 3 },
+  { value: "carnes_frias", label: "Carnes Frías", retirementDays: 5 },
+  { value: "quesos_hilados", label: "Lácteos (Quesos hilados)", retirementDays: 5 },
+  { value: "bebidas_lacteas", label: "Lácteos (Bebidas lácteas)", retirementDays: 5 },
+  { value: "otro", label: "Otro / General", retirementDays: 0 },
+];
