@@ -39,3 +39,30 @@ Después de modificar archivos, resume:
 * Por qué el cambio fue mínimo.
 * Qué prueba o verificación hiciste.
 * Qué riesgo queda pendiente, si existe.
+
+## UI Skills
+
+Cuando la tarea sea de diseño de interfaz, frontend visual, layout, componentes, accesibilidad, motion, shadcn/ui, Tailwind CSS, pulido visual o mejora de experiencia de usuario, primero considera usar UI Skills.
+
+Antes de modificar archivos en tareas de UI, si aplica, ejecuta:
+
+npx ui-skills start
+
+También puedes usar una skill específica cuando el caso sea claro:
+
+- npx ui-skills get baseline-ui
+- npx ui-skills get frontend-design
+- npx ui-skills get fixing-accessibility
+- npx ui-skills get fixing-motion-performance
+- npx ui-skills get shadcn
+
+Reglas para UI Skills:
+
+- Usa UI Skills solo cuando la tarea sea realmente de UI, frontend visual o experiencia de usuario.
+- Mantén Ponytail activo: mínimo cambio seguro, sin sobreingeniería.
+- No instales dependencias nuevas sin justificarlo.
+- No cambies lógica de negocio por mejorar diseño.
+- No reescribas componentes completos si basta con ajustar estructura, clases, espaciado, jerarquía, tipografía o estados visuales.
+- No modifiques backend, base de datos, autenticación, permisos ni lógica sensible por una tarea visual.
+- Antes de editar, di qué skill usarás, por qué aplica, qué archivos tocarás y qué NO vas a crear.
+- Espera aprobación antes de modificar archivos.

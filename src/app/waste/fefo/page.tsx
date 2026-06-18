@@ -17,7 +17,7 @@ export default async function FefoPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, store_code")
     .eq("user_id", user.id)
     .single();
 
@@ -27,7 +27,7 @@ export default async function FefoPage() {
   const { data: fefoRecords } = await supabase
     .from("fefo_records")
     .select("*")
-    .eq("profile_id", profile.id)
+    .eq("store_code", profile.store_code)
     .eq("status", "vigente")
     .order("expiration_date", { ascending: true });
 
