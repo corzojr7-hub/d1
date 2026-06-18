@@ -197,6 +197,9 @@ export default function TeamPage() {
       });
     }
   }
+  if (contextProfile && contextProfile.role !== "supervisor") {
+    return <ReadOnlyTeamView profile={contextProfile as Profile} />;
+  }
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-white pb-28">
@@ -519,3 +522,126 @@ export default function TeamPage() {
 
 const fieldClassName =
   "min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500";
+
+function ReadOnlyTeamView({ profile }: { profile: Profile }) {
+  return (
+    <div className="mx-auto min-h-screen max-w-md bg-white pb-28">
+      {/* Header Estilo 1:1 */}
+      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </Link>
+            <div className="flex flex-col">
+              <h1 className="text-lg font-bold leading-tight text-white">
+                Gestión de Tienda
+              </h1>
+              <p className="text-[10px] text-white/90">
+                Información de la tienda y tu equipo (Solo lectura)
+              </p>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div className="p-4">
+        {/* Datos de Tienda */}
+        <section className="mb-6 rounded-3xl bg-slate-50/50 p-5 shadow-sm ring-1 ring-slate-200/60">
+          <h2 className="mb-4 text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+            Datos de la Tienda
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Nombre de la Tienda</span>
+              <p className="mt-1 font-bold text-slate-800">{profile.store_name}</p>
+            </div>
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Código de Tienda</span>
+              <p className="mt-1 font-bold text-slate-800">{profile.store_code}</p>
+            </div>
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Nombre del Supervisor</span>
+              <p className="mt-1 font-bold text-slate-800">{profile.supervisor_name || profile.display_name}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Encargadas */}
+        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <h2 className="mb-4 text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+            Estructura de Mando
+          </h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Segunda encargada</span>
+              <p className="mt-1 font-bold text-slate-800">{profile.second_in_charge || "Sin asignar"}</p>
+            </div>
+            <div>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Tercero encargado</span>
+              <p className="mt-1 font-bold text-slate-800">{profile.third_in_charge || "Sin asignar"}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Asistentes */}
+        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+              Asistentes
+            </h2>
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+              {profile.assistants?.length || 0}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {(profile.assistants || []).map((assistant, index) => (
+              <div key={index} className="flex justify-between items-center rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <span className="font-bold text-slate-700">{assistant.name || "Sin nombre"}</span>
+                <span className="rounded-lg bg-slate-200/60 px-2.5 py-1 text-[10px] font-bold text-slate-500">
+                  {assistant.contract_type === "full_time" ? "Full Time" : assistant.contract_type === "part_time" ? "Part Time" : assistant.contract_type}
+                </span>
+              </div>
+            ))}
+            {(profile.assistants || []).length === 0 && (
+              <p className="text-sm text-slate-500 italic text-center py-2">No hay asistentes registrados</p>
+            )}
+          </div>
+        </section>
+
+        {/* Áreas y Cuadrantes */}
+        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
+              Áreas y Pasillos
+            </h2>
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+              {profile.areas?.length || 0}
+            </span>
+          </div>
+
+          <div className="space-y-2">
+            {(profile.areas || []).map((area, index) => (
+              <div key={index} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200">
+                <span className="font-bold text-slate-700">{area || "Área sin nombre"}</span>
+              </div>
+            ))}
+            {(profile.areas || []).length === 0 && (
+              <p className="text-sm text-slate-500 italic text-center py-2">No hay áreas registradas</p>
+            )}
+          </div>
+        </section>
+
+        <div className="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-100 px-5 text-[14px] font-bold text-slate-500">
+          Solo el supervisor puede editar la plantilla
+        </div>
+      </div>
+    </div>
+  );
+}
