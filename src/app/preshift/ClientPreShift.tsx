@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { createPreShift } from "./actions";
 import { useRouter } from "next/navigation";
 
-export default function ClientPreShift() {
+export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal: number }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
@@ -63,21 +63,9 @@ export default function ClientPreShift() {
                 type="number"
                 name="daily_sales_goal"
                 required
+                defaultValue={defaultDailyGoal > 0 ? defaultDailyGoal : undefined}
                 className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 placeholder="Ej. 15000000"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Meta de Ticket Promedio ($)
-              </label>
-              <input
-                type="number"
-                name="average_ticket_goal"
-                required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Ej. 25000"
               />
             </div>
           </div>
