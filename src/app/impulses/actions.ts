@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/supabase/require-auth";
+import { getAdminClient } from "@/lib/supabase/admin";
 
 export async function saveImpulseRecord(formData: FormData) {
   const { profile, supabase } = await requireAuth();
@@ -16,7 +17,8 @@ export async function saveImpulseRecord(formData: FormData) {
     return { success: false, error: "Faltan campos obligatorios o la cantidad es inválida." };
   }
 
-  const { error: insertError } = await supabase.from("impulse_records").insert({
+  const adminClient = getAdminClient();
+  const { error: insertError } = await adminClient.from("impulse_records").insert({
     profile_id: profile.id,
     created_by: profile.id,
     store_code: profile.store_code,
