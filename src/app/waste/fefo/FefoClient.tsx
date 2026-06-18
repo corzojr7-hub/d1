@@ -145,24 +145,29 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+      <div className="mb-2 mt-6 px-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link href="/waste" className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30">
-              <ArrowLeft className="h-5 w-5" />
+          <div className="flex flex-col">
+            <Link
+              href="/waste"
+              className="mb-4 text-xs text-zinc-400 underline-offset-2 hover:underline inline-block"
+            >
+              Volver a Merma
             </Link>
-            <h1 className="text-lg font-bold leading-tight text-white flex items-center gap-2">
-              <Radar className="h-5 w-5" /> Radar FEFO
+            <h1 className="flex items-center gap-2 text-2xl font-bold text-red-600">
+              <Radar className="h-6 w-6" />
+              Radar FEFO
             </h1>
           </div>
-          <button 
+          <button
             onClick={() => setIsAdding(!isAdding)}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-[#e51d2e] shadow-sm"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 transition-colors hover:bg-red-200"
+            title={isAdding ? "Cancelar" : "Añadir Producto"}
           >
-            {isAdding ? <PackageX className="h-4 w-4" /> : <Plus className="h-5 w-5" />}
+            {isAdding ? <X className="h-6 w-6" /> : <Plus className="h-6 w-6" />}
           </button>
         </div>
-      </header>
+      </div>
 
       <div className="p-4">
         {isAdding && (
