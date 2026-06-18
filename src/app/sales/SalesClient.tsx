@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, startTransition } from "react";
+import Link from "next/link";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDaysInMonth, isWithinInterval, startOfWeek, endOfWeek, parseISO, isSameMonth } from "date-fns";
 import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste } from "./actions";
