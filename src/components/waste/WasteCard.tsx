@@ -92,7 +92,11 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     });
   }
 
-  const productName = record.products?.name ?? record.barcode_id;
+  let productName = record.products?.name ?? record.barcode_id;
+  
+  if (productName === record.barcode_id && record.observation && record.observation.includes("Mermado automáticamente desde Radar FEFO. Producto: ")) {
+    productName = record.observation.replace("Mermado automáticamente desde Radar FEFO. Producto: ", "");
+  }
 
   return (
     <>
@@ -175,6 +179,14 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             Lugar: {record.area}
           </span>
         </div>
+
+        {/* Observacion general (si existe y no es transporte) */}
+        {record.observation && record.reason !== "averia_transporte" && record.reason !== "reporte_calidad" && (
+          <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-600">
+            <span className="font-semibold block text-slate-700">Observación:</span>
+            <p className="whitespace-pre-wrap">{record.observation}</p>
+          </div>
+        )}
 
         {/* Detalles Adicionales */}
         {(record.reason === "averia_transporte" || record.reason === "reporte_calidad") && (
