@@ -58,7 +58,8 @@ export default async function Home() {
     { count: wasteCountWeek },
     { data: storeData },
     { data: preShiftData },
-    { data: fefoRecords }
+    { data: fefoRecords },
+    { data: dailyBasics }
   ] = await Promise.all([
     supabase
       .from("instructions")
@@ -97,7 +98,12 @@ export default async function Home() {
       .from("fefo_records")
       .select("id, product_name, expiration_date, quantity")
       .eq("store_code", storeCode)
-      .eq("status", "vigente")
+      .eq("status", "vigente"),
+    adminClient
+      .from("daily_basics")
+      .select("id, task_name, assigned_to, status")
+      .eq("store_code", storeCode)
+      .eq("date", today.toISOString().split('T')[0])
   ]);
 
   const monthlyBudget = storeData?.monthly_budget || 0;
@@ -226,6 +232,37 @@ export default async function Home() {
             <span className="text-[#64748b]">
               Estado: <span className="font-bold text-[#e51d2e]">{recentInstructions[0].status === 'pendiente' ? 'Pendiente' : 'En Proceso'}</span>
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* Asignaciones de Básicos (Aseos, etc.) */}
+      {dailyBasics && dailyBasics.length > 0 && (
+        <div className="mx-4 mt-4 mb-8 rounded-2xl border border-blue-100 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Asignaciones Diarias (Aseo y Básicos)
+            </h3>
+          </div>
+          <div className="space-y-2">
+            {dailyBasics.map(basic => (
+              <div key={basic.id} className="bg-slate-50 p-2.5 rounded-xl flex justify-between items-center text-xs border border-slate-100">
+                <div className="flex items-center gap-2">
+                  {basic.status === 'completado' ? (
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                  ) : basic.status === 'novedad' ? (
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                  )}
+                  <span className="font-semibold text-slate-700">{basic.task_name}</span>
+                </div>
+                <div className="font-bold text-blue-700 uppercase tracking-wide px-2 py-0.5 bg-blue-50 rounded-lg">
+                  {basic.assigned_to}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -15,14 +15,14 @@ type Step = {
 };
 
 const STEPS: Step[] = [
-  { id: "exterior", title: "Exterior y Avisos", question: "¿El exterior está limpio y los avisos encendidos/visibles?" },
+  { id: "exterior", title: "Exterior y Vidrios", question: "¿Los vidrios están limpios y no hay basura o reguero en la entrada?" },
   { id: "neveras", title: "Neveras y Congeladores", question: "¿Las temperaturas están en rango y el surtido es óptimo?" },
-  { id: "fruver", title: "Frutas y Verduras", question: "¿Se retiró el producto dañado y la exhibición está llena?" },
-  { id: "puntas", title: "Puntas de Góndola", question: "¿Las puntas promocionales están surtidas y con precios correctos?" },
-  { id: "bodega", title: "Bodega", question: "¿La bodega está limpia y ordenada?", requiresPhoto: true },
-  { id: "aforo", title: "Cuarto de Aforo", question: "¿El cuarto de aforo está limpio y los productos rotulados?", requiresPhoto: true },
-  { id: "cafetin", title: "Cafetín", question: "¿El cafetín está limpio y organizado?", requiresPhoto: true },
-  { id: "bano", title: "Baño", question: "¿El baño está limpio y aseado?", requiresPhoto: true },
+  { id: "fruver", title: "Saneo de Fruver", question: "¿Se retiró el producto dañado (saneo) y la exhibición está llena?" },
+  { id: "puntas", title: "Punteras de Extraordinario", question: "¿Están las punteras frenteadas y con los precios correctos?" },
+  { id: "bodega", title: "Estado de la Bodega", question: "¿La bodega está limpia y ordenada?", requiresPhoto: true },
+  { id: "aforo", title: "Cuarto de Aforo (Averías)", question: "¿El cuarto de aforo está limpio y los productos dentro de las canastas?" },
+  { id: "cafetin", title: "Cafetín", question: "¿El cafetín está limpio y organizado?" },
+  { id: "bano", title: "Baño", question: "¿El baño está limpio y aseado?" },
 ];
 
 export default function ChecklistWizard({ auditType, operator }: { auditType: "apertura" | "cierre"; operator: string }) {
