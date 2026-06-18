@@ -51,8 +51,9 @@ export default function EvidenceGalleryClient() {
 
       const tasks: DownloadTask[] = [];
 
-      for (const record of records) {
-        const productName = record.products?.name?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
+      for (const record of records as any[]) {
+        const productData = Array.isArray(record.products) ? record.products[0] : record.products;
+        const productName = productData?.name?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
         const folderName = `${productName}`;
 
         if (record.transport_evidence) {
