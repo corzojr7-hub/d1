@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Radar, Plus, AlertTriangle, Clock, Target, CheckCircle2, PackageX } from "lucide-react";
 import { toast } from "sonner";
@@ -35,6 +35,13 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
   const [selectedCategory, setSelectedCategory] = useState("otro");
   const [sortBy, setSortBy] = useState<"criticidad" | "cantidad" | "fecha">("criticidad");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
 
   const today = new Date();
   today.setHours(0,0,0,0);
