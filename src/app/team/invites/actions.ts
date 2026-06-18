@@ -12,7 +12,7 @@ export async function createTeamMember(_prev: unknown, formData: FormData) {
     profile = authData.profile;
     
     if (profile.role !== "supervisor") {
-      throw new Error("Acceso denegado. Solo los supervisores pueden crear usuarios de Segunda y Tercera.");
+      throw new Error("Acceso denegado. Solo los supervisores pueden crear usuarios de Segundo(a) y Tercero(a).");
     }
   } catch (e: any) {
     return { error: e.message || "No tienes permisos para realizar esta acción" };
@@ -33,7 +33,7 @@ export async function createTeamMember(_prev: unknown, formData: FormData) {
 
   const validRoles = ["segundo_al_mando", "tercero_al_mando"];
   if (!validRoles.includes(role)) {
-    return { error: "Solo puedes crear Segunda y Tercera encargada" };
+    return { error: "Solo puedes crear Segundo(a) y Tercero(a) Encargado(a)" };
   }
 
   try {

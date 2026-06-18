@@ -55,7 +55,7 @@ export default function InvitesPage() {
       </div>
 
       <p className="mt-2 text-sm text-slate-500">
-        Crea una cuenta para que la Segunda o Tercera encargada pueda usar la app y registrar datos a su nombre.
+        Crea una cuenta para que el Segundo(a) o Tercero(a) Encargado(a) pueda usar la app y registrar datos a su nombre.
       </p>
 
       <form action={formAction} className="mt-6 space-y-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
@@ -75,8 +75,8 @@ export default function InvitesPage() {
             className="w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-red-500"
           >
             <option value="">Seleccionar rol</option>
-            <option value="segundo_al_mando">Segunda Encargada</option>
-            <option value="tercero_al_mando">Tercera Encargada</option>
+            <option value="segundo_al_mando">Segundo(a) Encargado(a)</option>
+            <option value="tercero_al_mando">Tercero(a) Encargado(a)</option>
           </select>
         </div>
 

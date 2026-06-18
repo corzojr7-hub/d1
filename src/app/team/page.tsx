@@ -290,7 +290,7 @@ export default function TeamPage() {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold text-slate-600">
-                Segunda encargada
+                Segundo(a) Encargado(a)
               </span>
               <select
                 name="second_in_charge"
@@ -309,7 +309,7 @@ export default function TeamPage() {
 
             <label className="block">
               <span className="mb-1.5 block text-xs font-semibold text-slate-600">
-                Tercero encargado
+                Tercero(a) Encargado(a)
               </span>
               <select
                 name="third_in_charge"
@@ -562,11 +562,11 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Segunda encargada</span>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Segundo(a) Encargado(a)</span>
               <p className="mt-1 font-bold text-slate-800">{profile.second_in_charge || "Sin asignar"}</p>
             </div>
             <div>
-              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Tercero encargado</span>
+              <span className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wide">Tercero(a) Encargado(a)</span>
               <p className="mt-1 font-bold text-slate-800">{profile.third_in_charge || "Sin asignar"}</p>
             </div>
           </div>

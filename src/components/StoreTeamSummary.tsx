@@ -39,8 +39,8 @@ export default function StoreTeamSummary() {
       <div className="px-5 py-4">
         <div className="grid grid-cols-1 gap-3 text-xs">
           <TeamLine label="Supervisor" value={profile.supervisor_name || profile.display_name} />
-          <TeamLine label="Segunda encargada" value={profile.second_in_charge} />
-          <TeamLine label="Tercero encargado" value={profile.third_in_charge} />
+          <TeamLine label="Segundo(a) Encargado(a)" value={profile.second_in_charge} />
+          <TeamLine label="Tercero(a) Encargado(a)" value={profile.third_in_charge} />
         </div>
 
         {profile.assistants.length > 0 ? (

@@ -50,7 +50,7 @@ export default function CreateEncargadoForm() {
       </div>
       <div className="p-4">
         <p className="text-sm text-slate-600 mb-4">
-          Crea un usuario (correo y contrasea) para que la Segunda o Tercera pueda iniciar sesion en su turno.
+          Crea un usuario (correo y contraseña) para que el Segundo(a) o Tercero(a) pueda iniciar sesión en su turno.
           Se le pedira que cambie la contrasea al entrar por primera vez.
         </p>
 
@@ -59,8 +59,8 @@ export default function CreateEncargadoForm() {
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Rol</label>
               <select name="role" required className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm bg-white">
-                <option value="segundo">Segunda(o) Encargada(o)</option>
-                <option value="tercero">Tercera(o) Encargada(o)</option>
+                <option value="segundo">Segundo(a) Encargado(a)</option>
+                <option value="tercero">Tercero(a) Encargado(a)</option>
               </select>
             </div>
             

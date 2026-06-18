@@ -77,7 +77,7 @@ export default async function AdminTeamPage() {
                       <User className="w-5 h-5 text-slate-400" />
                       <div>
                         <p className="text-sm font-bold text-slate-700">{secondInCharge}</p>
-                        <p className="text-[10px] uppercase font-bold text-slate-500">Segunda Encargada</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-500">Segundo(a) Encargado(a)</p>
                       </div>
                     </div>
 
@@ -85,7 +85,7 @@ export default async function AdminTeamPage() {
                       <User className="w-5 h-5 text-slate-400" />
                       <div>
                         <p className="text-sm font-bold text-slate-700">{thirdInCharge}</p>
-                        <p className="text-[10px] uppercase font-bold text-slate-500">Tercera Encargada</p>
+                        <p className="text-[10px] uppercase font-bold text-slate-500">Tercero(a) Encargado(a)</p>
                       </div>
                     </div>
                   </div>
