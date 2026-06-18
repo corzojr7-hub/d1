@@ -5,6 +5,7 @@ import Link from "next/link";
 import { UserPlus } from "lucide-react";
 import { createTeamMember } from "./actions";
 import { useProfile } from '@/components/ui/ProfileContext';
+import { toast } from 'sonner';
 
 export default function InvitesPage() {
   const [state, formAction, pending] = useActionState(createTeamMember, undefined);
@@ -12,7 +13,7 @@ export default function InvitesPage() {
 
   useEffect(() => {
     if (state?.success) {
-      alert("¡Cuenta creada exitosamente! La encargada ya puede iniciar sesión.");
+      toast.success("¡Cuenta creada exitosamente! La encargada ya puede iniciar sesión.");
     }
   }, [state]);
 

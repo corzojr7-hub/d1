@@ -34,6 +34,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
   const [expirationDate, setExpirationDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("otro");
   const [sortBy, setSortBy] = useState<"criticidad" | "cantidad" | "fecha">("criticidad");
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -379,18 +380,40 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
                 </div>
 
                 <div className="flex gap-2 pl-7">
-                  <button 
-                    onClick={() => handleSubtract(rec.id, rec.quantity)}
-                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-zinc-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
-                  >
-                    <Minus className="h-3 w-3" /> Vendida (-1)
-                  </button>
-                  <button 
-                    onClick={() => handleStatusChange(rec.id, "mermado")}
-                    className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-red-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
-                  >
-                    <PackageX className="h-3 w-3" /> Mermar
-                  </button>
+                  {confirmingId === rec.id ? (
+                    <>
+                      <button 
+                        onClick={() => setConfirmingId(null)}
+                        className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-zinc-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
+                      >
+                        Cancelar
+                      </button>
+                      <button 
+                        onClick={() => {
+                          handleStatusChange(rec.id, "mermado");
+                          setConfirmingId(null);
+                        }}
+                        className="flex-1 flex items-center justify-center gap-1 bg-red-100 hover:bg-red-200 text-red-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-red-200"
+                      >
+                        <PackageX className="h-3 w-3" /> Sí, confirmar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => handleSubtract(rec.id, rec.quantity)}
+                        className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-zinc-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
+                      >
+                        <Minus className="h-3 w-3" /> Vendida (-1)
+                      </button>
+                      <button 
+                        onClick={() => setConfirmingId(rec.id)}
+                        className="flex-1 flex items-center justify-center gap-1 bg-white/70 hover:bg-white text-red-700 font-bold py-2 rounded-xl text-xs transition-colors ring-1 ring-black/5"
+                      >
+                        <PackageX className="h-3 w-3" /> Mermar
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             );

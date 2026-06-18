@@ -106,19 +106,27 @@ export default function SalesClient({
 
   async function handleSaveBudget() {
     if (!budgetInput) return;
-    setIsSavingBudget(true);
-    await setMonthlyBudget(currentMonthYear, Number(budgetInput));
-    setIsSavingBudget(false);
-    alert("Presupuesto guardado");
+    startTransition(async () => {
+      try {
+        await setMonthlyBudget(currentMonthYear, Number(budgetInput));
+        toast.success("Presupuesto guardado");
+      } catch (error) {
+        toast.error("Error al guardar presupuesto");
+      }
+    });
   }
 
   async function handleSaveSale() {
     if (!saleDate || !saleAmount) return;
-    setIsSavingSale(true);
-    await setDailySale(saleDate, Number(saleAmount));
-    setIsSavingSale(false);
-    setSaleAmount("");
-    alert("Venta diaria guardada");
+    startTransition(async () => {
+      try {
+        await setDailySale(saleDate, Number(saleAmount));
+        setSaleAmount("");
+        toast.success("Venta diaria guardada");
+      } catch (error) {
+        toast.error("Error al guardar venta");
+      }
+    });
   }
 
   async function handleSaveWaste(weekStart: string, weekEnd: string, amountStr: string) {
