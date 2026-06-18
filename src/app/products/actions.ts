@@ -9,12 +9,12 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 export async function searchProducts(query: string) {
   await requireAuth();
   const supabase = await createClient();
-  const safeQuery = query.trim().split(" ").join(" | "); // Formato para textSearch
+  const safeQuery = `%${query.trim()}%`;
   const { data, error } = await supabase
     .from("products")
     .select("id, name, barcode_id, material_code, category, unit")
-    .textSearch("name", safeQuery)
-    .limit(10);
+    .or(`name.ilike.${safeQuery},barcode_id.ilike.${safeQuery},material_code.ilike.${safeQuery}`)
+    .limit(30);
   
   if (error) {
     console.error("searchProducts error:", error);
