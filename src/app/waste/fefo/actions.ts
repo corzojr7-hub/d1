@@ -65,6 +65,7 @@ export async function updateFefoStatus(id: string, status: string) {
         status: "pendiente_revision",
         observation: `Mermado automáticamente desde Radar FEFO. Producto: ${rawName}`,
         store_code: profile.store_code,
+        area: "",
         created_by: user.id,
         operator_name: fefoRecord.operator_name || profile.display_name || "",
         deposited_by: fefoRecord.operator_name || profile.display_name || "",
