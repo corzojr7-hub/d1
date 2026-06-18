@@ -524,7 +524,7 @@ export default function TeamPage() {
             })}
           </div>
           {(() => {
-            const aseoTask = (profile.basic_tasks || []).find((t: any) => t.id === "aseo_semanal");
+            const aseoTask = (profile.basic_tasks || []).find((t: any) => t.id === "aseo_semanal") as any;
             return <input type="hidden" name="aseo_schedule_json" value={JSON.stringify(aseoTask?.schedule || {})} />;
           })()}
         </section>
