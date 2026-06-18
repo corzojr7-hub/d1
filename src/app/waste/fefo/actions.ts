@@ -40,8 +40,11 @@ export async function addFefoRecord(data: {
 }
 
 export async function updateFefoStatus(id: string, status: string) {
-  const { profile } = await requireAuth();
+  const { profile, user } = await requireAuth();
   const adminClient = getAdminClient();
+
+  const { data: fefoRecord } = await adminClient.from("fefo_records").select("*").eq("id", id).single();
+  if (!fefoRecord) return { error: "No encontrado" };
 
   const { error } = await adminClient.from("fefo_records")
     .update({ status })
@@ -52,7 +55,25 @@ export async function updateFefoStatus(id: string, status: string) {
     return { error: "Error al actualizar" };
   }
 
+  if (status === "mermado") {
+     const rawName = fefoRecord.product_name.split(" ||| ")[0];
+     await adminClient.from("waste_records").insert({
+        barcode_id: fefoRecord.barcode_id,
+        qty: fefoRecord.quantity,
+        unit: "Unidad",
+        reason: "vencido",
+        status: "pendiente_revision",
+        observation: `Mermado automáticamente desde Radar FEFO. Producto: ${rawName}`,
+        store_code: profile.store_code,
+        created_by: user.id,
+        operator_name: fefoRecord.operator_name || profile.display_name || "",
+        deposited_by: fefoRecord.operator_name || profile.display_name || "",
+     });
+  }
+
+  revalidatePath("/waste");
   revalidatePath("/waste/fefo");
+  revalidatePath("/");
   return { success: true };
 }
 
