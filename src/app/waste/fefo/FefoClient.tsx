@@ -33,6 +33,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
   const [quantity, setQuantity] = useState("");
   const [expirationDate, setExpirationDate] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("otro");
+  const [sortBy, setSortBy] = useState<"criticidad" | "cantidad" | "fecha">("criticidad");
 
   const today = new Date();
   today.setHours(0,0,0,0);
@@ -307,6 +308,23 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
         )}
 
         <div className="space-y-3">
+          {records.length > 0 && !isAdding && (
+            <div className="flex items-center justify-between px-2 mb-4">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {records.length} {records.length === 1 ? 'producto' : 'productos'} en radar
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="criticidad">Ordenar por: Criticidad (Color)</option>
+                <option value="fecha">Ordenar por: Fecha Vencimiento</option>
+                <option value="cantidad">Ordenar por: Cantidad (Menor a Mayor)</option>
+              </select>
+            </div>
+          )}
+
           {records.length === 0 && !isAdding && (
             <div className="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-3xl">
               <Radar className="h-10 w-10 text-slate-300 mx-auto mb-3" />
@@ -314,7 +332,20 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
             </div>
           )}
 
-          {records.map((rec) => {
+          {[...records].sort((a, b) => {
+            if (sortBy === "cantidad") return a.quantity - b.quantity;
+            
+            const daysA = calculateDaysLeft(a.expiration_date);
+            const daysB = calculateDaysLeft(b.expiration_date);
+            if (sortBy === "fecha") return daysA - daysB;
+
+            // Sort by criticidad (Delta)
+            const catA = a.product_name.split(" ||| ")[1] || "otro";
+            const catB = b.product_name.split(" ||| ")[1] || "otro";
+            const deltaA = daysA - (FEFO_CATEGORIES.find(c => c.value === catA)?.retirementDays || 0);
+            const deltaB = daysB - (FEFO_CATEGORIES.find(c => c.value === catB)?.retirementDays || 0);
+            return deltaA - deltaB;
+          }).map((rec) => {
             const nameParts = rec.product_name.split(" ||| ");
             const rawName = nameParts[0];
             const categoryVal = nameParts[1] || "otro";
@@ -327,7 +358,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
             const delta = daysLeft - threshold;
             
             return (
-              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass} bg-opacity-50`}>
+              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass}`}>
                 <div className="flex justify-between items-start mb-2">
                   <div className="flex gap-2 items-center">
                     {getAlertIcon(delta)}
