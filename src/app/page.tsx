@@ -132,6 +132,9 @@ export default async function Home() {
     const catInfo = FEFO_CATEGORIES.find(c => c.value === categoryVal) || FEFO_CATEGORIES.find(c => c.value === "otro");
     const threshold = catInfo ? catInfo.retirementDays : 0;
     const delta = daysLeft - threshold;
+    return delta <= 6;
+  });
+
   const dayNames = ["domingo", "lunes", "martes", "miercoles", "jueves", "viernes", "sabado"];
   const currentDayName = dayNames[today.getDay()];
   
