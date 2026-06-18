@@ -185,7 +185,7 @@ export default function TeamPage() {
       const aseoIndex = basicTasks.findIndex(t => t.id === "aseo_semanal");
       
       if (aseoIndex >= 0) {
-        const aseoTask = { ...basicTasks[aseoIndex] };
+        const aseoTask = { ...basicTasks[aseoIndex] } as any;
         aseoTask.schedule = { ...(aseoTask.schedule || {}), [day]: assignee };
         basicTasks[aseoIndex] = aseoTask;
       } else {
@@ -195,7 +195,7 @@ export default function TeamPage() {
           type: "apertura",
           deadline_time: "10:00",
           schedule: { [day]: assignee }
-        });
+        } as any);
       }
       return { ...current, basic_tasks: basicTasks };
     });
