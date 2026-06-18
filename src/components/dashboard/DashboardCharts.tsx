@@ -41,7 +41,7 @@ export default function DashboardCharts({
           Top 5 Merma (Unidades)
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart
               data={topProducts}
               layout="vertical"
@@ -73,7 +73,7 @@ export default function DashboardCharts({
           Distribución por Motivo
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie
                 data={reasonData}
@@ -104,7 +104,7 @@ export default function DashboardCharts({
             Merma por Registrador
           </h3>
           <div className="h-64 w-full">
-            <ResponsiveContainer minWidth={1} width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <BarChart
                 data={userWasteData}
                 layout="vertical"

@@ -55,7 +55,7 @@ export default function ImpulseCharts({ data }: { data: any[] }) {
           Evolución de Impulso Diario
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <LineChart data={trendData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -75,7 +75,7 @@ export default function ImpulseCharts({ data }: { data: any[] }) {
           Impulso por Colaborador
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart
               data={assistantData}
               layout="vertical"

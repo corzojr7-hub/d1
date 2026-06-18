@@ -55,7 +55,7 @@ export default function AnalyticsClient({ basics }: { basics: DailyBasic[] }) {
       <div className="bg-white rounded-2xl p-4 shadow-sm border border-zinc-100">
         <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wide">Rendimiento por Asistente</h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={false} tickLine={false} />

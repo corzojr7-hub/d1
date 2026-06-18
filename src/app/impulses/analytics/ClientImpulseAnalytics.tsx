@@ -58,7 +58,7 @@ export default function ClientImpulseAnalytics({ records }: { records: any[] }) 
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
         <h2 className="text-sm font-bold text-slate-800 mb-4">Unidades por Asistente</h2>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart data={dataByAssistant} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} />
@@ -80,7 +80,7 @@ export default function ClientImpulseAnalytics({ records }: { records: any[] }) 
       <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
         <h2 className="text-sm font-bold text-slate-800 mb-4">Distribución por Tipo</h2>
         <div className="h-48 w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <PieChart>
               <Pie
                 data={dataByType}

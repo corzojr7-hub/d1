@@ -52,7 +52,7 @@ export default function PosMetricsCharts({ data }: { data: any[] }) {
           Productividad Media (Artículos/Min)
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart
               data={chartData}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
@@ -79,7 +79,7 @@ export default function PosMetricsCharts({ data }: { data: any[] }) {
           Anulaciones y Voids Totales
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer minWidth={1} width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
             <BarChart
               data={chartData.sort((a,b) => b.erroresTotales - a.erroresTotales)}
               layout="vertical"
