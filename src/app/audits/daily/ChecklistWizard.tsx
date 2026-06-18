@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Camera, CheckCircle2, ChevronRight, XCircle } from "lucide-react";
 import { submitDailyAudit } from "./actions";
 import { get, set } from "idb-keyval";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { compressImage } from "@/lib/image-compression";
 
 type Step = {
   id: string;
@@ -40,9 +42,15 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
     setAnswers({ ...answers, [step.id]: val });
   };
 
-  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setPhotos({ ...photos, [step.id]: e.target.files[0] });
+      const file = e.target.files[0];
+      try {
+        const compressed = await compressImage(file);
+        setPhotos({ ...photos, [step.id]: compressed });
+      } catch (err) {
+        setPhotos({ ...photos, [step.id]: file });
+      }
     }
   };
 
@@ -104,8 +112,12 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
         } else {
           toast.error(res.error || "Error al guardar");
         }
-      } catch (err) {
-        toast.error("Ocurrió un error inesperado");
+      } catch (err: any) {
+        if (isRedirectError(err)) {
+          throw err;
+        }
+        console.error("Submit error:", err);
+        toast.error("Ocurrió un error inesperado al enviar");
       }
     });
   };
