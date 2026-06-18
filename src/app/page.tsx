@@ -99,7 +99,6 @@ export default async function Home() {
       .select("id, product_name, expiration_date, quantity")
       .eq("store_code", storeCode)
       .eq("status", "vigente"),
-      .eq("status", "vigente"),
     adminClient
       .from("profiles")
       .select("basic_tasks")
