@@ -203,38 +203,33 @@ export default function TeamPage() {
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-white pb-28">
-      {/* Header Estilo 1:1 */}
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold leading-tight text-white">
-                Gestión de Tienda
-              </h1>
-              <p className="text-[10px] text-white/90">
-                Edita la información de la tienda y tu equipo
-              </p>
-            </div>
+      <div className="mb-2 mt-6 px-4">
+        <Link
+          href="/"
+          className="text-xs text-zinc-400 underline-offset-2 hover:underline"
+        >
+          Volver al inicio
+        </Link>
+        <div className="mt-4 flex items-center justify-between">
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold text-blue-700">
+              Gestión de Tienda
+            </h1>
+            <p className="mt-1 text-sm text-slate-400">
+              Edita la información de la tienda y tu equipo
+            </p>
           </div>
           {profile.role === "supervisor" && (
             <Link
               href="/team/invites"
-              className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[10px] font-bold text-[#e51d2e] transition-colors hover:bg-red-50"
+              className="flex items-center gap-1 rounded-full bg-blue-50 px-3 py-1.5 text-[10px] font-bold text-blue-700 transition-colors hover:bg-blue-100"
             >
               <UsersRound className="h-3 w-3" />
               Crear Acceso
             </Link>
           )}
         </div>
-      </header>
+      </div>
 
       <div className="p-4">
         {contextProfile?.role === "supervisor" && <CreateEncargadoForm />}
@@ -526,29 +521,22 @@ const fieldClassName =
 function ReadOnlyTeamView({ profile }: { profile: Profile }) {
   return (
     <div className="mx-auto min-h-screen max-w-md bg-white pb-28">
-      {/* Header Estilo 1:1 */}
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </Link>
-            <div className="flex flex-col">
-              <h1 className="text-lg font-bold leading-tight text-white">
-                Gestión de Tienda
-              </h1>
-              <p className="text-[10px] text-white/90">
-                Información de la tienda y tu equipo (Solo lectura)
-              </p>
-            </div>
-          </div>
+      <div className="mb-2 mt-6 px-4">
+        <Link
+          href="/"
+          className="text-xs text-zinc-400 underline-offset-2 hover:underline"
+        >
+          Volver al inicio
+        </Link>
+        <div className="mt-4 flex flex-col">
+          <h1 className="text-2xl font-bold text-blue-700">
+            Gestión de Tienda
+          </h1>
+          <p className="mt-1 text-sm text-slate-400">
+            Información de la tienda y tu equipo (Solo lectura)
+          </p>
         </div>
-      </header>
+      </div>
 
       <div className="p-4">
         {/* Datos de Tienda */}
