@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { LogOut, UserRound } from "lucide-react";
 import { logout } from "@/app/login/actions";
@@ -7,6 +8,12 @@ import { useProfile } from "./ProfileContext";
 
 export default function TopBar() {
   const { profile: contextProfile } = useProfile();
+  const [isMounted, setIsMounted] = useState(false);
+  
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   // Fallback default profile si no carga
   const profile = contextProfile || { store_code: "", store_name: "Tiendas D1", role: "user", display_name: "" };
   const storeLine = profile.store_code
@@ -74,6 +81,13 @@ export default function TopBar() {
           "Día de facing milimétrico y remover basuras ocultas",
           "Mantenimiento visual ligero de fin de semana"
         ];
+
+        if (!isMounted) {
+          return (
+            <div className="w-full h-6 bg-[#c41525] border-t border-[#e51d2e]/20 shadow-inner relative" />
+          );
+        }
+
         const today = new Date().getDay();
         const mensaje = `✨ Hoy es ${dias[today]} ✨ Enfoque de pasillo: ${alertas[today]}`;
         
