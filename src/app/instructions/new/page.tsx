@@ -10,12 +10,23 @@ export default async function NewInstructionPage() {
   const teamOptions = [];
   if (profile) {
     teamOptions.push({ id: 'sup', display_name: profile.supervisor_name, role: 'supervisor' });
-    if (profile.second_in_charge) teamOptions.push({ id: 'seg', display_name: profile.second_in_charge, role: 'segunda encargada' });
-    if (profile.third_in_charge) teamOptions.push({ id: 'ter', display_name: profile.third_in_charge, role: 'tercero encargado' });
+    const addedNames = new Set<string>();
+    
+    if (profile.second_in_charge) {
+      teamOptions.push({ id: 'seg', display_name: profile.second_in_charge, role: 'segunda encargada' });
+      addedNames.add(profile.second_in_charge);
+    }
+    if (profile.third_in_charge) {
+      teamOptions.push({ id: 'ter', display_name: profile.third_in_charge, role: 'tercero encargado' });
+      addedNames.add(profile.third_in_charge);
+    }
     
     if (Array.isArray(profile.assistants)) {
       profile.assistants.forEach((ast: any, idx: number) => {
-        teamOptions.push({ id: `ast-${idx}`, display_name: ast.name, role: 'asistente' });
+        if (!addedNames.has(ast.name)) {
+          teamOptions.push({ id: `ast-${idx}`, display_name: ast.name, role: 'asistente' });
+          addedNames.add(ast.name);
+        }
       });
     }
   }

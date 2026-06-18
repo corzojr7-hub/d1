@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import ChecklistsClient from "./ChecklistsClient";
 
 export default async function AuditsPage() {
@@ -15,7 +16,7 @@ export default async function AuditsPage() {
   // Get current store profile to get the id
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, role, basic_tasks, assistants")
+    .select("id, role, basic_tasks, assistants, store_code")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -34,10 +35,15 @@ export default async function AuditsPage() {
   // Fetch today's tasks
   const today = new Date().toISOString().split("T")[0];
 
-  const { data: dailyBasics } = await supabase
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: dailyBasics } = await adminClient
     .from("daily_basics")
     .select("*")
-    .eq("profile_id", profile.id)
+    .eq("store_code", profile.store_code)
     .eq("date", today);
 
   return (

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/supabase/require-auth";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import InstructionCard from "@/components/instructions/InstructionCard";
 
 export const metadata: Metadata = {
@@ -9,11 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default async function InstructionsIndex() {
-  const supabase = await createClient();
+  const { profile } = await requireAuth();
+  
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
-  const { data: instructions } = await supabase
+  const { data: instructions } = await adminClient
     .from("instructions")
     .select("*")
+    .eq("store_code", profile.store_code)
     .order("created_at", { ascending: false })
     .limit(50);
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AnalyticsClient from "./AnalyticsClient";
@@ -16,7 +17,7 @@ export default async function AuditsAnalyticsPage() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id")
+    .select("id, store_code")
     .eq("user_id", user.id)
     .maybeSingle();
 
@@ -32,10 +33,15 @@ export default async function AuditsAnalyticsPage() {
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-  const { data: basics } = await supabase
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data: basics } = await adminClient
     .from("daily_basics")
     .select("*")
-    .eq("profile_id", profile.id)
+    .eq("store_code", profile.store_code)
     .gte("date", thirtyDaysAgo.toISOString().split("T")[0]);
 
   return (

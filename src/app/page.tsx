@@ -61,12 +61,12 @@ export default async function Home() {
     { data: fefoRecords },
     { data: storeAdminProfile }
   ] = await Promise.all([
-    supabase
+    adminClient
       .from("instructions")
       .select("*", { count: "exact", head: true })
       .in("status", ["pendiente", "en_proceso"])
       .eq("store_code", storeCode),
-    supabase
+    adminClient
       .from("instructions")
       .select("*")
       .eq("store_code", storeCode)
