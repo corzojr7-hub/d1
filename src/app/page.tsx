@@ -194,7 +194,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-24">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-24 lg:max-w-6xl xl:max-w-7xl">
       <StoreTeamSummary />
 
       <section className="mx-4 mt-4 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] shadow-[0_20px_40px_rgba(229,29,46,0.18)]">

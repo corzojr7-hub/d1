@@ -21,7 +21,7 @@ export default async function HistoryPage(props: {
   const supabase = await createClient();
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pb-28 pt-6">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pb-28 pt-6 lg:max-w-6xl lg:px-6 xl:max-w-7xl xl:px-8">
       <Link
         href="/"
         className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm ring-1 ring-slate-200 transition-colors hover:text-slate-700"
@@ -90,7 +90,7 @@ async function InstructionsList({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid gap-4 lg:grid-cols-2">
       {instructions.map((inst) => (
         <InstructionCard key={inst.id} instruction={inst} />
       ))}
@@ -134,7 +134,7 @@ async function WasteList({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="grid gap-4 lg:grid-cols-2">
       {records.map((rec) => (
         <WasteCard key={rec.id} record={rec} />
       ))}
@@ -145,7 +145,7 @@ async function WasteList({
 
 function PaginationControls({ tab, page, hasNext }: { tab: string, page: number, hasNext: boolean }) {
   return (
-    <div className="mt-2 flex items-center justify-between gap-3 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
+    <div className="mt-2 flex items-center justify-between gap-3 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200 lg:col-span-2">
       {page > 1 ? (
         <Link
           href={`/history?tab=${tab}&page=${page - 1}`}

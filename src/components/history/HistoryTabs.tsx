@@ -17,7 +17,7 @@ export default function HistoryTabs() {
   }
 
   return (
-    <div className="grid w-full grid-cols-2 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
+    <div className="grid w-full grid-cols-2 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200 lg:mx-auto lg:max-w-2xl">
       {tabs.map((tab) => (
         <button
           key={tab.key}
