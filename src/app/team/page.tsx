@@ -7,7 +7,12 @@ import { supabase } from "@/lib/supabase/client";
 import { updateTeam } from "./actions";
 import { useProfile } from "@/components/ui/ProfileContext";
 import SecurityPinModal from "@/components/team/SecurityPinModal";
-import type { AssistantContractType, Profile } from "@/lib/domain/types";
+import type {
+  AssistantContractType,
+  BasicTaskConfig,
+  Profile,
+  TaskType,
+} from "@/lib/domain/types";
 
 const ASSISTANT_CONTRACT_OPTIONS = [
   { value: "full_time", label: "Full Time (MÃ¡x 44h semanales)" },
@@ -15,11 +20,8 @@ const ASSISTANT_CONTRACT_OPTIONS = [
   { value: "supervisor", label: "Supervisor" },
 ];
 
-type AseoTask = {
-  id: string;
-  name: string;
-  type: string;
-  deadline_time: string;
+type AseoTask = BasicTaskConfig & {
+  type: TaskType;
   schedule?: Record<string, string>;
 };
 
