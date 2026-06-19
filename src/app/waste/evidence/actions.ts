@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 
@@ -27,8 +26,40 @@ export async function fetchEvidenceByDate(startDateISO: string, endDateISO: stri
       throw new Error(error.message);
     }
 
-    return { records };
-  } catch (err: any) {
-    return { error: err.message };
+    const signedRecords = await Promise.all(
+      (records || []).map(async (record) => {
+        let imageUrl = record.image_url;
+        if (imageUrl) {
+          const { data } = await adminClient.storage
+            .from("waste-evidence")
+            .createSignedUrl(imageUrl, 60 * 10);
+          imageUrl = data?.signedUrl || imageUrl;
+        }
+
+        let transportEvidence = record.transport_evidence;
+        if (transportEvidence && typeof transportEvidence === "object") {
+          const signedEntries = await Promise.all(
+            Object.entries(transportEvidence).map(async ([key, path]) => {
+              if (!path) return [key, path] as const;
+              const { data } = await adminClient.storage
+                .from("waste-evidence")
+                .createSignedUrl(path, 60 * 10);
+              return [key, data?.signedUrl || path] as const;
+            })
+          );
+          transportEvidence = Object.fromEntries(signedEntries);
+        }
+
+        return {
+          ...record,
+          image_url: imageUrl,
+          transport_evidence: transportEvidence,
+        };
+      })
+    );
+
+    return { records: signedRecords };
+  } catch (err: unknown) {
+    return { error: err instanceof Error ? err.message : "Error al consultar evidencias." };
   }
 }

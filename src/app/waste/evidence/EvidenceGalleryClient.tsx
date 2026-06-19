@@ -7,12 +7,17 @@ import { saveAs } from "file-saver";
 import { fetchEvidenceByDate } from "./actions";
 import { toast } from "sonner";
 
+type EvidenceRecord = {
+  id: string;
+  image_url: string | null;
+  transport_evidence: Record<string, string> | null;
+  products: { name: string } | { name: string }[] | null;
+};
+
 export default function EvidenceGalleryClient() {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
   async function handleDownload() {
     setIsDownloading(true);
@@ -51,7 +56,7 @@ export default function EvidenceGalleryClient() {
 
       const tasks: DownloadTask[] = [];
 
-      for (const record of records as any[]) {
+      for (const record of records as EvidenceRecord[]) {
         const productData = Array.isArray(record.products) ? record.products[0] : record.products;
         const productName = productData?.name?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
         const folderName = `${productName}`;
@@ -59,9 +64,8 @@ export default function EvidenceGalleryClient() {
         if (record.transport_evidence) {
           // Multiple evidences (transport/quality)
           const evidences = record.transport_evidence as Record<string, string>;
-          for (const [type, path] of Object.entries(evidences)) {
-            if (path) {
-              const url = `${supabaseUrl}/storage/v1/object/public/waste-evidence/${path}`;
+          for (const [type, url] of Object.entries(evidences)) {
+            if (url) {
               tasks.push({
                 folder: folderName,
                 fileName: `${type.toUpperCase()}.jpg`,
@@ -71,11 +75,10 @@ export default function EvidenceGalleryClient() {
           }
         } else if (record.image_url) {
           // Single evidence
-          const url = `${supabaseUrl}/storage/v1/object/public/waste-evidence/${record.image_url}`;
           tasks.push({
             folder: folderName,
             fileName: `EVIDENCIA_${record.id.substring(0, 8)}.jpg`,
-            url
+            url: record.image_url
           });
         }
       }
@@ -115,9 +118,9 @@ export default function EvidenceGalleryClient() {
       toast.dismiss();
       toast.success(`¡Descarga completada! (${downloadedFiles} fotos)`);
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.dismiss();
-      toast.error(err.message || "Error al descargar las evidencias");
+      toast.error(err instanceof Error ? err.message : "Error al descargar las evidencias");
       console.error(err);
     } finally {
       setIsDownloading(false);

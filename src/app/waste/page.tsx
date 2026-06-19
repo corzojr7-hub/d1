@@ -16,6 +16,14 @@ export default async function WasteIndex({
 }: {
   searchParams: SearchParams;
 }) {
+  async function signEvidencePath(path: string | null) {
+    if (!path) return path;
+    const { data } = await adminClient.storage
+      .from("waste-evidence")
+      .createSignedUrl(path, 60 * 10);
+    return data?.signedUrl || path;
+  }
+
   const supabase = await createClient();
 
   const {
@@ -55,6 +63,27 @@ export default async function WasteIndex({
       .select("user_id, display_name")
       .eq("store_code", storeCode),
   ]);
+
+  const signedRecords = await Promise.all(
+    (records || []).map(async (record) => {
+      let transportEvidence = record.transport_evidence;
+      if (transportEvidence && typeof transportEvidence === "object") {
+        const signedEntries = await Promise.all(
+          Object.entries(transportEvidence).map(async ([key, path]) => [
+            key,
+            await signEvidencePath(path as string | null),
+          ])
+        );
+        transportEvidence = Object.fromEntries(signedEntries);
+      }
+
+      return {
+        ...record,
+        image_url: await signEvidencePath(record.image_url),
+        transport_evidence: transportEvidence,
+      };
+    })
+  );
 
   const profileMap = new Map(
     (storeProfiles || []).map((p) => [p.user_id, p.display_name]),
@@ -150,8 +179,8 @@ export default async function WasteIndex({
       </div>
 
       <div className="mt-6 space-y-4">
-        {records && records.length > 0 ? (
-          records.map((rec) => (
+        {signedRecords.length > 0 ? (
+          signedRecords.map((rec) => (
             <WasteCard
               key={rec.id}
               record={{ ...rec, author: profileMap.get(rec.created_by) }}
