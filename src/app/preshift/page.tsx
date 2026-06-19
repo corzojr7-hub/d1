@@ -15,7 +15,9 @@ export default async function PreShiftPage() {
   );
 
   const today = new Date();
-  const currentMonthYear = today.toISOString().slice(0, 7);
+  const currentMonthYear = `${today.getFullYear()}-${String(
+    today.getMonth() + 1,
+  ).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
   const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   const nextMonthStart = `${nextMonthDate.getFullYear()}-${String(

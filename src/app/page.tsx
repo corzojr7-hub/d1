@@ -43,7 +43,9 @@ export default async function Home() {
   );
 
   const today = new Date();
-  const currentMonthYear = today.toISOString().slice(0, 7);
+  const currentMonthYear = `${today.getFullYear()}-${String(
+    today.getMonth() + 1,
+  ).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
   const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
   const nextMonthStart = `${nextMonthDate.getFullYear()}-${String(
@@ -51,7 +53,8 @@ export default async function Home() {
   ).padStart(2, "0")}-01`;
   const day = today.getDay();
   const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-  const startOfWeek = new Date(today.setDate(diff));
+  const startOfWeek = new Date(today);
+  startOfWeek.setDate(diff);
   startOfWeek.setHours(0, 0, 0, 0);
   const startOfWeekIso = startOfWeek.toISOString();
 
@@ -131,9 +134,10 @@ export default async function Home() {
   ).getDate();
   const currentDay = today.getDate();
   const remainingDays = Math.max(1, daysInMonth - currentDay);
-  const dailyGoal =
-    preShiftData?.daily_sales_goal ||
-    Math.max(0, Math.round((monthlyBudget - accumulatedSales) / remainingDays));
+  const dailyGoal = Math.max(
+    0,
+    Math.round((monthlyBudget - accumulatedSales) / remainingDays),
+  );
 
   const calculateDaysLeft = (expDateStr: string) => {
     const expDate = new Date(expDateStr);
