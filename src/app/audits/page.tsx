@@ -22,7 +22,7 @@ export default async function AuditsPage() {
 
   if (error) {
     return (
-      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6">
+      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl xl:max-w-6xl">
         <div className="rounded-[28px] border border-red-100 bg-white px-5 py-10 text-center shadow-sm">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-red-400">
             Error de carga
@@ -40,7 +40,7 @@ export default async function AuditsPage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6">
+      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl xl:max-w-6xl">
         <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-slate-500 shadow-sm">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
             Sin perfil

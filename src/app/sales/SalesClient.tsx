@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect, startTransition } from "react";
 import Link from "next/link";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDaysInMonth, isWithinInterval, startOfWeek, endOfWeek, parseISO, isSameMonth } from "date-fns";
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDaysInMonth, isWithinInterval, startOfWeek, endOfWeek, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste } from "./actions";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
@@ -24,18 +24,19 @@ export default function SalesClient({
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
-    setIsMounted(true);
+    const timer = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
   
   // States for forms
-  const [isSavingBudget, setIsSavingBudget] = useState(false);
+  const [isSavingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState("");
   
   const [saleDate, setSaleDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [saleAmount, setSaleAmount] = useState("");
-  const [isSavingSale, setIsSavingSale] = useState(false);
+  const [isSavingSale] = useState(false);
 
   const [wasteAmount, setWasteAmount] = useState("");
   const [wasteWeek, setWasteWeek] = useState("");
@@ -49,7 +50,10 @@ export default function SalesClient({
 
   // Use budgetInput state only when editing
   useEffect(() => {
-    setBudgetInput(currentBudget > 0 ? currentBudget.toString() : "");
+    const timer = setTimeout(() => {
+      setBudgetInput(currentBudget > 0 ? currentBudget.toString() : "");
+    }, 0);
+    return () => clearTimeout(timer);
   }, [currentBudget]);
 
   const monthSales = useMemo(() => {
@@ -69,11 +73,14 @@ export default function SalesClient({
   }, [initialSales, saleDate]);
 
   useEffect(() => {
-    if (existingDailySale) {
-      setSaleAmount(existingDailySale.amount.toString());
-    } else {
-      setSaleAmount("");
-    }
+    const timer = setTimeout(() => {
+      if (existingDailySale) {
+        setSaleAmount(existingDailySale.amount.toString());
+      } else {
+        setSaleAmount("");
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, [existingDailySale]);
   
   // Forecast
@@ -126,8 +133,8 @@ export default function SalesClient({
         const res = await setMonthlyBudget(currentMonthYear, Number(budgetInput));
         if (!res.success) throw new Error(res.error);
         toast.success("Presupuesto guardado");
-      } catch (error: any) {
-        toast.error(error.message || "Error al guardar presupuesto");
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : "Error al guardar presupuesto");
       }
     });
   }
@@ -140,8 +147,8 @@ export default function SalesClient({
         if (!res.success) throw new Error(res.error);
         setSaleAmount("");
         toast.success("Venta diaria guardada");
-      } catch (error: any) {
-        toast.error(error.message || "Error al guardar venta");
+      } catch (error: unknown) {
+        toast.error(error instanceof Error ? error.message : "Error al guardar venta");
       }
     });
   }
@@ -162,7 +169,7 @@ export default function SalesClient({
   if (!isMounted) return <div className="flex justify-center p-10"><p className="text-sm font-bold text-slate-400">Cargando...</p></div>;
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-6 pb-24 space-y-6">
+    <div className="mx-auto max-w-md px-4 pt-6 pb-24 space-y-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8 lg:pt-10">
       <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
         Volver

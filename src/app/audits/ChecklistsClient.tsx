@@ -114,7 +114,7 @@ export default function ChecklistsClient({
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
         <div className="flex items-start gap-3">
           <Link
