@@ -359,25 +359,27 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                   </thead>
                   <tbody>
                     {selectedScheduleRows.map((row: ScheduleRow, i: number) => (
-                      <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50">
-                        <td className="sticky left-0 z-20 border-r border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
+                      <tr key={i} className="border-b border-slate-100/80 odd:bg-white even:bg-slate-50/20 hover:bg-slate-50">
+                        <td className="sticky left-0 z-20 border-r border-slate-200/80 bg-white px-4 py-3 font-bold text-slate-900 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
                           {row.assistant}
                         </td>
                         {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
                           const shiftData = row[day] as ShiftData | undefined;
-                          if (!shiftData) return <td key={day} className="p-2 border-r border-slate-200"></td>;
+                          if (!shiftData) {
+                            return <td key={day} className="border-r border-slate-200/80 bg-slate-50/40 p-2"></td>;
+                          }
                           return (
-                            <td key={day} className="p-2 border-r border-slate-200">
-                              <div className={`flex flex-col items-center justify-center rounded-lg p-1.5 ${getShiftColor(shiftData.type ?? "")}`}>
-                                <span className="font-bold text-[10px] uppercase tracking-wider">{shiftData.type}</span>
+                            <td key={day} className="border-r border-slate-200/80 bg-white p-2">
+                              <div className={`flex min-h-14 flex-col items-center justify-center rounded-2xl px-2 py-2 text-center ring-1 shadow-sm ${getShiftColor(shiftData.type ?? "")}`}>
+                                <span className="text-[10px] font-black uppercase tracking-[0.14em]">{shiftData.type}</span>
                                 {shiftData.shift !== "Descanso" && (
-                                  <span className="font-medium mt-0.5 text-[11px] opacity-90">{shiftData.shift}</span>
+                                  <span className="mt-0.5 text-[11px] font-medium opacity-90">{shiftData.shift}</span>
                                 )}
                               </div>
                             </td>
                           );
                         })}
-                        <td className="bg-slate-50/80 px-4 py-3 text-center font-black text-slate-900">
+                        <td className="bg-slate-50/80 px-4 py-3 text-center text-[14px] font-black text-slate-900 ring-1 ring-inset ring-slate-100">
                           {row.total_hours}h
                         </td>
                       </tr>
@@ -385,9 +387,14 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                   </tbody>
                 </table>
                 {selectedScheduleRows.length === 0 && (
-                  <div className="p-8 text-center text-slate-500">
-                    <p className="text-sm mb-4 text-red-500">El formato devuelto por la IA no fue el esperado. Aquí tienes los datos en crudo para que puedas ver el horario:</p>
-                    <div className="bg-slate-800 text-emerald-400 p-4 rounded-xl text-left overflow-x-auto text-[10px] font-mono whitespace-pre-wrap">
+                  <div className="border-t border-slate-200/80 bg-slate-50/80 p-6 text-center text-slate-500">
+                    <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                      Estado técnico
+                    </p>
+                    <p className="mb-4 text-sm text-rose-500">
+                      El formato devuelto por la IA no fue el esperado. Aquí tienes los datos en crudo para que puedas ver el horario:
+                    </p>
+                    <div className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-left text-[10px] font-mono whitespace-pre-wrap text-emerald-400 ring-1 ring-slate-800/60">
                       {JSON.stringify(selectedSchedule.schedule_data, null, 2)}
                     </div>
                   </div>
