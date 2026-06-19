@@ -343,7 +343,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                           if (!shiftData) return <td key={day} className="p-2 border-r border-slate-200"></td>;
                           return (
                             <td key={day} className="p-2 border-r border-slate-200">
-                              <div className={`flex flex-col items-center justify-center p-1.5 rounded-lg ${getShiftColor(shiftData.type)}`}>
+                              <div className={`flex flex-col items-center justify-center rounded-lg p-1.5 ${getShiftColor(shiftData.type ?? "")}`}>
                                 <span className="font-bold text-[10px] uppercase tracking-wider">{shiftData.type}</span>
                                 {shiftData.shift !== "Descanso" && (
                                   <span className="font-medium mt-0.5 text-[11px] opacity-90">{shiftData.shift}</span>
