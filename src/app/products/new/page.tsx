@@ -209,7 +209,7 @@ function ProductForm() {
 
 export default function NewProductPage() {
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pb-28 pt-6">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pb-28 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 lg:pt-10 xl:max-w-6xl xl:px-8">
       <div className="mb-4">
         <Link
           href="/waste/new"

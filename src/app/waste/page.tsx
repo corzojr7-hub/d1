@@ -61,7 +61,7 @@ export default async function WasteIndex({
   );
 
   return (
-    <div className="mx-auto max-w-md bg-slate-50 px-4 py-8">
+    <div className="mx-auto max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <div className="mb-2">
         <Link
           href="/"
