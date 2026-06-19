@@ -40,7 +40,9 @@ export async function fetchEvidenceByDate(startDateISO: string, endDateISO: stri
         if (transportEvidence && typeof transportEvidence === "object") {
           const signedEntries = await Promise.all(
             Object.entries(transportEvidence).map(async ([key, path]) => {
-              if (!path) return [key, path] as const;
+              if (typeof path !== "string" || path.length === 0) {
+                return [key, path] as const;
+              }
               const { data } = await adminClient.storage
                 .from("waste-evidence")
                 .createSignedUrl(path, 60 * 10);
