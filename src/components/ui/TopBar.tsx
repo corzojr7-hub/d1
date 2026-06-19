@@ -2,11 +2,30 @@
 
 import Link from "next/link";
 import { LogOut, UserRound } from "lucide-react";
+import { useEffect, useState } from "react";
 import { logout } from "@/app/login/actions";
 import { useProfile } from "./ProfileContext";
 
 export default function TopBar() {
   const { profile: contextProfile } = useProfile();
+  const [todayMessage, setTodayMessage] = useState("");
+
+  useEffect(() => {
+    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const alertas = [
+      "Atención al cliente y revisión de abandonados",
+      "Día de limpieza de polvo y fechas (FEFO)",
+      "Día de actualizar precios y limpiar acrílicos",
+      "Día de limpieza de parales y rotación interna",
+      "Día de raspar piso, chicles y revisar exhibiciones",
+      "Día de facing milimétrico y remover basuras ocultas",
+      "Mantenimiento visual ligero de fin de semana"
+    ];
+
+    const today = new Date().getDay();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setTodayMessage(`✨ Hoy es ${dias[today]} ✨ Enfoque de pasillo: ${alertas[today]}`);
+  }, []);
 
   // Fallback default profile si no carga
   const profile = contextProfile || { store_code: "", store_name: "Tiendas D1", role: "user", display_name: "" };
@@ -64,35 +83,19 @@ export default function TopBar() {
         </div>
       </div>
 
-      {(() => {
-        const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-        const alertas = [
-          "Atención al cliente y revisión de abandonados",
-          "Día de limpieza de polvo y fechas (FEFO)",
-          "Día de actualizar precios y limpiar acrílicos",
-          "Día de limpieza de parales y rotación interna",
-          "Día de raspar piso, chicles y revisar exhibiciones",
-          "Día de facing milimétrico y remover basuras ocultas",
-          "Mantenimiento visual ligero de fin de semana"
-        ];
-
-        const today = new Date().getDay();
-        const mensaje = `✨ Hoy es ${dias[today]} ✨ Enfoque de pasillo: ${alertas[today]}`;
-        
-        return (
-          <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner">
-            <div className="absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
-            <div className="absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
-            <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92">
-              <span className="mx-8">{mensaje}</span>
-              <span className="mx-8 opacity-50">•</span>
-              <span className="mx-8">{mensaje}</span>
-              <span className="mx-8 opacity-50">•</span>
-              <span className="mx-8">{mensaje}</span>
-            </div>
+      {todayMessage && (
+        <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner">
+          <div className="absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
+          <div className="absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
+          <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92">
+            <span className="mx-8">{todayMessage}</span>
+            <span className="mx-8 opacity-50">•</span>
+            <span className="mx-8">{todayMessage}</span>
+            <span className="mx-8 opacity-50">•</span>
+            <span className="mx-8">{todayMessage}</span>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </header>
   );
 }

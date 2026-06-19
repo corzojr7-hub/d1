@@ -1,5 +1,7 @@
 "use client";
 
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import {
   BarChart,
   Bar,
@@ -44,7 +46,7 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
   // Aggregate by Date for trend
   const byDate: Record<string, number> = {};
   data.forEach((item) => {
-    const d = new Date(item.date).toLocaleDateString("es-CO", { month: "short", day: "numeric" });
+    const d = format(new Date(item.date), "dd MMM", { locale: es });
     byDate[d] = (byDate[d] || 0) + item.quantity;
   });
 

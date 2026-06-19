@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -38,6 +38,12 @@ const periodOptions: { value: Period; label: string }[] = [
 
 export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
   const [period, setPeriod] = useState<Period>("day");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   const currency = useMemo(
     () =>
@@ -160,13 +166,13 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
 
   return (
     <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">Ventas</p>
           <h3 className="mt-1 text-lg font-black text-slate-900">Comportamiento de ventas</h3>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
-        <div className="inline-flex rounded-2xl bg-slate-50 p-1">
+        <div className="inline-flex self-start rounded-2xl bg-slate-50 p-1">
           {periodOptions.map((option) => {
             const active = period === option.value;
             return (
@@ -197,33 +203,37 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
       </div>
 
       <div className="mt-4 h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-          <BarChart data={chartData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-            <XAxis
-              dataKey="label"
-              tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
-              axisLine={false}
-              tickLine={false}
-              tickFormatter={(value) => compactNumber.format(Number(value))}
-            />
-            <Tooltip
-              cursor={{ fill: "#fff1f2" }}
-              contentStyle={{
-                borderRadius: "12px",
-                border: "none",
-                boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.12)",
-              }}
-              formatter={(value) => [currency.format(Number(value)), "Ventas"]}
-            />
-            <Bar dataKey="amount" fill="#e51d2e" radius={[12, 12, 0, 0]} barSize={22} />
-          </BarChart>
-        </ResponsiveContainer>
+        {mounted ? (
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+            <BarChart data={chartData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis
+                dataKey="label"
+                tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
+                axisLine={false}
+                tickLine={false}
+                tickFormatter={(value) => compactNumber.format(Number(value))}
+              />
+              <Tooltip
+                cursor={{ fill: "#fff1f2" }}
+                contentStyle={{
+                  borderRadius: "12px",
+                  border: "none",
+                  boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.12)",
+                }}
+                formatter={(value) => [currency.format(Number(value)), "Ventas"]}
+              />
+              <Bar dataKey="amount" fill="#e51d2e" radius={[12, 12, 0, 0]} barSize={22} />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-full w-full rounded-2xl bg-slate-50" />
+        )}
       </div>
 
       <p className="mt-3 flex items-center gap-1.5 text-[11px] font-medium text-slate-400">
