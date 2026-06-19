@@ -67,12 +67,13 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const formattedDate = new Date(record.created_at).toLocaleDateString("es-MX", {
+  const formattedDate = new Intl.DateTimeFormat("es-CO", {
     day: "numeric",
     month: "short",
     hour: "2-digit",
     minute: "2-digit",
-  });
+    timeZone: "America/Bogota",
+  }).format(new Date(record.created_at));
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;

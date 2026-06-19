@@ -1,8 +1,6 @@
 "use client";
 
 import { useTransition } from "react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { ClipboardList } from "lucide-react";
 import { updateInstructionStatus } from "@/app/instructions/actions";
@@ -59,6 +57,13 @@ export default function InstructionCard({
   const [pending, startTransition] = useTransition();
   const { profile } = useProfile();
   const operator = profile?.display_name;
+  const formattedDate = new Intl.DateTimeFormat("es-CO", {
+    day: "numeric",
+    month: "short",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/Bogota",
+  }).format(new Date(instruction.created_at));
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;
@@ -112,9 +117,7 @@ export default function InstructionCard({
         <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
         <span className="font-medium text-slate-600">{instruction.responsible}</span>
         <span className="text-slate-300">·</span>
-        <span className="text-[11px] text-slate-400">
-          {format(new Date(instruction.created_at), "d MMM, h:mm a", { locale: es })}
-        </span>
+        <span className="text-[11px] text-slate-400">{formattedDate}</span>
       </div>
     </div>
   );
