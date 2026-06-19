@@ -62,6 +62,19 @@ export default function SalesClient({
   }, [initialSales, currentDate]);
 
   const totalSalesMonth = monthSales.reduce((acc, curr) => acc + Number(curr.amount), 0);
+
+  // Pre-fill daily sale amount if it already exists
+  const existingDailySale = useMemo(() => {
+    return initialSales.find(s => s.date === saleDate);
+  }, [initialSales, saleDate]);
+
+  useEffect(() => {
+    if (existingDailySale) {
+      setSaleAmount(existingDailySale.amount.toString());
+    } else {
+      setSaleAmount("");
+    }
+  }, [existingDailySale]);
   
   // Forecast
   const daysInMonth = getDaysInMonth(currentDate);
@@ -270,16 +283,21 @@ export default function SalesClient({
                   value={saleAmount}
                   onChange={(e) => setSaleAmount(e.target.value)}
                   placeholder="Ej: 5000000"
-                  className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800"
+                  className={`w-full mt-1 px-3 py-2 bg-slate-50 border rounded-xl text-sm font-bold text-slate-800 transition-colors ${existingDailySale ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200'}`}
                 />
                 <button 
                   onClick={handleSaveSale}
                   disabled={isSavingSale}
-                  className="h-10 mt-1 px-4 bg-[#0a3875] text-white rounded-xl text-sm font-bold active:scale-95 transition-transform"
+                  className={`h-10 mt-1 px-4 text-white rounded-xl text-sm font-bold active:scale-95 transition-all ${existingDailySale ? 'bg-emerald-600' : 'bg-[#0a3875]'}`}
                 >
-                  {isSavingSale ? "..." : <Save className="w-4 h-4" />}
+                  {isSavingSale ? "..." : (existingDailySale ? "Editar" : <Save className="w-4 h-4" />)}
                 </button>
               </div>
+              {existingDailySale && (
+                <p className="text-[10px] text-emerald-600 font-bold mt-1.5 flex items-center gap-1">
+                  ✓ Ya registrada (puedes editarla)
+                </p>
+              )}
             </div>
           </div>
         ) : (
@@ -375,6 +393,27 @@ export default function SalesClient({
             );
           })}
         </div>
+      </section>
+
+      {/* Historial de Ventas del Mes */}
+      <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+          <Calendar className="w-4 h-4" /> Historial de {format(currentDate, "MMMM", { locale: es })}
+        </h2>
+        {monthSales.length === 0 ? (
+          <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+            <p className="text-[11px] font-bold text-slate-400">Aún no hay ventas registradas en este mes</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {[...monthSales].sort((a, b) => b.date.localeCompare(a.date)).map(sale => (
+              <div key={sale.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-xl">
+                <p className="text-xs font-bold text-slate-500">{format(parseISO(sale.date), "EEEE dd", { locale: es }).toUpperCase()}</p>
+                <p className="text-sm font-black text-slate-800">{formatCurrency(Number(sale.amount))}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
     </div>
   );
