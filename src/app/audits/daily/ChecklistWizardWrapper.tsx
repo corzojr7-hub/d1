@@ -12,7 +12,7 @@ export default function ChecklistWizardWrapper({ operatorName }: { operatorName:
   }
 
   return (
-    <div className="mx-auto max-w-md p-6">
+    <div className="mx-auto w-full max-w-md p-6 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
       <h2 className="text-xl font-black text-slate-800 mb-2">Selecciona la Rutina</h2>
       <p className="text-sm font-medium text-slate-500 mb-8">
         ¿Qué checklist vas a diligenciar en este momento?

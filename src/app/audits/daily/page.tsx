@@ -28,7 +28,7 @@ export default async function DailyAuditPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="bg-slate-50 min-h-screen pb-20">
+    <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 pb-20 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
       <header className="bg-[#0a3875] px-4 py-4 shadow-sm flex items-center gap-3">
         <h1 className="text-lg font-bold leading-tight text-white">
           Checklist Operativo
