@@ -283,10 +283,10 @@ export default function TeamPage() {
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-[220px]">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/65">
-                Operacion de Tienda
+                Operación de Tienda
               </p>
               <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-                Gestion de equipo
+                Gestión de equipo
               </h1>
               <p className="mt-2 text-[13px] leading-relaxed text-white/80">
                 Ordena los datos base de la tienda y define responsables clave
@@ -301,7 +301,7 @@ export default function TeamPage() {
           {profile.role === "supervisor" ? (
             <div className="mt-4 flex items-center justify-between gap-3">
               <div className="inline-flex items-center rounded-full bg-white/12 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-                Datos base y jerarquia operativa
+                Datos base y jerarquía operativa
               </div>
               <Link
                 href="/team/invites"
@@ -335,8 +335,8 @@ export default function TeamPage() {
               Datos de la tienda
             </h2>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              Mantiene visible la informacion principal que usa el equipo en la
-              operacion diaria.
+              Mantiene visible la información principal que usa el equipo en la
+              operación diaria.
             </p>
           </div>
 
@@ -390,7 +390,7 @@ export default function TeamPage() {
             </h2>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
               Define los relevos principales para que la lectura del equipo sea
-              clara y rapida.
+              clara y rápida.
             </p>
           </div>
 
@@ -445,12 +445,20 @@ export default function TeamPage() {
           </div>
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
-              Asistentes
-            </h2>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+        <section className="mb-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Equipo
+              </p>
+              <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+                Asistentes
+              </h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+                Organiza nombres y tipo de contrato con una lectura más clara en móvil.
+              </p>
+            </div>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
               {profile.assistants.length}
             </span>
           </div>
@@ -459,26 +467,28 @@ export default function TeamPage() {
             {profile.assistants.map((assistant, index) => (
               <div
                 key={index}
-                className="relative rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
+                className="relative rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 shadow-sm"
               >
                 {profile.role === "supervisor" && (
                   <button
                     type="button"
                     onClick={() => removeAssistant(index)}
-                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100"
+                    className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 ring-1 ring-red-100 transition hover:bg-red-50"
                     title="Eliminar asistente"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
                 )}
 
-                <div className="mb-3 text-[10px] font-bold uppercase text-slate-400">
-                  Asistente {index + 1}
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
+                    Asistente {index + 1}
+                  </span>
                 </div>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3">
                   <label className="block">
-                    <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
+                    <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                       Nombre
                     </span>
                     <input
@@ -487,12 +497,12 @@ export default function TeamPage() {
                       onChange={(event) =>
                         setAssistantName(index, event.target.value)
                       }
-                      className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                      className="min-h-12 w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                       placeholder="Nombre del asistente"
                     />
                   </label>
                   <label className="block">
-                    <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
+                    <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                       Contrato
                     </span>
                     <select
@@ -504,7 +514,7 @@ export default function TeamPage() {
                           event.target.value as AssistantContractType,
                         )
                       }
-                      className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                      className="min-h-12 w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                     >
                       {ASSISTANT_CONTRACT_OPTIONS.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -521,7 +531,7 @@ export default function TeamPage() {
               <button
                 type="button"
                 onClick={addAssistant}
-                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-sm font-bold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+                className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[22px] border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-100"
               >
                 <Plus className="h-4 w-4" />
                 Agregar Asistente
@@ -535,12 +545,20 @@ export default function TeamPage() {
           />
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
-              Áreas y Pasillos
-            </h2>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+        <section className="mb-6 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Cobertura
+              </p>
+              <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+                Áreas y Pasillos
+              </h2>
+              <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+                Mantén ordenados los nombres de áreas para cuadrantes y seguimiento.
+              </p>
+            </div>
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
               {profile.areas?.length || 0}
             </span>
           </div>
@@ -549,26 +567,32 @@ export default function TeamPage() {
             {(profile.areas || []).map((area, index) => (
               <div
                 key={index}
-                className="relative rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
+                className="relative rounded-[24px] border border-slate-200 bg-slate-50/80 p-4 shadow-sm"
               >
                 <button
                   type="button"
                   onClick={() => removeArea(index)}
-                  className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100"
+                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-white text-red-500 ring-1 ring-red-100 transition hover:bg-red-50"
                   title="Eliminar área"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
 
+                <div className="mb-4 flex items-center gap-2">
+                  <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
+                    Área {index + 1}
+                  </span>
+                </div>
+
                 <label className="block pr-8">
-                  <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
+                  <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                     Nombre del Área o Pasillo
                   </span>
                   <input
                     name={`area_name_${index}`}
                     value={area}
                     onChange={(event) => setAreaName(index, event.target.value)}
-                    className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
+                    className="min-h-12 w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
                     placeholder="Ej. Pasillo 1"
                   />
                 </label>
@@ -578,7 +602,7 @@ export default function TeamPage() {
             <button
               type="button"
               onClick={addArea}
-              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-sm font-bold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
+              className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[22px] border border-blue-200 bg-blue-50 px-4 text-sm font-bold text-blue-700 shadow-sm transition hover:bg-blue-100"
             >
               <Plus className="h-4 w-4" />
               Agregar Área
