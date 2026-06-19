@@ -1,6 +1,8 @@
 "use client";
 
 import { useTransition } from "react";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { toast } from "sonner";
 import { ClipboardList } from "lucide-react";
 import { updateInstructionStatus } from "@/app/instructions/actions";
@@ -111,12 +113,7 @@ export default function InstructionCard({
         <span className="font-medium text-slate-600">{instruction.responsible}</span>
         <span className="text-slate-300">·</span>
         <span className="text-[11px] text-slate-400">
-          {new Date(instruction.created_at).toLocaleDateString("es-MX", {
-            day: "numeric",
-            month: "short",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          {format(new Date(instruction.created_at), "d MMM, h:mm a", { locale: es })}
         </span>
       </div>
     </div>
