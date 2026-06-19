@@ -43,6 +43,12 @@ export default async function Home() {
   );
 
   const today = new Date();
+  const currentMonthYear = today.toISOString().slice(0, 7);
+  const monthStart = `${currentMonthYear}-01`;
+  const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const nextMonthStart = `${nextMonthDate.getFullYear()}-${String(
+    nextMonthDate.getMonth() + 1,
+  ).padStart(2, "0")}-01`;
   const day = today.getDay();
   const diff = today.getDate() - day + (day === 0 ? -6 : 1);
   const startOfWeek = new Date(today.setDate(diff));
@@ -54,7 +60,8 @@ export default async function Home() {
     { data: recentInstructions },
     { count: wasteCount },
     { count: wasteCountWeek },
-    { data: storeData },
+    { data: currentBudgetRow },
+    { data: monthlySales },
     { data: preShiftData },
     { data: fefoRecords },
     { data: storeAdminProfile },
@@ -80,10 +87,17 @@ export default async function Home() {
       .eq("store_code", storeCode)
       .gte("created_at", startOfWeekIso),
     adminClient
-      .from("stores")
-      .select("monthly_budget, accumulated_sales")
-      .eq("code", storeCode)
+      .from("sales_budgets")
+      .select("budget_amount")
+      .eq("store_code", storeCode)
+      .eq("month_year", currentMonthYear)
       .single(),
+    adminClient
+      .from("daily_sales")
+      .select("amount")
+      .eq("store_code", storeCode)
+      .gte("date", monthStart)
+      .lt("date", nextMonthStart),
     adminClient
       .from("pre_shifts")
       .select("*")
@@ -106,8 +120,9 @@ export default async function Home() {
       .single(),
   ]);
 
-  const monthlyBudget = storeData?.monthly_budget || 0;
-  const accumulatedSales = storeData?.accumulated_sales || 0;
+  const monthlyBudget = currentBudgetRow?.budget_amount || 0;
+  const accumulatedSales =
+    monthlySales?.reduce((sum, sale) => sum + Number(sale.amount || 0), 0) || 0;
 
   const daysInMonth = new Date(
     today.getFullYear(),
@@ -118,7 +133,7 @@ export default async function Home() {
   const remainingDays = Math.max(1, daysInMonth - currentDay);
   const dailyGoal =
     preShiftData?.daily_sales_goal ||
-    Math.max(0, (monthlyBudget - accumulatedSales) / remainingDays);
+    Math.max(0, Math.round((monthlyBudget - accumulatedSales) / remainingDays));
 
   const calculateDaysLeft = (expDateStr: string) => {
     const expDate = new Date(expDateStr);
