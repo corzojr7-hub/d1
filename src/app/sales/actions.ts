@@ -55,13 +55,14 @@ export async function setMonthlyBudget(monthYear: string, amount: number) {
     revalidatePath("/sales");
     return { success: true };
   } catch (error: any) {
+    console.error("setMonthlyBudget error:", error);
     return { success: false, error: error.message };
   }
 }
 
 export async function setDailySale(date: string, amount: number) {
   try {
-    const { profile } = await requireAuth();
+    const { profile, user } = await requireAuth();
     if (!(await checkRateLimit(profile.id, 100, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setDailySaleSchema.parse({ date, amount });
@@ -74,7 +75,7 @@ export async function setDailySale(date: string, amount: number) {
           store_code: profile.store_code,
           date: validated.date,
           amount: validated.amount,
-          created_by: profile.id
+          created_by: user.id
         },
         { onConflict: "store_code, date" }
       );
@@ -84,13 +85,14 @@ export async function setDailySale(date: string, amount: number) {
     revalidatePath("/sales");
     return { success: true };
   } catch (error: any) {
+    console.error("setDailySale error:", error);
     return { success: false, error: error.message };
   }
 }
 
 export async function setWeeklyWaste(weekStart: string, weekEnd: string, amount: number) {
   try {
-    const { profile } = await requireAuth();
+    const { profile, user } = await requireAuth();
     if (!(await checkRateLimit(profile.id, 100, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setWeeklyWasteSchema.parse({ weekStart, weekEnd, amount });
@@ -104,7 +106,7 @@ export async function setWeeklyWaste(weekStart: string, weekEnd: string, amount:
           week_start: validated.weekStart,
           week_end: validated.weekEnd,
           waste_amount: validated.amount,
-          created_by: profile.id
+          created_by: user.id
         },
         { onConflict: "store_code, week_start" }
       );

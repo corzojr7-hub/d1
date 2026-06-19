@@ -110,10 +110,11 @@ export default function SalesClient({
     if (!budgetInput) return;
     startTransition(async () => {
       try {
-        await setMonthlyBudget(currentMonthYear, Number(budgetInput));
+        const res = await setMonthlyBudget(currentMonthYear, Number(budgetInput));
+        if (!res.success) throw new Error(res.error);
         toast.success("Presupuesto guardado");
-      } catch (error) {
-        toast.error("Error al guardar presupuesto");
+      } catch (error: any) {
+        toast.error(error.message || "Error al guardar presupuesto");
       }
     });
   }
@@ -122,11 +123,12 @@ export default function SalesClient({
     if (!saleDate || !saleAmount) return;
     startTransition(async () => {
       try {
-        await setDailySale(saleDate, Number(saleAmount));
+        const res = await setDailySale(saleDate, Number(saleAmount));
+        if (!res.success) throw new Error(res.error);
         setSaleAmount("");
         toast.success("Venta diaria guardada");
-      } catch (error) {
-        toast.error("Error al guardar venta");
+      } catch (error: any) {
+        toast.error(error.message || "Error al guardar venta");
       }
     });
   }
