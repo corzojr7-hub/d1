@@ -1,5 +1,6 @@
 import { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import SalesClient from "./SalesClient";
 
@@ -23,15 +24,20 @@ export default async function SalesPage() {
 
   const storeCode = profile.store_code;
 
+  const adminClient = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   // En la vida real, podríamos limitar por fecha para no saturar.
   const [
     { data: budgets },
     { data: dailySales },
     { data: weeklyWaste }
   ] = await Promise.all([
-    supabase.from("sales_budgets").select("*").eq("store_code", storeCode),
-    supabase.from("daily_sales").select("*").eq("store_code", storeCode).order("date", { ascending: false }),
-    supabase.from("weekly_waste").select("*").eq("store_code", storeCode).order("week_start", { ascending: false })
+    adminClient.from("sales_budgets").select("*").eq("store_code", storeCode),
+    adminClient.from("daily_sales").select("*").eq("store_code", storeCode).order("date", { ascending: false }),
+    adminClient.from("weekly_waste").select("*").eq("store_code", storeCode).order("week_start", { ascending: false })
   ]);
 
   return (
