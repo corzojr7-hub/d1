@@ -1,17 +1,41 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
-import { Suspense } from "react";
+import type { DailySale } from "@/lib/domain/types";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
+import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
+import ExportDataButton from "@/components/dashboard/ExportDataButton";
+
+type WasteRecordForDashboard = {
+  qty: number;
+  reason?: string | null;
+  deposited_by?: string | null;
+  products?: { name?: string | null } | null;
+};
+
+type ImpulseRecordForDashboard = {
+  assistant?: string | null;
+  quantity: number;
+  date: string;
+};
+
+type PosMetricForDashboard = {
+  assistant?: string | null;
+  productivity?: number | null;
+  cancellations?: number | null;
+  voids?: number | null;
+  date: string;
+};
+
+type TopProduct = { name: string; qty: number };
+type ReasonData = { name: string; value: number };
 
 export const metadata: Metadata = {
   title: "Estadísticas — Sistema Operativo",
 };
-
-import ExportDataButton from "@/components/dashboard/ExportDataButton";
 
 export default async function DashboardPage() {
   const { profile } = await requireAuth();
@@ -20,10 +44,10 @@ export default async function DashboardPage() {
 
   const adminClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  // 1. Fetch Waste (Merma) (Límite rápido por rendimiento)
+  // 1. Fetch Waste (Merma) (límite rápido por rendimiento)
   const wastePromise = adminClient
     .from("waste_records")
     .select("*, products(name)")
@@ -31,7 +55,7 @@ export default async function DashboardPage() {
     .order("created_at", { ascending: false })
     .limit(300); // Acortado a 300 para gráficos de 30 días según auditoría
 
-  // 2. Fetch Impulse Records (Límite rápido)
+  // 2. Fetch Impulse Records (límite rápido)
   const impulsePromise = adminClient
     .from("impulse_records")
     .select("*")
@@ -39,7 +63,7 @@ export default async function DashboardPage() {
     .order("date", { ascending: false })
     .limit(30); // Acortado a 30 días
 
-  // 3. Fetch POS Metrics (Límite rápido)
+  // 3. Fetch POS Metrics (límite rápido)
   const posPromise = adminClient
     .from("pos_metrics")
     .select("*")
@@ -47,24 +71,30 @@ export default async function DashboardPage() {
     .order("date", { ascending: false })
     .limit(30); // Acortado a 30 días
 
-  // 4. Fetch Audits (Auditorías completadas)
-  const auditsPromise = adminClient
-    .from("audits")
+  // 4. Fetch Sales (últimos meses para tendencia)
+  const salesPromise = adminClient
+    .from("daily_sales")
     .select("*")
     .eq("store_code", profile.store_code)
-    .order("date", { ascending: false })
-    .limit(30); // Acortado a 30 días
+    .order("date", { ascending: true })
+    .limit(365);
 
   // Ejecutar en paralelo (O(1) latency)
   const [
     { data: allWaste },
     { data: impulseRecords },
-    { data: posMetrics }
-  ] = await Promise.all([wastePromise, impulsePromise, posPromise]);
+    { data: posMetrics },
+    { data: dailySales },
+  ] = (await Promise.all([wastePromise, impulsePromise, posPromise, salesPromise])) as [
+    { data: WasteRecordForDashboard[] | null },
+    { data: ImpulseRecordForDashboard[] | null },
+    { data: PosMetricForDashboard[] | null },
+    { data: DailySale[] | null },
+  ];
 
-  let topProducts: any[] = [];
-  let reasonData: any[] = [];
-  let userWasteData: any[] = [];
+  let topProducts: TopProduct[] = [];
+  let reasonData: ReasonData[] = [];
+  let userWasteData: ReasonData[] = [];
 
   if (allWaste) {
     const productCounts: Record<string, number> = {};
@@ -98,45 +128,63 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 pt-6 pb-24">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors mb-2">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+      <Link
+        href="/"
+        className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
         Volver
       </Link>
-      <div className="flex items-center justify-between mb-6">
+
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#0a3875] tracking-tight">Estadísticas</h1>
-          <p className="text-sm font-medium text-slate-500 mt-1">
-            Métricas y eficiencia de la tienda
-          </p>
+          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Estadísticas</h1>
+          <p className="mt-1 text-sm font-medium text-slate-500">Métricas y eficiencia de la tienda</p>
         </div>
-        <ExportDataButton 
-          wasteData={allWaste || []} 
-          impulseData={impulseRecords || []} 
-          posData={posMetrics || []} 
+        <ExportDataButton
+          wasteData={allWaste || []}
+          impulseData={impulseRecords || []}
+          posData={posMetrics || []}
         />
       </div>
 
       <div className="space-y-8">
         <section>
-          <div className="flex items-center gap-2 mb-4">
-            <h2 className="text-lg font-bold text-slate-800">Impulso y Ventas</h2>
+          <div className="mb-4">
+            <h2 className="text-lg font-bold text-slate-800">Ventas</h2>
+            <p className="mt-1 text-sm text-slate-500">Comportamiento por día, semana y mes.</p>
+          </div>
+          <SalesTrendsChart data={dailySales || []} />
+        </section>
+
+        <section>
+          <div className="mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-slate-800">Impulso</h2>
           </div>
           <ImpulseCharts data={impulseRecords || []} />
         </section>
 
         <section>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <h2 className="text-lg font-bold text-slate-800">Merma (Prevención)</h2>
           </div>
-          <DashboardCharts 
-            topProducts={topProducts} 
-            reasonData={reasonData} 
-            userWasteData={userWasteData} 
-          />
+          <DashboardCharts topProducts={topProducts} reasonData={reasonData} userWasteData={userWasteData} />
         </section>
 
         <section>
-          <div className="flex items-center gap-2 mb-4">
+          <div className="mb-4 flex items-center gap-2">
             <h2 className="text-lg font-bold text-slate-800">Productividad Caja</h2>
           </div>
           <PosMetricsCharts data={posMetrics || []} />

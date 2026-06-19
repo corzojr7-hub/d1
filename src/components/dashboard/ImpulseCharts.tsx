@@ -7,10 +7,7 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
   Cell,
-  Legend,
   LineChart,
   Line,
   CartesianGrid
@@ -18,7 +15,13 @@ import {
 
 const COLORS = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-export default function ImpulseCharts({ data }: { data: any[] }) {
+type ImpulseRecord = {
+  assistant?: string | null;
+  quantity: number;
+  date: string;
+};
+
+export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
   if (!data || data.length === 0) {
     return (
       <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
@@ -60,7 +63,7 @@ export default function ImpulseCharts({ data }: { data: any[] }) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
               />
               <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
@@ -106,4 +109,3 @@ export default function ImpulseCharts({ data }: { data: any[] }) {
     </div>
   );
 }
-

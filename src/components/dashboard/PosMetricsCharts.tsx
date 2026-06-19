@@ -13,7 +13,14 @@ import {
 
 const COLORS = ["#f59e0b", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6"];
 
-export default function PosMetricsCharts({ data }: { data: any[] }) {
+type PosMetricRecord = {
+  assistant?: string | null;
+  productivity?: number | null;
+  cancellations?: number | null;
+  voids?: number | null;
+};
+
+export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) {
   if (!data || data.length === 0) {
     return (
       <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
@@ -108,4 +115,3 @@ export default function PosMetricsCharts({ data }: { data: any[] }) {
     </div>
   );
 }
-
