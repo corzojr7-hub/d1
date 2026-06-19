@@ -6,7 +6,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import WasteCard from "@/components/waste/WasteCard";
 
 export const metadata: Metadata = {
-  title: "Control e Historial de Merma â€” Sistema de Control Operativo de Tienda",
+  title: "Control e Historial de Merma — Sistema de Control Operativo de Tienda",
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -83,7 +83,7 @@ export default async function WasteIndex({
           Consulta registros, evidencia y seguimiento operativo de merma.
         </p>
         <div className="mt-4 inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
-          {totalRecords ?? 0} registros totales (PÃ¡gina {page})
+          {totalRecords ?? 0} registros totales (Página {page})
         </div>
       </section>
 
@@ -99,7 +99,7 @@ export default async function WasteIndex({
             <div className="text-left">
               <h2 className="text-sm font-bold">Radar de Vencimientos (FEFO)</h2>
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Controla quÃ© productos estÃ¡n a punto de vencer
+                Controla qué productos están a punto de vencer
               </p>
             </div>
           </div>
@@ -117,7 +117,7 @@ export default async function WasteIndex({
             <div className="text-left">
               <h2 className="text-sm font-bold">Descargar Evidencias (ZIP)</h2>
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Descarga todas las fotos de averÃ­as y calidad
+                Descarga todas las fotos de averías y calidad
               </p>
             </div>
           </div>
@@ -137,15 +137,15 @@ export default async function WasteIndex({
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
           Motivo
-          <span className="text-[10px]">â–¼</span>
+          <span className="text-[10px]">▼</span>
         </button>
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
-          DepositÃ³
-          <span className="text-[10px]">â–¼</span>
+          Depositó
+          <span className="text-[10px]">▼</span>
         </button>
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
-          RevisiÃ³n
-          <span className="text-[10px]">â–¼</span>
+          Revisión
+          <span className="text-[10px]">▼</span>
         </button>
       </div>
 
@@ -180,14 +180,14 @@ export default async function WasteIndex({
               href={`/waste?page=${page - 1}`}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              â† Anterior
+              ← Anterior
             </Link>
           ) : (
             <div />
           )}
 
           <span className="rounded-full bg-white px-3 py-1 text-[12px] text-slate-500 ring-1 ring-slate-200">
-            PÃ¡g {page}
+            Pág {page}
           </span>
 
           {to < totalRecords ? (
@@ -195,7 +195,7 @@ export default async function WasteIndex({
               href={`/waste?page=${page + 1}`}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              Siguiente â†’
+              Siguiente →
             </Link>
           ) : (
             <div />

@@ -6,7 +6,7 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import InstructionCard from "@/components/instructions/InstructionCard";
 
 export const metadata: Metadata = {
-  title: "BitÃ¡cora de Instrucciones â€” Sistema de Control Operativo de Tienda",
+  title: "Bitácora de Instrucciones — Sistema de Control Operativo de Tienda",
 };
 
 export default async function InstructionsIndex() {
@@ -41,7 +41,7 @@ export default async function InstructionsIndex() {
           Centro de Control
         </p>
         <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-          BitÃ¡cora de Instrucciones
+          Bitácora de Instrucciones
         </h1>
         <p className="mt-2 max-w-[250px] text-[13px] leading-relaxed text-white/82">
           Revisa tareas activas, seguimiento operativo y novedades del turno.
@@ -61,9 +61,9 @@ export default async function InstructionsIndex() {
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
             </div>
             <div className="text-left">
-              <h2 className="text-sm font-bold">Tablero de BÃ¡sicos</h2>
+              <h2 className="text-sm font-bold">Tablero de Básicos</h2>
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                AsignaciÃ³n y VerificaciÃ³n Diaria
+                Asignación y Verificación Diaria
               </p>
             </div>
           </div>
@@ -81,7 +81,7 @@ export default async function InstructionsIndex() {
             <div className="text-left">
               <h2 className="text-sm font-bold">Checklist Operativo</h2>
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Aseo, baÃ±o, cafetÃ­n y puntos clave
+                Aseo, baño, cafetín y puntos clave
               </p>
             </div>
           </div>
@@ -99,7 +99,7 @@ export default async function InstructionsIndex() {
             <div className="text-left">
               <h2 className="text-sm font-bold">Retroalimentaciones</h2>
               <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Llamados de atenciÃ³n y compromisos
+                Llamados de atención y compromisos
               </p>
             </div>
           </div>
@@ -111,7 +111,7 @@ export default async function InstructionsIndex() {
         <Search className="h-5 w-5 shrink-0 text-slate-400" />
         <input
           type="text"
-          placeholder="Buscar instrucciÃ³n, notas..."
+          placeholder="Buscar instrucción, notas..."
           className="w-full bg-transparent text-[15px] font-medium text-slate-700 outline-none placeholder:text-slate-400"
         />
       </div>
@@ -119,15 +119,15 @@ export default async function InstructionsIndex() {
       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
           Asignado
-          <span className="text-[10px]">â–¼</span>
+          <span className="text-[10px]">▼</span>
         </button>
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
           Prioridad
-          <span className="text-[10px]">â–¼</span>
+          <span className="text-[10px]">▼</span>
         </button>
         <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
           Estado
-          <span className="text-[10px]">â–¼</span>
+          <span className="text-[10px]">▼</span>
         </button>
       </div>
 
@@ -145,7 +145,7 @@ export default async function InstructionsIndex() {
               href="/instructions/new"
               className="app-cta-primary mt-4 px-6 text-sm font-bold"
             >
-              Crear primera instrucciÃ³n
+              Crear primera instrucción
             </Link>
           </div>
         )}

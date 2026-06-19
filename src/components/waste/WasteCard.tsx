@@ -38,7 +38,7 @@ const statuses = [
 ];
 
 const statusLabels: Record<string, string> = {
-  pendiente_revision: "Pendiente revisiÃ³n",
+  pendiente_revision: "Pendiente revisión",
   revisado: "Revisado",
   recuperable: "Recuperable",
   no_recuperable: "No recuperable",
@@ -92,11 +92,11 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     productName === record.barcode_id &&
     record.observation &&
     record.observation.includes(
-      "Mermado automÃ¡ticamente desde Radar FEFO. Producto: ",
+      "Mermado automáticamente desde Radar FEFO. Producto: ",
     )
   ) {
     productName = record.observation.replace(
-      "Mermado automÃ¡ticamente desde Radar FEFO. Producto: ",
+      "Mermado automáticamente desde Radar FEFO. Producto: ",
       "",
     );
   }
@@ -123,7 +123,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           {userRole === "supervisor" && (
             <button
               onClick={async () => {
-                if (window.confirm("Â¿Seguro que deseas eliminar esta merma de forma permanente?")) {
+                if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
                   setIsDeleting(true);
                   try {
                     await deleteWasteRecord(record.id);
@@ -145,7 +145,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
 
         <div className="flex items-center gap-3 pr-16">
           <span className="max-w-[140px] truncate rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-800 ring-1 ring-blue-100">
-            {record.area || "Sin Ã¡rea"}
+            {record.area || "Sin área"}
           </span>
           <span className="text-[11px] text-slate-400">
             {formattedDate || "\u00A0"}
@@ -184,7 +184,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         record.reason !== "reporte_calidad" ? (
           <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-[12px] text-slate-600">
             <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              ObservaciÃ³n
+              Observación
             </span>
             <p className="mt-1 whitespace-pre-wrap leading-relaxed">
               {record.observation}
@@ -299,7 +299,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           <div className="mt-6 text-center">
             <p className="text-sm font-semibold text-white/90">{productName}</p>
             <p className="mt-1 text-xs text-white/50">
-              {record.reason} â€¢ {record.qty} {record.unit}
+              {record.reason} • {record.qty} {record.unit}
             </p>
           </div>
         </div>

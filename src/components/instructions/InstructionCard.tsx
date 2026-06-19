@@ -109,7 +109,7 @@ export default function InstructionCard({
       <div className="mt-4 flex items-center gap-1.5 border-t border-slate-100 pt-3 text-[12px] text-slate-500">
         <ClipboardList className="h-3.5 w-3.5 text-slate-400" />
         <span className="font-medium text-slate-600">{instruction.responsible}</span>
-        <span className="text-slate-300">Â·</span>
+        <span className="text-slate-300">·</span>
         <span className="text-[11px] text-slate-400">
           {new Date(instruction.created_at).toLocaleDateString("es-MX", {
             day: "numeric",

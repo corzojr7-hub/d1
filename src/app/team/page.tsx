@@ -15,7 +15,7 @@ import type {
 } from "@/lib/domain/types";
 
 const ASSISTANT_CONTRACT_OPTIONS = [
-  { value: "full_time", label: "Full Time (MÃ¡x 44h semanales)" },
+  { value: "full_time", label: "Full Time (Máx 44h semanales)" },
   { value: "part_time", label: "Part Time (Normal 36h semanales)" },
   { value: "supervisor", label: "Supervisor" },
 ];
@@ -70,7 +70,7 @@ export default function TeamPage() {
             basic_tasks: data.basic_tasks || [],
           };
           setProfile(profileData as Profile);
-          setLocalMessage("Ã‰XITO: " + data.store_name);
+          setLocalMessage("ÉXITO: " + data.store_name);
           if (!data.security_pin) {
             setHasPin(false);
             setShowPinModal(true);
@@ -120,7 +120,7 @@ export default function TeamPage() {
         }
       } catch (err: unknown) {
         setLocalMessage(
-          "ERROR CRÃTICO: " +
+          "ERROR CRÍTICO: " +
             (err instanceof Error ? err.message : "Error desconocido"),
         );
       }
@@ -226,7 +226,7 @@ export default function TeamPage() {
       } else {
         basicTasks.push({
           id: "aseo_semanal",
-          name: "Aseo (BaÃ±o, CafetÃ­n, Aforo)",
+          name: "Aseo (Baño, Cafetín, Aforo)",
           type: "apertura",
           deadline_time: "10:00",
           schedule: { [day]: assignee },
@@ -355,7 +355,7 @@ export default function TeamPage() {
             </label>
             <label className="block">
               <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
-                CÃ³digo de Tienda
+                Código de Tienda
               </span>
               <input
                 name="store_code"
@@ -538,7 +538,7 @@ export default function TeamPage() {
         <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase">
-              Ãreas y Pasillos
+              Áreas y Pasillos
             </h2>
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
               {profile.areas?.length || 0}
@@ -555,14 +555,14 @@ export default function TeamPage() {
                   type="button"
                   onClick={() => removeArea(index)}
                   className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full bg-red-50 text-red-500 hover:bg-red-100"
-                  title="Eliminar Ã¡rea"
+                  title="Eliminar área"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
 
                 <label className="block pr-8">
                   <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">
-                    Nombre del Ãrea o Pasillo
+                    Nombre del Área o Pasillo
                   </span>
                   <input
                     name={`area_name_${index}`}
@@ -581,7 +581,7 @@ export default function TeamPage() {
               className="flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 bg-white text-sm font-bold text-slate-500 transition-colors hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600"
             >
               <Plus className="h-4 w-4" />
-              Agregar Ãrea
+              Agregar Área
             </button>
           </div>
           <input
@@ -612,8 +612,8 @@ export default function TeamPage() {
             </h2>
           </div>
           <p className="mb-4 text-xs font-medium text-blue-600/80">
-            Asigna la persona encargada del aseo (BaÃ±o, CafetÃ­n, Aforo) para
-            cada dÃ­a de la semana.
+            Asigna la persona encargada del aseo (Baño, Cafetín, Aforo) para
+            cada día de la semana.
           </p>
 
           <div className="space-y-3">
@@ -750,10 +750,10 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
         </Link>
         <div className="mt-4 flex flex-col">
           <h1 className="text-2xl font-bold text-blue-700">
-            GestiÃ³n de Tienda
+            Gestión de Tienda
           </h1>
           <p className="mt-1 text-sm text-slate-400">
-            InformaciÃ³n de la tienda y tu equipo (Solo lectura)
+            Información de la tienda y tu equipo (Solo lectura)
           </p>
         </div>
       </div>
@@ -772,7 +772,7 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
             </div>
             <div>
               <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                CÃ³digo de Tienda
+                Código de Tienda
               </span>
               <p className="mt-1 font-bold text-slate-800">{profile.store_code}</p>
             </div>
@@ -850,7 +850,7 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
         <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-800">
-              Ãreas y Pasillos
+              Áreas y Pasillos
             </h2>
             <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
               {profile.areas?.length || 0}
@@ -864,13 +864,13 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
                 className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
               >
                 <span className="font-bold text-slate-700">
-                  {area || "Ãrea sin nombre"}
+                  {area || "Área sin nombre"}
                 </span>
               </div>
             ))}
             {(profile.areas || []).length === 0 && (
               <p className="py-2 text-center text-sm italic text-slate-500">
-                No hay Ã¡reas registradas
+                No hay áreas registradas
               </p>
             )}
           </div>
