@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Camera, CameraOff, X, Pencil, Trash2 } from "lucide-react";
 import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
@@ -25,7 +25,7 @@ type WasteRecord = {
   transport_driver?: string | null;
   transport_plate?: string | null;
   transport_comment?: string | null;
-  transport_evidence?: any;
+  transport_evidence?: Record<string, string> | null;
 };
 
 const statuses = [
@@ -38,7 +38,7 @@ const statuses = [
 ];
 
 const statusLabels: Record<string, string> = {
-  pendiente_revision: "Pendiente revisión",
+  pendiente_revision: "Pendiente revisiÃ³n",
   revisado: "Revisado",
   recuperable: "Recuperable",
   no_recuperable: "No recuperable",
@@ -67,18 +67,12 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [formattedDate, setFormattedDate] = useState<string>("");
-
-  useEffect(() => {
-    setFormattedDate(
-      new Date(record.created_at).toLocaleDateString("es-MX", {
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    );
-  }, [record.created_at]);
+  const formattedDate = new Date(record.created_at).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;
@@ -93,15 +87,24 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   }
 
   let productName = record.products?.name ?? record.barcode_id;
-  
-  if (productName === record.barcode_id && record.observation && record.observation.includes("Mermado automáticamente desde Radar FEFO. Producto: ")) {
-    productName = record.observation.replace("Mermado automáticamente desde Radar FEFO. Producto: ", "");
+
+  if (
+    productName === record.barcode_id &&
+    record.observation &&
+    record.observation.includes(
+      "Mermado automÃ¡ticamente desde Radar FEFO. Producto: ",
+    )
+  ) {
+    productName = record.observation.replace(
+      "Mermado automÃ¡ticamente desde Radar FEFO. Producto: ",
+      "",
+    );
   }
 
   return (
     <>
       <div
-        className={`relative rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm transition ${
+        className={`relative rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm transition ${
           pending || isDeleting ? "opacity-50" : "hover:shadow-md"
         }`}
       >
@@ -110,29 +113,29 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             <button
               onClick={() => setShowEdit(true)}
               disabled={isDeleting}
-              className="rounded-full p-1.5 text-slate-300 hover:bg-slate-50 hover:text-blue-500 transition-colors disabled:opacity-50"
+              className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-slate-50 hover:text-blue-500 disabled:opacity-50"
               title="Editar merma"
             >
               <Pencil className="h-4 w-4" />
             </button>
           )}
-          
+
           {userRole === "supervisor" && (
             <button
               onClick={async () => {
-                if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
+                if (window.confirm("Â¿Seguro que deseas eliminar esta merma de forma permanente?")) {
                   setIsDeleting(true);
                   try {
                     await deleteWasteRecord(record.id);
                     toast.success("Merma eliminada");
-                  } catch (error) {
+                  } catch {
                     toast.error("Error al eliminar la merma");
                     setIsDeleting(false);
                   }
                 }
               }}
               disabled={isDeleting}
-              className="rounded-full p-1.5 text-slate-300 hover:bg-red-50 hover:text-red-500 transition-colors disabled:opacity-50"
+              className="rounded-full p-1.5 text-slate-300 transition-colors hover:bg-red-50 hover:text-red-500 disabled:opacity-50"
               title="Eliminar merma"
             >
               <Trash2 className="h-4 w-4" />
@@ -140,94 +143,102 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           )}
         </div>
 
-        {/* Fila 1: Categoría / Área + Fecha */}
-        <div className="flex items-center gap-3 pr-8">
-          <span className="text-xs font-bold text-blue-900 truncate max-w-[120px]">
-            {record.area || "Sin área"}
+        <div className="flex items-center gap-3 pr-16">
+          <span className="max-w-[140px] truncate rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-800 ring-1 ring-blue-100">
+            {record.area || "Sin Ã¡rea"}
           </span>
-          <span className="text-[10px] text-slate-400">
+          <span className="text-[11px] text-slate-400">
             {formattedDate || "\u00A0"}
           </span>
         </div>
 
-        {/* Fila 2: Producto + Cantidad */}
-        <div className="mt-2 flex items-start justify-between gap-3">
-          <p className="min-w-0 flex-1 text-lg font-bold text-slate-800 leading-snug">
+        <div className="mt-3 flex items-start justify-between gap-3">
+          <p className="min-w-0 flex-1 text-[18px] font-black leading-snug tracking-tight text-slate-900">
             {productName}
           </p>
-          <div className="flex flex-col items-end shrink-0">
-            <span className="text-xl font-extrabold tabular-nums text-blue-600 leading-none">
+          <div className="shrink-0 rounded-2xl bg-slate-50 px-3 py-2 text-right">
+            <span className="text-xl font-black leading-none text-blue-700 tabular-nums">
               {record.qty}
             </span>
-            <span className="text-sm font-medium text-slate-500">
+            <span className="mt-0.5 block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500">
               {record.unit}
             </span>
           </div>
         </div>
 
-        {/* Fila 3: Barcode */}
-        <p className="mt-1 font-mono text-xs text-slate-400">
+        <p className="mt-1 font-mono text-[11px] text-slate-400">
           {record.barcode_id}
         </p>
 
-        {/* Fila 4: Motivo + Lugar */}
-        <div className="mt-3 flex items-center justify-between text-sm">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3 text-sm">
           <span className={`font-semibold ${reasonColors[record.reason] ?? "text-slate-600"}`}>
             Motivo: {getLabel(WASTE_REASONS, record.reason as WasteReason)}
           </span>
-          <span className="text-slate-400">
+          <span className="text-[12px] text-slate-400">
             Lugar: {record.area}
           </span>
         </div>
 
-        {/* Observacion general (si existe y no es transporte) */}
-        {record.observation && record.reason !== "averia_transporte" && record.reason !== "reporte_calidad" && (
-          <div className="mt-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-xs text-slate-600">
-            <span className="font-semibold block text-slate-700">Observación:</span>
-            <p className="whitespace-pre-wrap">{record.observation}</p>
+        {record.observation &&
+        record.reason !== "averia_transporte" &&
+        record.reason !== "reporte_calidad" ? (
+          <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-[12px] text-slate-600">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+              ObservaciÃ³n
+            </span>
+            <p className="mt-1 whitespace-pre-wrap leading-relaxed">
+              {record.observation}
+            </p>
           </div>
-        )}
+        ) : null}
 
-        {/* Detalles Adicionales */}
-        {(record.reason === "averia_transporte" || record.reason === "reporte_calidad") && (
-          <div className="mt-3 rounded-lg border border-amber-100 bg-amber-50/50 p-3 text-xs text-amber-900">
+        {record.reason === "averia_transporte" ||
+        record.reason === "reporte_calidad" ? (
+          <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-3 text-[12px] text-amber-900">
             {record.reason === "averia_transporte" && (
-              <div className="grid grid-cols-2 gap-2 mb-2">
+              <div className="mb-2 grid grid-cols-2 gap-2">
                 <div>
-                  <span className="font-semibold block text-amber-700">Conductor:</span>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                    Conductor
+                  </span>
                   <span>{record.transport_driver || "N/A"}</span>
                 </div>
                 <div>
-                  <span className="font-semibold block text-amber-700">Placa:</span>
+                  <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                    Placa
+                  </span>
                   <span>{record.transport_plate || "N/A"}</span>
                 </div>
               </div>
             )}
             <div>
-              <span className="font-semibold block text-amber-700">Novedad:</span>
-              <p className="whitespace-pre-wrap">{record.transport_comment || "Sin comentario"}</p>
+              <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-amber-700">
+                Novedad
+              </span>
+              <p className="mt-1 whitespace-pre-wrap leading-relaxed">
+                {record.transport_comment || "Sin comentario"}
+              </p>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {/* Fila 5: Evidencia + Select Estado */}
-        <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3">
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
           <div className="flex items-center gap-1.5">
             {record.image_url || record.transport_evidence ? (
               <button
                 type="button"
                 onClick={() => setShowImage(true)}
-                className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-2.5 py-1 transition-colors hover:bg-emerald-100 active:scale-95"
+                className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 transition-colors hover:bg-emerald-100 active:scale-95"
               >
                 <Camera className="h-3.5 w-3.5 text-emerald-600" />
-                <span className="text-xs font-bold text-emerald-700">
+                <span className="text-[11px] font-bold text-emerald-700">
                   Ver Evidencia
                 </span>
               </button>
             ) : (
               <div className="flex items-center gap-1.5">
                 <CameraOff className="h-3.5 w-3.5 text-slate-300" />
-                <span className="text-xs text-slate-400">
+                <span className="text-[11px] text-slate-400">
                   Sin evidencia
                 </span>
               </div>
@@ -238,7 +249,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             value={record.status}
             onChange={handleChange}
             disabled={pending || userRole !== "supervisor"}
-            className={`rounded-lg border-0 bg-transparent px-1 py-0.5 text-xs font-bold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
+            className={`rounded-full border-0 bg-slate-50 px-3 py-1.5 text-[11px] font-bold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
               statusTextColors[record.status] ?? "text-slate-600"
             }`}
           >
@@ -251,48 +262,53 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         </div>
       </div>
 
-      {/* Modal / Visor de Imágenes */}
       {showImage && (
         <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 p-4 backdrop-blur-sm animate-in fade-in duration-200">
           <button
             onClick={() => setShowImage(false)}
-            className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20 z-10"
+            className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
           >
             <X className="h-6 w-6" />
           </button>
-          
-          {(record.reason === "averia_transporte" || record.reason === "reporte_calidad") && record.transport_evidence ? (
-            <div className="w-full max-w-4xl max-h-[85vh] overflow-y-auto pr-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+          {(record.reason === "averia_transporte" ||
+            record.reason === "reporte_calidad") &&
+          record.transport_evidence ? (
+            <div className="grid max-h-[85vh] w-full max-w-4xl grid-cols-1 gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
               {Object.entries(record.transport_evidence).map(([type, url]) => (
                 <div key={type} className="flex flex-col gap-2">
-                  <span className="text-white/80 text-sm font-semibold capitalize">{type}</span>
-                  <img 
-                    src={url as string} 
-                    alt={`Evidencia ${type} - ${productName}`} 
-                    className="w-full rounded-xl object-contain shadow-2xl bg-white/5"
+                  <span className="text-sm font-semibold capitalize text-white/80">
+                    {type}
+                  </span>
+                  <img
+                    src={url as string}
+                    alt={`Evidencia ${type} - ${productName}`}
+                    className="w-full rounded-xl bg-white/5 object-contain shadow-2xl"
                   />
                 </div>
               ))}
             </div>
           ) : record.image_url ? (
-            <img 
-              src={record.image_url} 
-              alt={`Evidencia de merma - ${productName}`} 
+            <img
+              src={record.image_url}
+              alt={`Evidencia de merma - ${productName}`}
               className="max-h-[85vh] max-w-full rounded-xl object-contain shadow-2xl"
             />
           ) : null}
-          
+
           <div className="mt-6 text-center">
             <p className="text-sm font-semibold text-white/90">{productName}</p>
-            <p className="mt-1 text-xs text-white/50">{record.reason} • {record.qty} {record.unit}</p>
+            <p className="mt-1 text-xs text-white/50">
+              {record.reason} â€¢ {record.qty} {record.unit}
+            </p>
           </div>
         </div>
       )}
 
       {showEdit && (
-        <EditWasteModal 
-          record={record} 
-          onClose={() => setShowEdit(false)} 
+        <EditWasteModal
+          record={record}
+          onClose={() => setShowEdit(false)}
         />
       )}
     </>
