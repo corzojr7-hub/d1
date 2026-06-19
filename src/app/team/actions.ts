@@ -4,9 +4,14 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireSupervisor } from "@/lib/supabase/require-auth";
 import type {
+  BasicTaskConfig,
   AssistantContractType,
   StoreAssistant,
 } from "@/lib/domain/types";
+
+type AseoTask = BasicTaskConfig & {
+  schedule?: Record<string, string>;
+};
 
 function getString(formData: FormData, key: string): string {
   const value = formData.get(key);
@@ -76,11 +81,11 @@ export async function updateTeam(formData: FormData): Promise<void> {
   const displayName = getString(formData, "display_name");
   
   const aseoScheduleRaw = getString(formData, "aseo_schedule_json");
-  let newBasicTasks = profile.basic_tasks || [];
+  const newBasicTasks = [...(profile.basic_tasks || [])] as AseoTask[];
   if (aseoScheduleRaw) {
     try {
       const schedule = JSON.parse(aseoScheduleRaw);
-      const aseoIndex = newBasicTasks.findIndex((t: any) => t.id === "aseo_semanal");
+      const aseoIndex = newBasicTasks.findIndex((t) => t.id === "aseo_semanal");
       if (aseoIndex >= 0) {
         newBasicTasks[aseoIndex].schedule = schedule;
       } else {
@@ -90,9 +95,9 @@ export async function updateTeam(formData: FormData): Promise<void> {
           type: "apertura",
           deadline_time: "10:00",
           schedule
-        } as any);
+        });
       }
-    } catch (e) {
+    } catch (e: unknown) {
       console.error("Failed to parse aseo schedule", e);
     }
   }
@@ -128,7 +133,7 @@ const createEncargadoSchema = z.object({
   email: z.string().email("Correo invalido"),
   password: z.string().min(6, "Minimo 6 caracteres"),
   name: z.string().min(1, "El nombre es obligatorio"),
-  role: z.enum(["segundo", "tercero"])
+  role: z.enum(["segundo_al_mando", "tercero_al_mando"])
 });
 
 export async function createEncargado(formData: FormData) {

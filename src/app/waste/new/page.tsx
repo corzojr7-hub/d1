@@ -18,8 +18,8 @@ type WasteProduct = Tables<"products">;
 export default function NewWastePage() {
   const router = useRouter();
   const { profile } = useProfile();
-  const operator = profile?.display_name?.toUpperCase();
-  const assistants = profile?.assistants.map((a: any) => a.name?.toUpperCase()) || [];
+  const operator = profile?.display_name?.toUpperCase() || "";
+  const assistants = profile?.assistants.map((a) => a.name.toUpperCase()) || [];
   const teamMembers = Array.from(new Set(operator ? [operator, ...assistants] : assistants)) as string[];
   const areas = profile?.areas || [];
 
@@ -320,8 +320,8 @@ export default function NewWastePage() {
                 toast.success("Merma registrada exitosamente.");
                 await set("waste_draft", null);
                 router.push("/waste");
-              } catch (err: any) {
-                toast.error(err.message);
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Error al registrar merma.");
               }
             });
           }}

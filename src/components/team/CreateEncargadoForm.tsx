@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import SecurityPinModal from "./SecurityPinModal";
 
 export default function CreateEncargadoForm() {
-  const [state, formAction, isPending] = useActionState(async (prevState: any, formData: FormData) => {
+  const [state, formAction, isPending] = useActionState(async (_prevState: unknown, formData: FormData) => {
     const res = await createEncargado(formData);
     if (res.error) {
       toast.error(res.error);
@@ -58,9 +58,9 @@ export default function CreateEncargadoForm() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold text-slate-500 mb-1">Rol</label>
-              <select name="role" required className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm bg-white">
-                <option value="segundo">Segundo(a) Encargado(a)</option>
-                <option value="tercero">Tercero(a) Encargado(a)</option>
+          <select name="role" required className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm bg-white">
+                <option value="segundo_al_mando">Segundo(a) Encargado(a)</option>
+                <option value="tercero_al_mando">Tercero(a) Encargado(a)</option>
               </select>
             </div>
             

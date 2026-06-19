@@ -19,7 +19,8 @@ export default function BottomNav() {
   const { profile } = useProfile();
   
   const isAdmin = profile?.role === "admin";
-  const isSegundoOrTercero = profile?.role === "segundo" || profile?.role === "tercero";
+  const isSegundoOrTercero =
+    profile?.role === "segundo_al_mando" || profile?.role === "tercero_al_mando";
 
   let navItems = allNavItems.map(item => {
     if (!isAdmin) return item;
@@ -28,7 +29,7 @@ export default function BottomNav() {
     return { ...item, href: `/admin${item.href}` };
   });
 
-  // Ocultar "Equipo" para segundos y terceros
+  // Ocultar "Equipo" para encargadas
   if (isSegundoOrTercero) {
     navItems = navItems.filter(item => item.href !== "/team");
   }
