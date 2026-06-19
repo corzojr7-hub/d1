@@ -45,8 +45,8 @@ export default async function AuditsAnalyticsPage() {
     .gte("date", thirtyDaysAgo.toISOString().split("T")[0]);
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm md:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <Link
             href="/audits"
@@ -65,7 +65,7 @@ export default async function AuditsAnalyticsPage() {
         </div>
       </header>
 
-      <div className="p-4">
+      <div className="p-4 md:px-6 lg:px-8">
         <AnalyticsClient basics={basics || []} />
       </div>
     </div>
