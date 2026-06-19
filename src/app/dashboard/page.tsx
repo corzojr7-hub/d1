@@ -127,7 +127,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-6 pb-24">
+    <div className="mx-auto w-full max-w-md px-4 pt-6 pb-24 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <Link
         href="/"
         className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
