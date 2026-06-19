@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   BarChart,
   Bar,
@@ -21,6 +22,13 @@ type PosMetricRecord = {
 };
 
 export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
+
   if (!data || data.length === 0) {
     return (
       <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
@@ -59,24 +67,28 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
           Productividad Media (Artículos/Min)
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart
-              data={chartData}
-              margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-            >
-              <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
-              <Tooltip
-                cursor={{ fill: "#f8fafc" }}
-                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
-              />
-              <Bar dataKey="productividad" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={32}>
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+              <BarChart
+                data={chartData}
+                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
+              >
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: "#f8fafc" }}
+                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                />
+                <Bar dataKey="productividad" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={32}>
+                  {chartData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full w-full rounded-2xl bg-slate-50" />
+          )}
         </div>
       </div>
 
@@ -86,30 +98,34 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
           Anulaciones y Voids Totales
         </h3>
         <div className="h-64 w-full">
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart
-              data={chartData.sort((a,b) => b.erroresTotales - a.erroresTotales)}
-              layout="vertical"
-              margin={{ top: 0, right: 0, left: -10, bottom: 0 }}
-            >
-              <XAxis type="number" hide />
-              <YAxis
-                dataKey="name"
-                type="category"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
-                width={90}
-              />
-              <Tooltip
-                cursor={{ fill: "transparent" }}
-                contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
-              />
-              <Bar dataKey="anulaciones" stackId="a" fill="#ef4444" name="Anulaciones" radius={[0, 0, 0, 0]} barSize={24} />
-              <Bar dataKey="voids" stackId="a" fill="#f59e0b" name="Voids" radius={[0, 4, 4, 0]} barSize={24} />
-              <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-            </BarChart>
-          </ResponsiveContainer>
+          {mounted ? (
+            <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+              <BarChart
+                data={chartData.sort((a,b) => b.erroresTotales - a.erroresTotales)}
+                layout="vertical"
+                margin={{ top: 0, right: 0, left: -10, bottom: 0 }}
+              >
+                <XAxis type="number" hide />
+                <YAxis
+                  dataKey="name"
+                  type="category"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
+                  width={90}
+                />
+                <Tooltip
+                  cursor={{ fill: "transparent" }}
+                  contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
+                />
+                <Bar dataKey="anulaciones" stackId="a" fill="#ef4444" name="Anulaciones" radius={[0, 0, 0, 0]} barSize={24} />
+                <Bar dataKey="voids" stackId="a" fill="#f59e0b" name="Voids" radius={[0, 4, 4, 0]} barSize={24} />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-full w-full rounded-2xl bg-slate-50" />
+          )}
         </div>
       </div>
     </div>
