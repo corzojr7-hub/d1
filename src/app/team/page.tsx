@@ -759,11 +759,11 @@ const fieldClassName =
 
 function ReadOnlyTeamView({ profile }: { profile: Profile }) {
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-white pb-28">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
       <div className="mb-2 mt-6 px-4">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors"
+          className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -780,75 +780,78 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
           </svg>
           Volver
         </Link>
-        <div className="mt-4 flex flex-col">
-          <h1 className="text-2xl font-bold text-blue-700">
+        <div className="mt-4 rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.16)]">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
+            Centro de Control
+          </p>
+          <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
             Gestión de Tienda
           </h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="mt-2 max-w-[240px] text-[13px] leading-relaxed text-white/82">
             Información de la tienda y tu equipo (Solo lectura)
           </p>
         </div>
       </div>
 
-      <div className="p-4">
-        <section className="mb-6 rounded-3xl bg-slate-50/50 p-5 shadow-sm ring-1 ring-slate-200/60">
+      <div className="space-y-4 px-4">
+        <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wide text-slate-800">
             Datos de la Tienda
           </h2>
           <div className="space-y-4">
             <div>
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 Nombre de la Tienda
               </span>
-              <p className="mt-1 font-bold text-slate-800">{profile.store_name}</p>
+              <p className="mt-1 text-[15px] font-black text-slate-900">{profile.store_name}</p>
             </div>
             <div>
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 Código de Tienda
               </span>
-              <p className="mt-1 font-bold text-slate-800">{profile.store_code}</p>
+              <p className="mt-1 text-[15px] font-black text-slate-900">{profile.store_code}</p>
             </div>
             <div>
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 Nombre del Supervisor
               </span>
-              <p className="mt-1 font-bold text-slate-800">
+              <p className="mt-1 text-[15px] font-black text-slate-900">
                 {profile.supervisor_name || profile.display_name}
               </p>
             </div>
           </div>
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wide text-slate-800">
             Estructura de Mando
           </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 Segundo(a) Encargado(a)
               </span>
-              <p className="mt-1 font-bold text-slate-800">
+              <p className="mt-1 text-[15px] font-black text-slate-900">
                 {profile.second_in_charge || "Sin asignar"}
               </p>
             </div>
             <div>
-              <span className="block text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+              <span className="block text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
                 Tercero(a) Encargado(a)
               </span>
-              <p className="mt-1 font-bold text-slate-800">
+              <p className="mt-1 text-[15px] font-black text-slate-900">
                 {profile.third_in_charge || "Sin asignar"}
               </p>
             </div>
           </div>
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-800">
               Asistentes
             </h2>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
               {profile.assistants?.length || 0}
             </span>
           </div>
@@ -857,12 +860,12 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
             {(profile.assistants || []).map((assistant, index) => (
               <div
                 key={index}
-                className="flex items-center justify-between rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
+                className="grid gap-2 rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200 sm:grid-cols-[1fr_auto] sm:items-center"
               >
-                <span className="font-bold text-slate-700">
+                <span className="text-[15px] font-bold text-slate-800">
                   {assistant.name || "Sin nombre"}
                 </span>
-                <span className="rounded-lg bg-slate-200/60 px-2.5 py-1 text-[10px] font-bold text-slate-500">
+                <span className="inline-flex w-fit rounded-full bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
                   {assistant.contract_type === "full_time"
                     ? "Full Time"
                     : assistant.contract_type === "part_time"
@@ -879,12 +882,12 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
           </div>
         </section>
 
-        <section className="mb-6 rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+        <section className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-sm font-extrabold uppercase tracking-wide text-slate-800">
               Áreas y Pasillos
             </h2>
-            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-600">
+            <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
               {profile.areas?.length || 0}
             </span>
           </div>
@@ -893,11 +896,9 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
             {(profile.areas || []).map((area, index) => (
               <div
                 key={index}
-                className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-200"
+                className="rounded-2xl bg-slate-50 p-4 text-[15px] font-bold text-slate-800 ring-1 ring-slate-200"
               >
-                <span className="font-bold text-slate-700">
-                  {area || "Área sin nombre"}
-                </span>
+                {area || "Área sin nombre"}
               </div>
             ))}
             {(profile.areas || []).length === 0 && (
@@ -908,7 +909,7 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
           </div>
         </section>
 
-        <div className="flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-100 px-5 text-[14px] font-bold text-slate-500">
+        <div className="flex min-h-14 w-full items-center justify-center gap-2 rounded-3xl bg-slate-100 px-5 py-4 text-[14px] font-bold text-slate-600 ring-1 ring-slate-200">
           Solo el supervisor puede editar la plantilla
         </div>
       </div>
