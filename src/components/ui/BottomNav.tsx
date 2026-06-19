@@ -35,8 +35,8 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm">
-      <div className="flex items-center justify-around px-2 pt-2 pb-2">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:bottom-4 lg:border-0 lg:bg-transparent lg:px-6 lg:pb-0 lg:shadow-none">
+      <div className="flex items-center justify-around px-2 pt-2 pb-2 lg:mx-auto lg:max-w-4xl lg:justify-between lg:rounded-full lg:border lg:border-slate-200/90 lg:bg-white/95 lg:px-4 lg:py-3 lg:shadow-[0_16px_36px_rgba(15,23,42,0.12)] lg:backdrop-blur-sm">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === "/"

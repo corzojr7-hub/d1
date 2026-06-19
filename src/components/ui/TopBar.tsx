@@ -35,7 +35,7 @@ export default function TopBar() {
 
   return (
     <header className="relative z-40 border-b border-black/5 bg-[#e51d2e] shadow-[0_8px_24px_rgba(136,19,29,0.18)]">
-      <div className="flex items-center justify-between px-4 py-3.5">
+      <div className="mx-auto flex items-center justify-between px-4 py-3.5 lg:max-w-7xl lg:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-extrabold text-[#e51d2e] shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105 active:scale-95">
             D1
@@ -84,10 +84,10 @@ export default function TopBar() {
       </div>
 
       {todayMessage && (
-        <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner">
+        <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner lg:mx-auto lg:max-w-7xl lg:px-6 xl:px-8">
           <div className="absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
           <div className="absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
-          <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92">
+          <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
             <span className="mx-8">{todayMessage}</span>
             <span className="mx-8 opacity-50">•</span>
             <span className="mx-8">{todayMessage}</span>
