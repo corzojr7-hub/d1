@@ -615,9 +615,13 @@ export default function TeamPage() {
           />
         </section>
 
-        <section className="mb-6 rounded-3xl bg-blue-50/50 p-5 shadow-sm ring-1 ring-blue-100">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-blue-800">
+        <section className="mb-6 overflow-hidden rounded-3xl bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm ring-1 ring-blue-100">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
+                Cronograma semanal
+              </p>
+              <h2 className="mt-1 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-blue-800">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 width="18"
@@ -634,13 +638,17 @@ export default function TeamPage() {
               </svg>
               Cronograma de Aseo Semanal
             </h2>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-blue-700 ring-1 ring-blue-100">
+              7 días
+            </span>
           </div>
           <p className="mb-4 text-xs font-medium text-blue-600/80">
             Asigna la persona encargada del aseo (Baño, Cafetín, Aforo) para
             cada día de la semana.
           </p>
 
-          <div className="space-y-3">
+          <div className="space-y-2">
             {[
               "lunes",
               "martes",
@@ -657,15 +665,15 @@ export default function TeamPage() {
               return (
                 <div
                   key={day}
-                  className="flex items-center justify-between rounded-2xl bg-white p-3 ring-1 ring-slate-100"
+                  className="grid gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-slate-100 sm:grid-cols-[88px_1fr] sm:items-center"
                 >
-                  <span className="text-sm font-bold capitalize text-slate-700">
+                  <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                     {day}
                   </span>
                   <select
                     value={currentAssignee}
                     onChange={(e) => setAseoSchedule(day, e.target.value)}
-                    className="w-1/2 rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
+                    className="w-full rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-200 transition focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Sin asignar</option>
                     {assistantNames.map((name, idx) => (
