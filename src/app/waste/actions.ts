@@ -73,7 +73,11 @@ const submitWasteSchema = z.object({
 });
 
 export async function submitWaste(formData: FormData): Promise<{ error?: string }> {
-  const { profile, supabase } = await requireAuth();
+  const { profile } = await requireAuth();
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
 
   const rawData = {
     barcodeId: getString(formData, "barcode_id"),
@@ -129,11 +133,14 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
       .jpeg({ quality: 70 })
       .toBuffer();
 
-    const { error } = await supabase.storage
+    const { error } = await adminClient.storage
       .from("waste-evidence")
       .upload(filePath, compressedBuffer, { contentType: "image/jpeg" });
 
-    if (error) throw new Error(`Error subiendo ${label}: ${error.message}`);
+    if (error) {
+      console.error(`Waste upload error [${label}]`, error);
+      throw new Error(`Error subiendo ${label}: ${error.message}`);
+    }
     return filePath;
   }
 
@@ -186,13 +193,10 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
   };
 
     // Usamos el cliente nativo con la Service Role Key para saltarnos RLS completamente y evitar problemas de políticas desincronizadas
-    const adminClient = createSupabaseClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
     const { error } = await adminClient.from("waste_records").insert(payload);
 
     if (error) {
+      console.error("Waste insert error", error, payload);
       return { error: error.message };
     }
   } catch (err: unknown) {
