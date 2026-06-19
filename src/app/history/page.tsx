@@ -21,28 +21,33 @@ export default async function HistoryPage(props: {
   const supabase = await createClient();
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pb-28 pt-6">
       <Link
         href="/"
-        className="text-xs text-zinc-400 underline-offset-2 hover:underline"
+        className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500 shadow-sm ring-1 ring-slate-200 transition-colors hover:text-slate-700"
       >
         Volver al inicio
       </Link>
 
-      <h1 className="mt-4 text-2xl font-bold text-slate-800">
-        Historial Operativo
-      </h1>
-      <p className="mt-1 text-sm text-slate-400">
-        Consulta instrucciones y registros de merma anteriores
-      </p>
+      <div className="mt-4 rounded-[28px] bg-gradient-to-br from-[#e51d2e] via-[#f22435] to-[#ff5b6b] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.18)]">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
+          Archivo operativo
+        </p>
+        <h1 className="mt-2 text-[28px] font-black tracking-tight">
+          Historial Operativo
+        </h1>
+        <p className="mt-2 max-w-[240px] text-[13px] leading-relaxed text-white/85">
+          Consulta instrucciones y registros de merma anteriores.
+        </p>
+      </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <Suspense fallback={<div className="h-10" />}>
           <HistoryTabs />
         </Suspense>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-5 space-y-4">
         {tab === "instructions" && <InstructionsList supabase={supabase} page={page} pageSize={pageSize} />}
         {tab === "waste" && <WasteList supabase={supabase} page={page} pageSize={pageSize} />}
       </div>
@@ -70,8 +75,16 @@ async function InstructionsList({
 
   if (!instructions || instructions.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-zinc-200 px-4 py-12 text-center text-sm text-zinc-400">
-        No hay instrucciones registradas.
+      <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-12 text-center text-slate-500 shadow-sm">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+          Sin instrucciones
+        </p>
+        <p className="mt-2 text-sm font-bold text-slate-700">
+          No hay instrucciones registradas.
+        </p>
+        <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+          Cuando existan, aparecerán aquí ordenadas por fecha.
+        </p>
       </div>
     );
   }
@@ -106,8 +119,16 @@ async function WasteList({
 
   if (!records || records.length === 0) {
     return (
-      <div className="rounded-3xl border border-dashed border-zinc-200 px-4 py-12 text-center text-sm text-zinc-400">
-        No hay registros de merma.
+      <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-12 text-center text-slate-500 shadow-sm">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+          Sin merma
+        </p>
+        <p className="mt-2 text-sm font-bold text-slate-700">
+          No hay registros de merma.
+        </p>
+        <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+          Los movimientos registrados aparecerán en esta lista.
+        </p>
       </div>
     );
   }
@@ -124,20 +145,20 @@ async function WasteList({
 
 function PaginationControls({ tab, page, hasNext }: { tab: string, page: number, hasNext: boolean }) {
   return (
-    <div className="mt-4 flex items-center justify-between">
+    <div className="mt-2 flex items-center justify-between gap-3 rounded-full bg-white px-3 py-2 shadow-sm ring-1 ring-slate-200">
       {page > 1 ? (
         <Link
           href={`/history?tab=${tab}&page=${page - 1}`}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="rounded-full px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
         >
           &larr; Anterior
         </Link>
-      ) : <div />}
+      ) : <div className="h-7" />}
       
       {hasNext && (
         <Link
           href={`/history?tab=${tab}&page=${page + 1}`}
-          className="text-sm font-medium text-blue-600 hover:text-blue-800"
+          className="rounded-full px-3 py-1.5 text-xs font-bold text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
         >
           Siguiente &rarr;
         </Link>

@@ -17,15 +17,15 @@ export default function HistoryTabs() {
   }
 
   return (
-    <div className="flex w-full rounded-full bg-slate-100 p-1">
+    <div className="grid w-full grid-cols-2 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
       {tabs.map((tab) => (
         <button
           key={tab.key}
           onClick={() => handleClick(tab.key)}
-          className={`flex-1 rounded-full py-2.5 text-center text-sm font-semibold transition-all ${
+          className={`rounded-[18px] py-2.5 text-center text-sm font-bold transition-all ${
             active === tab.key
-              ? "bg-white text-slate-900 shadow-sm"
-              : "text-slate-500 hover:text-slate-700"
+              ? "bg-[#e51d2e] text-white shadow-[0_10px_22px_rgba(229,29,46,0.18)]"
+              : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
           }`}
         >
           {tab.label}
