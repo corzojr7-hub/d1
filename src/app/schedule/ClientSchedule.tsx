@@ -297,45 +297,70 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
       {selectedSchedule && (
         <div className="fixed inset-0 z-50 flex flex-col bg-slate-50 animate-in slide-in-from-right">
-          <header className="bg-white px-4 py-4 shadow-sm flex items-center justify-between border-b border-slate-200">
+          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSelectedSchedule(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-colors hover:bg-slate-200"
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
-              <div>
-                <h2 className="text-sm font-bold text-slate-800">Malla de Horarios</h2>
-                <p className="text-[10px] text-slate-500">{selectedSchedule.week_start} al {selectedSchedule.week_end}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Malla abierta
+                </p>
+                <h2 className="mt-0.5 text-sm font-black text-slate-900">
+                  Malla de Horarios
+                </h2>
+                <p className="text-[10px] text-slate-500">
+                  {selectedSchedule.week_start} al {selectedSchedule.week_end}
+                </p>
               </div>
             </div>
-            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${selectedSchedule.status === 'publicado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${selectedSchedule.status === 'publicado' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100' : 'bg-amber-100 text-amber-700 ring-1 ring-amber-100'}`}>
               {selectedSchedule.status === 'publicado' ? 'Publicado' : 'Borrador'}
             </span>
           </header>
 
-          <div className="flex-1 overflow-auto p-4">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="flex-1 overflow-auto px-4 pb-4 pt-4">
+            <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs whitespace-nowrap">
+                <table className="w-full border-collapse whitespace-nowrap text-xs text-left">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 sticky left-0 bg-slate-50 z-20">Asistente</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Lunes</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Martes</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Miércoles</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Jueves</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Viernes</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Sábado</th>
-                      <th className="p-3 font-bold text-slate-600 border-r border-slate-200 text-center min-w-[90px]">Domingo</th>
-                      <th className="p-3 font-bold text-slate-600 text-center">Total Hrs</th>
+                    <tr className="sticky top-0 z-20 border-b border-slate-200 bg-slate-50/95 backdrop-blur">
+                      <th className="sticky left-0 z-30 border-r border-slate-200 bg-slate-50/95 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 shadow-[6px_0_14px_-10px_rgba(15,23,42,0.35)]">
+                        Asistente
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Lunes
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Martes
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Miércoles
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Jueves
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Viernes
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Sábado
+                      </th>
+                      <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Domingo
+                      </th>
+                      <th className="px-4 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
+                        Total Hrs
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
                     {selectedScheduleRows.map((row: ScheduleRow, i: number) => (
                       <tr key={i} className="border-b border-slate-100 hover:bg-slate-50/50">
-                        <td className="p-3 font-bold text-slate-800 border-r border-slate-200 sticky left-0 bg-white z-20 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                        <td className="sticky left-0 z-20 border-r border-slate-200 bg-white px-4 py-3 font-bold text-slate-900 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
                           {row.assistant}
                         </td>
                         {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
@@ -352,7 +377,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                             </td>
                           );
                         })}
-                        <td className="p-3 text-center font-bold text-slate-700 bg-slate-50/50">
+                        <td className="bg-slate-50/80 px-4 py-3 text-center font-black text-slate-900">
                           {row.total_hours}h
                         </td>
                       </tr>
