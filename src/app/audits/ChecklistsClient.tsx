@@ -62,7 +62,7 @@ export default function ChecklistsClient({
         await assignDailyTasks(toAssign, operator);
         toast.success("Básicos asignados correctamente.");
         setActiveTab("verificacion");
-      } catch (err) {
+      } catch {
         toast.error("Error al asignar básicos.");
       }
     });
@@ -115,39 +115,46 @@ export default function ChecklistsClient({
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+        <div className="flex items-start gap-3">
           <Link
             href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/18 text-white transition-colors hover:bg-white/28"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-white">
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+              Operación diaria
+            </p>
+            <h1 className="mt-1 text-lg font-black leading-tight text-white">
               Básicos Diarios
             </h1>
-            <p className="text-[10px] text-white/90">
+            <p className="mt-1 text-[12px] text-white/88">
               {today}
             </p>
           </div>
+          <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/90">
+            {initialTasks.length} hoy
+          </span>
         </div>
       </header>
 
       {/* Tabs */}
-      <div className="px-4 py-3 bg-white border-b border-zinc-100 flex gap-2">
+      <div className="px-4 pt-4">
+        <div className="grid grid-cols-2 gap-1.5 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
         <button
           onClick={() => setActiveTab("verificacion")}
-          className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-colors ${
-            activeTab === "verificacion" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+          className={`rounded-[18px] py-2.5 text-[13px] font-bold transition-all ${
+            activeTab === "verificacion" ? "bg-[#e51d2e] text-white shadow-[0_10px_22px_rgba(229,29,46,0.18)]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
           }`}
         >
           Verificación
         </button>
         <button
           onClick={() => setActiveTab("asignacion")}
-          className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-colors ${
-            activeTab === "asignacion" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+          className={`rounded-[18px] py-2.5 text-[13px] font-bold transition-all ${
+            activeTab === "asignacion" ? "bg-[#e51d2e] text-white shadow-[0_10px_22px_rgba(229,29,46,0.18)]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
           }`}
         >
           Asignar
@@ -155,8 +162,8 @@ export default function ChecklistsClient({
         {isSupervisor && (
           <button
             onClick={() => setActiveTab("configuracion")}
-            className={`flex-1 py-2 text-[13px] font-bold rounded-xl transition-colors ${
-              activeTab === "configuracion" ? "bg-blue-600 text-white shadow-sm" : "bg-slate-100 text-slate-500"
+            className={`rounded-[18px] py-2.5 text-[13px] font-bold transition-all ${
+              activeTab === "configuracion" ? "bg-[#e51d2e] text-white shadow-[0_10px_22px_rgba(229,29,46,0.18)]" : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
             }`}
           >
             Configurar
@@ -164,34 +171,58 @@ export default function ChecklistsClient({
         )}
         <Link
           href="/audits/analytics"
-          className="flex items-center justify-center px-3 py-2 text-[13px] font-bold rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors"
+          className="flex items-center justify-center rounded-[18px] px-3 py-2.5 text-[13px] font-bold text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
         >
           Análisis
         </Link>
+        </div>
       </div>
 
       <div className="px-4 pt-4 pb-2">
-        <Link href="/audits/daily" className="w-full flex items-center justify-center gap-2 bg-emerald-100 text-emerald-800 py-3 rounded-2xl font-bold text-sm hover:bg-emerald-200 transition-colors">
-          <CheckCircle2 className="h-5 w-5" />
-          Iniciar Rutina Paso a Paso
+        <Link
+          href="/audits/daily"
+          className="group relative flex w-full items-center justify-between gap-3 overflow-hidden rounded-[28px] bg-gradient-to-br from-emerald-500 to-emerald-600 px-5 py-4 text-white shadow-[0_18px_36px_rgba(16,185,129,0.18)] transition-transform active:scale-[0.99]"
+        >
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 ring-1 ring-white/15">
+              <CheckCircle2 className="h-6 w-6" />
+            </span>
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+                Rutina guiada
+              </p>
+              <p className="mt-1 text-sm font-black">
+                Iniciar rutina paso a paso
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-5 w-5 text-white/80" />
         </Link>
       </div>
 
-      <div className="p-4">
+      <div className="space-y-4 px-4 pt-2">
         {activeTab === "asignacion" && (
           <form onSubmit={handleAssign} className="space-y-4">
             {configuredBasics.length === 0 ? (
-              <div className="text-center py-8 text-sm text-slate-500">
-                No hay básicos configurados. Configúralos en Equipo.
+              <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-slate-500 shadow-sm">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Sin básicos
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-700">
+                  No hay básicos configurados.
+                </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+                  Configúralos en Equipo para poder asignarlos aquí.
+                </p>
               </div>
             ) : (
               configuredBasics.map((basic) => {
                 const alreadyAssigned = initialTasks.some((t) => t.task_name === basic.name);
                 return (
-                  <div key={basic.id} className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100">
+                  <div key={basic.id} className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-slate-100">
                     <div className="flex justify-between items-center mb-3">
-                      <h3 className="font-bold text-sm text-slate-800">{basic.name}</h3>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${basic.type === 'apertura' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                      <h3 className="text-sm font-black text-slate-900">{basic.name}</h3>
+                      <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-[0.14em] ${basic.type === 'apertura' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-100' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-100'}`}>
                         {basic.type}
                       </span>
                     </div>
@@ -200,14 +231,14 @@ export default function ChecklistsClient({
                     </div>
                     
                     {alreadyAssigned ? (
-                      <div className="text-xs font-semibold text-emerald-600 bg-emerald-50 px-3 py-2 rounded-lg">
+                      <div className="rounded-2xl bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 ring-1 ring-emerald-100">
                         Ya asignado para hoy
                       </div>
                     ) : (
                       <select
                         value={assignments[basic.id] || ""}
                         onChange={(e) => setAssignments(prev => ({ ...prev, [basic.id]: e.target.value }))}
-                        className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                        className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-[#e51d2e]/30"
                       >
                         <option value="">-- Seleccionar Asistente --</option>
                         {operator && (
@@ -227,7 +258,7 @@ export default function ChecklistsClient({
               <button
                 type="submit"
                 disabled={isPending}
-                className="mt-6 w-full rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg active:scale-95 disabled:opacity-70 transition-all"
+                className="mt-6 w-full rounded-full bg-[#e51d2e] py-3.5 text-sm font-bold text-white shadow-[0_14px_28px_rgba(229,29,46,0.18)] active:scale-95 disabled:opacity-70 transition-all"
               >
                 {isPending ? "Asignando..." : "Asignar Seleccionados"}
               </button>
@@ -238,8 +269,16 @@ export default function ChecklistsClient({
         {activeTab === "verificacion" && (
           <div className="space-y-4">
             {initialTasks.length === 0 ? (
-              <div className="text-center py-8 text-sm text-slate-500">
-                No hay básicos asignados para hoy.
+              <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-slate-500 shadow-sm">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Sin tareas
+                </p>
+                <p className="mt-2 text-sm font-bold text-slate-700">
+                  No hay básicos asignados para hoy.
+                </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+                  Pasa a Asignar para distribuir los básicos del día.
+                </p>
               </div>
             ) : (
               initialTasks.map((task) => {
@@ -381,7 +420,7 @@ export default function ChecklistsClient({
                           <span className="mb-1.5 block text-[11px] font-semibold text-slate-600">Tipo</span>
                           <select
                             value={task.type}
-                            onChange={(e) => updateBasicTask(index, "type", e.target.value as any)}
+                            onChange={(e) => updateBasicTask(index, "type", e.target.value as "apertura" | "cierre")}
                             className="min-h-10 w-full rounded-xl bg-white px-3 py-2 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 transition-all focus:ring-2 focus:ring-blue-500"
                           >
                             <option value="apertura">Apertura</option>

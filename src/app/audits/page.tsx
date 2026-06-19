@@ -21,13 +21,37 @@ export default async function AuditsPage() {
     .maybeSingle();
 
   if (error) {
-    return <div className="p-4 text-red-500">Error en la base de datos: {error.message}</div>;
+    return (
+      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6">
+        <div className="rounded-[28px] border border-red-100 bg-white px-5 py-10 text-center shadow-sm">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-red-400">
+            Error de carga
+          </p>
+          <p className="mt-2 text-sm font-bold text-slate-800">
+            Error en la base de datos
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+            {error.message}
+          </p>
+        </div>
+      </div>
+    );
   }
 
   if (!profile) {
     return (
-      <div className="p-4 text-slate-500 text-center mt-10">
-        No se encontró el perfil de la tienda en la base de datos. Por favor, asegúrate de haber actualizado la configuración de tu equipo o contacta a soporte.
+      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6">
+        <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-slate-500 shadow-sm">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+            Sin perfil
+          </p>
+          <p className="mt-2 text-sm font-bold text-slate-700">
+            No se encontró el perfil de la tienda.
+          </p>
+          <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
+            Verifica la configuración del equipo o contacta a soporte.
+          </p>
+        </div>
       </div>
     );
   }
@@ -52,7 +76,7 @@ export default async function AuditsPage() {
       configuredBasics={profile.basic_tasks || []}
       assistants={profile.assistants || []}
       today={today}
-      isSupervisor={profile.role === 'supervisor' || profile.role === 'admin'}
+      isSupervisor={profile.role === "supervisor" || profile.role === "admin"}
     />
   );
 }
