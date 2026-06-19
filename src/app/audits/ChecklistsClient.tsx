@@ -219,14 +219,14 @@ export default function ChecklistsClient({
               configuredBasics.map((basic) => {
                 const alreadyAssigned = initialTasks.some((t) => t.task_name === basic.name);
                 return (
-                  <div key={basic.id} className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-slate-100">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-sm font-black text-slate-900">{basic.name}</h3>
-                      <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-[0.14em] ${basic.type === 'apertura' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-100' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-100'}`}>
+                  <div key={basic.id} className="rounded-[28px] bg-white p-4 shadow-sm ring-1 ring-slate-100">
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <h3 className="min-w-0 text-sm font-black leading-tight text-slate-900">{basic.name}</h3>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${basic.type === 'apertura' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-100' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-100'}`}>
                         {basic.type}
                       </span>
                     </div>
-                    <div className="text-[11px] font-semibold text-slate-500 mb-2">
+                    <div className="mb-3 rounded-2xl bg-slate-50 px-3 py-2 text-[11px] font-semibold text-slate-500 ring-1 ring-slate-100">
                       Límite: <span className="text-slate-800">{basic.deadline_time}</span>
                     </div>
                     
@@ -238,7 +238,7 @@ export default function ChecklistsClient({
                       <select
                         value={assignments[basic.id] || ""}
                         onChange={(e) => setAssignments(prev => ({ ...prev, [basic.id]: e.target.value }))}
-                        className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-[#e51d2e]/30"
+                        className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
                       >
                         <option value="">-- Seleccionar Asistente --</option>
                         {operator && (
@@ -299,23 +299,23 @@ export default function ChecklistsClient({
                 const isWarning = isPendingTask && minutesLeft > 0 && minutesLeft <= 15;
 
                 return (
-                  <div key={task.id} className={`bg-white p-4 rounded-2xl shadow-sm border ${isOverdue ? 'border-red-300 ring-1 ring-red-300' : isWarning ? 'border-amber-300 ring-1 ring-amber-300' : 'border-zinc-100'}`}>
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-800">{task.task_name}</h3>
-                        <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Resp: <span className="text-slate-700">{task.assigned_to}</span></p>
+                  <div key={task.id} className={`rounded-[28px] bg-white p-4 shadow-sm border ${isOverdue ? 'border-red-300 ring-1 ring-red-300' : isWarning ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-100 ring-1 ring-slate-100'}`}>
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-black leading-tight text-slate-900">{task.task_name}</h3>
+                        <p className="mt-0.5 text-[11px] font-semibold text-slate-500">Resp: <span className="text-slate-700">{task.assigned_to}</span></p>
                       </div>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wide ${task.task_type === 'apertura' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'}`}>
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${task.task_type === 'apertura' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-100' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-100'}`}>
                         {task.task_type}
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2 mb-4">
-                      <Clock className="w-3.5 h-3.5 text-slate-400" />
-                      <span className="text-xs font-medium text-slate-600">Límite: {deadlineTimeStr}</span>
+                    <div className="mb-4 flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-slate-600 ring-1 ring-slate-100">
+                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      <span className="text-xs font-medium">Límite: {deadlineTimeStr}</span>
                       
                       {isPendingTask && !isOverdue && (
-                         <span className={`text-[10px] font-bold ml-auto ${isWarning ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}>
+                         <span className={`ml-auto text-[10px] font-bold ${isWarning ? 'text-red-500 animate-pulse' : 'text-slate-400'}`}>
                            {minutesLeft} min restantes
                          </span>
                       )}
@@ -325,7 +325,7 @@ export default function ChecklistsClient({
                       <button
                         onClick={() => handleStatusUpdate(task.id, "realizado")}
                         disabled={isPending}
-                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-emerald-50 text-emerald-700 py-2.5 text-xs font-bold hover:bg-emerald-100 transition-colors"
+                        className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100 transition-colors hover:bg-emerald-100"
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         Marcar como Realizado
@@ -334,7 +334,7 @@ export default function ChecklistsClient({
 
                     {isOverdue && (
                       <div className="space-y-3">
-                        <div className="flex items-center gap-2 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg">
+                        <div className="flex items-center gap-2 rounded-2xl bg-red-50 p-3 text-xs font-bold text-red-600 ring-1 ring-red-100">
                           <AlertTriangle className="w-4 h-4" />
                           Tiempo vencido. Re-evaluar:
                         </div>
@@ -342,7 +342,7 @@ export default function ChecklistsClient({
                           <button
                             onClick={() => handleStatusUpdate(task.id, "no_realizado", "asistente")}
                             disabled={isPending}
-                            className="flex items-center justify-center gap-1.5 rounded-xl bg-red-600 text-white py-2 text-[11px] font-bold hover:bg-red-700 transition-colors"
+                            className="flex items-center justify-center gap-1.5 rounded-2xl bg-red-600 px-3 py-2.5 text-[11px] font-bold text-white transition-colors hover:bg-red-700"
                           >
                             <XCircle className="w-3.5 h-3.5" />
                             Falla Asistente
@@ -350,7 +350,7 @@ export default function ChecklistsClient({
                           <button
                             onClick={() => handleStatusUpdate(task.id, "realizado", "supervisor")}
                             disabled={isPending}
-                            className="flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 text-white py-2 text-[11px] font-bold hover:bg-amber-600 transition-colors"
+                            className="flex items-center justify-center gap-1.5 rounded-2xl bg-amber-500 px-3 py-2.5 text-[11px] font-bold text-white transition-colors hover:bg-amber-600"
                           >
                             <CheckCircle2 className="w-3.5 h-3.5" />
                             Olvido Supervisor
@@ -360,14 +360,14 @@ export default function ChecklistsClient({
                     )}
 
                     {task.status === "realizado" && (
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 bg-emerald-50 p-2 rounded-lg justify-center mt-2">
+                      <div className="mt-2 flex items-center justify-center gap-1.5 rounded-2xl bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 ring-1 ring-emerald-100">
                         <CheckCircle2 className="w-4 h-4" />
                         Completado {task.fault === 'supervisor' ? '(Verificación tardía)' : ''}
                       </div>
                     )}
 
                     {task.status === "no_realizado" && (
-                      <div className="flex items-center gap-1.5 text-xs font-bold text-red-600 bg-red-50 p-2 rounded-lg justify-center mt-2">
+                      <div className="mt-2 flex items-center justify-center gap-1.5 rounded-2xl bg-red-50 p-2.5 text-xs font-bold text-red-700 ring-1 ring-red-100">
                         <XCircle className="w-4 h-4" />
                         No Realizado
                       </div>
