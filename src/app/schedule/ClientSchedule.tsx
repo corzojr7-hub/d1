@@ -110,8 +110,8 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     : [];
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] md:px-6 lg:px-8">
         <div className="flex items-start gap-3">
           <Link
             href="/"
@@ -136,7 +136,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
         </div>
       </header>
 
-      <div className="space-y-4 px-4 pt-4">
+      <div className="space-y-4 px-4 pt-4 md:px-6 lg:px-8">
         <button
           onClick={() => setShowModal(true)}
           className="group relative w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#e51d2e] via-[#f22435] to-[#ff5b6b] p-5 text-left text-white shadow-[0_18px_36px_rgba(229,29,46,0.24)] transition-transform active:scale-[0.99]"
@@ -235,8 +235,8 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-10">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-4 md:items-center">
+          <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-10 md:max-w-xl lg:max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
               Configuración
             </p>
@@ -297,7 +297,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
       {selectedSchedule && (
         <div className="fixed inset-0 z-50 flex flex-col bg-slate-50 animate-in slide-in-from-right">
-          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
+          <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)] md:px-6 lg:px-8">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSelectedSchedule(null)}
@@ -322,7 +322,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             </span>
           </header>
 
-          <div className="flex-1 overflow-auto px-4 pb-4 pt-4">
+          <div className="flex-1 overflow-auto px-4 pb-4 pt-4 md:px-6 lg:px-8">
             <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse whitespace-nowrap text-xs text-left">
