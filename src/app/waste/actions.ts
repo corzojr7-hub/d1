@@ -2,9 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import type { TablesInsert } from "@/lib/supabase/database.types";
-import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
+import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -46,6 +45,18 @@ function getString(formData: FormData, key: string): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function parseTransportEvidence(value: FormDataEntryValue | null) {
+  if (typeof value !== "string" || value.trim() === "") {
+    return undefined;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return undefined;
+  }
+}
+
 const submitWasteSchema = z.object({
   barcodeId: z.string().min(1, "El código de barras es obligatorio."),
   productId: z.string().optional(),
@@ -62,7 +73,7 @@ const submitWasteSchema = z.object({
 });
 
 export async function submitWaste(formData: FormData): Promise<{ error?: string }> {
-  const { profile, supabase, user } = await requireAuth();
+  const { profile, supabase } = await requireAuth();
 
   const rawData = {
     barcodeId: getString(formData, "barcode_id"),
@@ -76,14 +87,21 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     transportDriver: getString(formData, "transport_driver") || undefined,
     transportPlate: getString(formData, "transport_plate") || undefined,
     transportComment: getString(formData, "transport_comment") || undefined,
-    transportEvidence: formData.get("transport_evidence") ? JSON.parse(getString(formData, "transport_evidence")) : undefined
+    transportEvidence: parseTransportEvidence(formData.get("transport_evidence")),
   };
 
   let validatedData;
   try {
     validatedData = submitWasteSchema.parse(rawData);
-  } catch (err: any) {
-    return { error: err.errors ? err.errors[0].message : err.message };
+  } catch (err: unknown) {
+    return {
+      error:
+        err instanceof z.ZodError
+          ? err.issues[0]?.message ?? "Datos de merma inválidos."
+          : err instanceof Error
+            ? err.message
+            : "Error inesperado al validar la merma.",
+    };
   }
 
   if (validatedData.depositedBy) {
@@ -97,8 +115,8 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
   let imageUrl: string | null = null;
   let transportEvidenceUrls: { novedad: string; lote: string; proveedor: string; cantidades: string } | null = null;
 
-  async function processAndUploadImage(file: any, label: string): Promise<string | null> {
-    if (!file || typeof file === 'string' || !file.arrayBuffer || file.size === 0) return null;
+  async function processAndUploadImage(file: FormDataEntryValue | null, label: string): Promise<string | null> {
+    if (!(file instanceof File) || file.size === 0) return null;
     const fileExt = "jpg";
     const fileName = `${label}_${dateStr}_${productName}.${fileExt}`;
     const filePath = `${profile.store_code}/${profile.id}/${Date.now()}_${fileName}`;
@@ -163,7 +181,7 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     transport_comment: validatedData.transportComment || null,
     transport_evidence: transportEvidenceUrls,
     store_code: profile.store_code,
-    created_by: user.id, // Modificado a user.id en vez de profile.id para cumplir con las politicas RLS ocultas
+    created_by: profile.id,
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
   };
 
@@ -177,8 +195,10 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     if (error) {
       return { error: error.message };
     }
-  } catch (err: any) {
-    return { error: err.message };
+  } catch (err: unknown) {
+    return {
+      error: err instanceof Error ? err.message : "Error inesperado al registrar la merma.",
+    };
   }
 
   revalidatePath("/");
@@ -256,4 +276,3 @@ export async function deleteWasteRecord(id: string) {
   revalidatePath("/waste");
   revalidatePath("/");
 }
-
