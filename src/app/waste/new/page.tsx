@@ -12,6 +12,7 @@ import type { Tables } from "@/lib/supabase/database.types";
 import { findProductByBarcode, submitWaste } from "@/app/waste/actions";
 import { useProfile } from '@/components/ui/ProfileContext';
 import { useMemo } from "react";
+import { compressImage } from "@/lib/image-compression";
 
 type WasteProduct = Tables<"products">;
 
@@ -312,7 +313,18 @@ export default function NewWastePage() {
 
             startTransition(async () => {
               try {
-                const result = await submitWaste(formData);
+                const payload = new FormData();
+
+                for (const [key, value] of formData.entries()) {
+                  if (value instanceof File && value.size > 0 && value.type.startsWith("image/")) {
+                    payload.append(key, await compressImage(value));
+                    continue;
+                  }
+
+                  payload.append(key, value);
+                }
+
+                const result = await submitWaste(payload);
                 if (result?.error) {
                   toast.error(result.error);
                   return;
