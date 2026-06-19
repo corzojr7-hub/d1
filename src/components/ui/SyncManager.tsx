@@ -9,7 +9,7 @@ import { addFefoRecord, updateFefoStatus } from "@/app/waste/fefo/actions";
 import { submitDailyAudit } from "@/app/audits/daily/actions";
 
 export default function SyncManager() {
-  const [isOffline, setIsOffline] = useState(typeof window !== "undefined" ? !navigator.onLine : false);
+  const [isOffline, setIsOffline] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {

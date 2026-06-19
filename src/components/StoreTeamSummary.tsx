@@ -24,7 +24,7 @@ export default function StoreTeamSummary() {
           </p>
           <h2 className="mt-1 text-[17px] font-extrabold leading-tight text-slate-900">
             {profile.store_name}
-            {profile.store_code ? <span className="text-slate-400 font-semibold ml-1">#{profile.store_code}</span> : ""}
+            {profile.store_code ? <span className="text-slate-400 font-semibold ml-1">#{profile.store_code}</span> : null}
           </h2>
         </div>
         <Link
