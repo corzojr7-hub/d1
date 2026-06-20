@@ -23,6 +23,19 @@ export async function assignQuadrant(formData: FormData) {
   }
 
   const adminClient = getAdminClient();
+  const { data: existingAssignments } = await adminClient
+    .from("quadrant_assignments")
+    .select("assigned_to, quadrant_name")
+    .eq("store_code", profile.store_code);
+
+  if ((existingAssignments || []).some((item) => item.assigned_to === assigned_to)) {
+    throw new Error("Esa persona ya tiene un cuadrante asignado.");
+  }
+
+  if ((existingAssignments || []).some((item) => item.quadrant_name === quadrant_name)) {
+    throw new Error("Ese cuadrante ya está asignado.");
+  }
+
   const { error } = await adminClient.from("quadrant_assignments").insert({
     store_code: profile.store_code,
     assigned_by: profile.display_name,
@@ -67,6 +80,77 @@ export async function acceptQuadrant(assignmentId: string) {
   if (error) {
     console.error("Error aceptando cuadrante", error);
     throw new Error("Error al aceptar el cuadrante.");
+  }
+
+  revalidatePath("/quadrants");
+}
+
+export async function updateQuadrantAssignment(formData: FormData) {
+  const { profile } = await requireAuth();
+
+  if (profile.role !== "supervisor") {
+    throw new Error("No tienes permiso para editar cuadrantes.");
+  }
+
+  const id = formData.get("id");
+  const assigned_to = formData.get("assigned_to");
+  const quadrant_name = formData.get("quadrant_name");
+
+  if (
+    typeof id !== "string" ||
+    typeof assigned_to !== "string" ||
+    typeof quadrant_name !== "string" ||
+    !id.trim() ||
+    !assigned_to.trim() ||
+    !quadrant_name.trim()
+  ) {
+    throw new Error("Datos incompletos para actualizar el cuadrante.");
+  }
+
+  const adminClient = getAdminClient();
+  const { data: assignment } = await adminClient
+    .from("quadrant_assignments")
+    .select("store_code")
+    .eq("id", id)
+    .single();
+
+  if (assignment?.store_code !== profile.store_code) {
+    throw new Error("No tienes permiso.");
+  }
+
+  const { data: existingAssignments } = await adminClient
+    .from("quadrant_assignments")
+    .select("id, assigned_to, quadrant_name")
+    .eq("store_code", profile.store_code);
+
+  if (
+    (existingAssignments || []).some(
+      (item) => item.id !== id && item.assigned_to === assigned_to.trim(),
+    )
+  ) {
+    throw new Error("Esa persona ya tiene un cuadrante asignado.");
+  }
+
+  if (
+    (existingAssignments || []).some(
+      (item) => item.id !== id && item.quadrant_name === quadrant_name.trim(),
+    )
+  ) {
+    throw new Error("Ese cuadrante ya está asignado.");
+  }
+
+  const { error } = await adminClient
+    .from("quadrant_assignments")
+    .update({
+      assigned_to: assigned_to.trim(),
+      quadrant_name: quadrant_name.trim(),
+      assigned_by: profile.display_name,
+    })
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error actualizando cuadrante", error);
+    throw new Error("Error al actualizar el cuadrante.");
   }
 
   revalidatePath("/quadrants");

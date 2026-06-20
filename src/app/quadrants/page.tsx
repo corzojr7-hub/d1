@@ -36,6 +36,7 @@ export default async function QuadrantsPage() {
       assignments={assignments || []}
       assistants={assistants}
       areas={areas}
+      canManage={profile.role === "supervisor"}
     />
   );
 }

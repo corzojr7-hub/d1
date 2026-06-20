@@ -666,6 +666,16 @@ export default function TeamPage() {
                 (t) => t.id === "aseo_semanal",
               ) as AseoTask | undefined;
               const currentAssignee = aseoTask?.schedule?.[day] || "";
+              const usedByOtherDays = new Set(
+                Object.entries(aseoTask?.schedule || {})
+                  .filter(
+                    ([scheduleDay, assignee]) =>
+                      scheduleDay !== day &&
+                      typeof assignee === "string" &&
+                      assignee.trim(),
+                  )
+                  .map(([, assignee]) => assignee as string),
+              );
               return (
                 <div
                   key={day}
@@ -680,11 +690,13 @@ export default function TeamPage() {
                     className="w-full rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-200 transition focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Sin asignar</option>
-                    {assistantNames.map((name, idx) => (
+                    {assistantNames
+                      .filter((name) => name === currentAssignee || !usedByOtherDays.has(name))
+                      .map((name, idx) => (
                       <option key={idx} value={name}>
                         {name}
                       </option>
-                    ))}
+                      ))}
                   </select>
                 </div>
               );
