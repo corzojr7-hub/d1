@@ -423,21 +423,41 @@ export default async function DashboardPage(props: {
       </div>
 
       <div className="space-y-8">
-        <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-          <div className="mb-4">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+        <section className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6">
+          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
               Life for Life
-            </p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">
-              Comparativo del dia {bogotaToday.day} vs {previousMonthPrefix}
-            </h2>
-            <p className="mt-1 text-sm text-slate-500">
-              Corte acumulado del mes actual frente al mismo punto del mes anterior.
-            </p>
+              </p>
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Comparativo del dia {bogotaToday.day} vs {previousMonthPrefix}
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Corte acumulado del mes actual frente al mismo punto del mes anterior.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:w-fit">
+              <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                  Mes actual
+                </p>
+                <p className="mt-1 text-lg font-black text-slate-900">
+                  {format(new Date(`${currentMonthPrefix}-01T12:00:00`), "MMMM yyyy")}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-500">
+                  Punto de corte
+                </p>
+                <p className="mt-1 text-lg font-black text-blue-900">
+                  Dia {bogotaToday.day}
+                </p>
+              </div>
+            </div>
           </div>
 
           <div className="grid gap-3 md:grid-cols-3">
-            <div className="rounded-2xl bg-slate-50 p-4">
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Ventas MTD
               </p>
@@ -453,7 +473,7 @@ export default async function DashboardPage(props: {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4">
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Impulso MTD
               </p>
@@ -469,7 +489,7 @@ export default async function DashboardPage(props: {
               </p>
             </div>
 
-            <div className="rounded-2xl bg-slate-50 p-4">
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Merma MTD
               </p>
@@ -486,11 +506,16 @@ export default async function DashboardPage(props: {
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl bg-blue-50 px-4 py-3 text-[12px] text-blue-800">
-            Venta del dia {bogotaToday.day}: <span className="font-black">{formatCop(currentSalesExactDay)}</span>
-            {" "}vs{" "}
-            <span className="font-black">{formatCop(previousSalesExactDay)}</span> en el mismo dia
-            del mes anterior.
+          <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-[12px] text-blue-900">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-500">
+              Dia comparable
+            </p>
+            <p className="mt-2 text-sm">
+              Venta del dia {bogotaToday.day}: <span className="font-black">{formatCop(currentSalesExactDay)}</span>
+              {" "}vs{" "}
+              <span className="font-black">{formatCop(previousSalesExactDay)}</span> en el mismo dia
+              del mes anterior.
+            </p>
           </div>
         </section>
 
