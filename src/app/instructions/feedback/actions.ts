@@ -34,6 +34,20 @@ function getAdminClient() {
   );
 }
 
+function getBogotaGreeting(now = new Date()) {
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "America/Bogota",
+      hour: "2-digit",
+      hour12: false,
+    }).format(now),
+  );
+
+  if (hour < 12) return "Buenos días";
+  if (hour < 19) return "Buenas tardes";
+  return "Buenas noches";
+}
+
 export async function createFeedback(data: Omit<FeedbackInsert, "store_code" | "created_by">) {
   const { profile } = await requireAuth();
 
@@ -67,6 +81,8 @@ export async function rewriteFeedbackWhatsappMessage(input: {
 
   const validated = whatsappRewriteSchema.parse(input);
   const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
+  const greeting = getBogotaGreeting();
+  const isWholeTeam = validated.directedTo.trim().toUpperCase() === "TODO EL EQUIPO";
 
   const toneGuide = {
     suave: "cercano, respetuoso y calmado",
@@ -87,6 +103,7 @@ Contexto:
 - Va dirigido a: ${validated.directedTo}.
 - Tipo de mensaje: ${kindGuide}.
 - Tono deseado: ${toneGuide}.
+- Saludo obligatorio de apertura: ${greeting}.
 
 Reglas obligatorias:
 - El mensaje final debe sonar humano, claro, profesional y realista.
@@ -94,6 +111,10 @@ Reglas obligatorias:
 - No uses groserias.
 - No inventes hechos que no esten en el mensaje original.
 - No uses emojis.
+- Debe comenzar exactamente con "${greeting}".
+- No uses tuteo. No escribas "tu", "tus", "te", "contigo" ni formas equivalentes.
+- Usa redaccion profesional en segunda persona plural o impersonal.
+- ${isWholeTeam ? 'El mensaje va para todo el equipo, asi que hablales al grupo completo y no a una sola persona.' : "El mensaje va para una sola persona, pero siempre sin tutear."}
 - No uses titulos como "Motivo", "Descripcion" o "Compromiso" dentro del mensaje.
 - El mensaje debe quedar listo para copiar y enviar por WhatsApp.
 - Puede tener uno o dos parrafos cortos, pero no listas.

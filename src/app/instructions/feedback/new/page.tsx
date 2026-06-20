@@ -33,6 +33,7 @@ export default function NewFeedbackPage() {
     profile?.assistants
       ?.map((assistant) => assistant?.name?.toUpperCase())
       .filter((name): name is string => Boolean(name)) || [];
+  const recipientOptions = ["TODO EL EQUIPO", ...assistants];
 
   const [isPending, startTransition] = useTransition();
   const [isAssistantPending, startAssistantTransition] = useTransition();
@@ -255,8 +256,8 @@ export default function NewFeedbackPage() {
             onChange={(e) => setFormData((current) => ({ ...current, directed_to: e.target.value }))}
             className={inputBase}
           >
-            <option value="">Selecciona al asistente...</option>
-            {assistants.map((name) => (
+            <option value="">Selecciona al destinatario...</option>
+            {recipientOptions.map((name) => (
               <option key={name} value={name}>
                 {name}
               </option>
