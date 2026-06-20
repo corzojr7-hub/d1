@@ -336,6 +336,7 @@ create table if not exists pos_metrics (
     profile_id    uuid        not null references profiles(id) on delete cascade,
     date          date        not null default current_date,
     assistant     text        not null,
+    scan          numeric     not null default 0,
     cancellations integer     not null default 0,
     voids         integer     not null default 0,
     productivity  numeric     not null default 0,
@@ -408,3 +409,4 @@ create policy "Allow authenticated select"  on fefo_records for select using (au
 create policy "Allow authenticated insert"  on fefo_records for insert with check (auth.role() = 'authenticated');
 create policy "Allow authenticated update"  on fefo_records for update using (auth.role() = 'authenticated');
 create policy "Allow authenticated delete"  on fefo_records for delete using (auth.role() = 'authenticated');
+

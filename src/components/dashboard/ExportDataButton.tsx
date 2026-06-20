@@ -26,6 +26,8 @@ type PosExportRow = {
   assistant?: string | null;
   productivity?: number | null;
   scan?: number | null;
+  cancellations?: number | null;
+  voids?: number | null;
 };
 
 type ExportDataButtonProps = {
@@ -74,7 +76,9 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
       Fecha: item.date,
       Colaborador: sanitizeCell(item.assistant),
       Productividad_Art_Min: item.productivity,
-      Escaneo: item.scan
+      Escaneo: item.scan,
+      Cancelaciones: item.cancellations,
+      Anulaciones: item.voids
     })));
     XLSX.utils.book_append_sheet(wb, wsPos, "Productividad Caja");
 

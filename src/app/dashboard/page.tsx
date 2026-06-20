@@ -30,13 +30,17 @@ type PosMetricForDashboard = {
   assistant?: string | null;
   productivity?: number | null;
   scan?: number | null;
+  cancellations?: number | null;
+  voids?: number | null;
   date: string;
 };
 
 type PosMetricRow = {
   assistant?: string | null;
   productivity?: number | null;
+  scan?: number | null;
   cancellations?: number | null;
+  voids?: number | null;
   date: string;
 };
 
@@ -169,8 +173,9 @@ export default async function DashboardPage(props: {
   const posMetrics: PosMetricForDashboard[] = (rawPosMetrics || []).map((item) => ({
     assistant: item.assistant,
     productivity: item.productivity,
-    // ponytail: reuse the existing field until the DB gets a real scan column.
-    scan: Number(item.cancellations || 0),
+    scan: Number(item.scan ?? item.cancellations ?? 0),
+    cancellations: Number(item.scan != null ? item.cancellations || 0 : 0),
+    voids: Number(item.voids || 0),
     date: item.date,
   }));
 
@@ -264,12 +269,29 @@ export default async function DashboardPage(props: {
     (item) => (item.assistant || "").trim() === selectedAssistant,
   );
 
-  const posDailyStats = new Map<string, { count: number; productivitySum: number; scanSum: number }>();
+  const posDailyStats = new Map<
+    string,
+    {
+      count: number;
+      productivitySum: number;
+      scanSum: number;
+      cancellationsSum: number;
+      voidsSum: number;
+    }
+  >();
   selectedAssistantMetrics.forEach((item) => {
-    const existing = posDailyStats.get(item.date) || { count: 0, productivitySum: 0, scanSum: 0 };
+    const existing = posDailyStats.get(item.date) || {
+      count: 0,
+      productivitySum: 0,
+      scanSum: 0,
+      cancellationsSum: 0,
+      voidsSum: 0,
+    };
     existing.count += 1;
     existing.productivitySum += Number(item.productivity || 0);
     existing.scanSum += Number(item.scan || 0);
+    existing.cancellationsSum += Number(item.cancellations || 0);
+    existing.voidsSum += Number(item.voids || 0);
     posDailyStats.set(item.date, existing);
   });
 
@@ -278,10 +300,19 @@ export default async function DashboardPage(props: {
     day: Number(date.slice(8, 10)),
     productivity: stats.count > 0 ? stats.productivitySum / stats.count : 0,
     scan: stats.count > 0 ? stats.scanSum / stats.count : 0,
+    cancellations: stats.cancellationsSum,
+    voids: stats.voidsSum,
   }));
 
   const getDailyPosMetric = (date: string) =>
-    posDailyMetrics.find((item) => item.date === date) || { date, day: 0, productivity: 0, scan: 0 };
+    posDailyMetrics.find((item) => item.date === date) || {
+      date,
+      day: 0,
+      productivity: 0,
+      scan: 0,
+      cancellations: 0,
+      voids: 0,
+    };
 
   const averagePosMetric = (
     items: Array<{ productivity: number; scan: number }>,
@@ -290,6 +321,11 @@ export default async function DashboardPage(props: {
     if (items.length === 0) return 0;
     return items.reduce((sum, item) => sum + item[key], 0) / items.length;
   };
+
+  const sumPosMetric = (
+    items: Array<{ cancellations: number; voids: number }>,
+    key: "cancellations" | "voids",
+  ) => items.reduce((sum, item) => sum + item[key], 0);
 
   const posCurrentMtd = posDailyMetrics.filter(
     (item) => item.date.startsWith(currentMonthPrefix) && item.day <= bogotaToday.day,
@@ -309,6 +345,12 @@ export default async function DashboardPage(props: {
   const posPreviousMtdScan = averagePosMetric(posPreviousMtd, "scan");
   const posPreviousYearMtdProductivity = averagePosMetric(posPreviousYearMtd, "productivity");
   const posPreviousYearMtdScan = averagePosMetric(posPreviousYearMtd, "scan");
+  const posCurrentMtdCancellations = sumPosMetric(posCurrentMtd, "cancellations");
+  const posPreviousMtdCancellations = sumPosMetric(posPreviousMtd, "cancellations");
+  const posCurrentMtdVoids = sumPosMetric(posCurrentMtd, "voids");
+  const posPreviousMtdVoids = sumPosMetric(posPreviousMtd, "voids");
+  const posPreviousYearMtdCancellations = sumPosMetric(posPreviousYearMtd, "cancellations");
+  const posPreviousYearMtdVoids = sumPosMetric(posPreviousYearMtd, "voids");
   const posStatus = searchParams.posStatus;
   const posMessage = searchParams.posMessage;
   const posDate = searchParams.posDate || todayKey;
@@ -491,6 +533,34 @@ export default async function DashboardPage(props: {
             </div>
           ) : null}
 
+          <form
+            action="/dashboard"
+            className="mb-4 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm"
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-end">
+              <label className="block flex-1">
+                <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  Ver colaborador
+                </span>
+                <select
+                  name="posAssistant"
+                  defaultValue={selectedAssistant}
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                >
+                  {assistantOptions.map((assistant) => (
+                    <option key={assistant} value={assistant}>
+                      {assistant}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <input type="hidden" name="posDate" value={posDate} />
+              <button type="submit" className="app-cta-primary justify-center text-sm font-bold md:min-w-44">
+                Ver historial POS
+              </button>
+            </div>
+          </form>
+
           <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
             <form action={savePosMetric} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">
@@ -565,6 +635,34 @@ export default async function DashboardPage(props: {
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
                   />
                 </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Cancelaciones
+                  </span>
+                  <input
+                    name="cancellations"
+                    type="number"
+                    step="1"
+                    min="0"
+                    defaultValue={posFormDefaults.cancellations || ""}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Anulaciones
+                  </span>
+                  <input
+                    name="voids"
+                    type="number"
+                    step="1"
+                    min="0"
+                    defaultValue={posFormDefaults.voids || ""}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  />
+                </label>
               </div>
 
               <button type="submit" className="app-cta-primary mt-5 w-full justify-center text-sm font-bold">
@@ -592,6 +690,20 @@ export default async function DashboardPage(props: {
                       Ayer: {formatMetric(posYesterday.scan)} · {getMetricDelta(posToday.scan, posYesterday.scan).toFixed(1)}%
                     </p>
                   </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Ayer: {posYesterday.cancellations} · {getMetricDelta(posToday.cancellations, posYesterday.cancellations).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Ayer: {posYesterday.voids} · {getMetricDelta(posToday.voids, posYesterday.voids).toFixed(1)}%
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -612,6 +724,20 @@ export default async function DashboardPage(props: {
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMonthSameDay.scan)} · {getMetricDelta(posToday.scan, posPreviousMonthSameDay.scan).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousMonthSameDay.cancellations} · {getMetricDelta(posToday.cancellations, posPreviousMonthSameDay.cancellations).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousMonthSameDay.voids} · {getMetricDelta(posToday.voids, posPreviousMonthSameDay.voids).toFixed(1)}%
                     </p>
                   </div>
                 </div>
@@ -636,6 +762,20 @@ export default async function DashboardPage(props: {
                       Antes: {formatMetric(posPreviousMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousMtdScan).toFixed(1)}%
                     </p>
                   </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousMtdCancellations).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousMtdVoids).toFixed(1)}%
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -656,6 +796,20 @@ export default async function DashboardPage(props: {
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousYearMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousYearMtdScan).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousYearMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousYearMtdCancellations).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {posPreviousYearMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousYearMtdVoids).toFixed(1)}%
                     </p>
                   </div>
                 </div>

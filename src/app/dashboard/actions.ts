@@ -22,12 +22,15 @@ const savePosMetricSchema = z.object({
   assistant: z.string().min(1, "Debes seleccionar un colaborador."),
   productivity: z.number().min(0, "Articulos por minuto no puede ser negativo."),
   scan: z.number().min(0, "Escaneo no puede ser negativo."),
+  cancellations: z.number().min(0, "Cancelaciones no puede ser negativo."),
+  voids: z.number().min(0, "Anulaciones no puede ser negativo."),
 });
 
 function parseMetric(rawValue: FormDataEntryValue | null) {
   const normalized = String(rawValue ?? "")
     .trim()
     .replace(",", ".");
+  if (!normalized) return 0;
   const value = Number(normalized);
   return Number.isFinite(value) ? value : Number.NaN;
 }
@@ -67,12 +70,14 @@ export async function savePosMetric(formData: FormData) {
       assistant,
       productivity: parseMetric(formData.get("productivity")),
       scan: parseMetric(formData.get("scan")),
+      cancellations: parseMetric(formData.get("cancellations")),
+      voids: parseMetric(formData.get("voids")),
     });
 
     const adminClient = createAdminClient();
     const { data: existingRows, error: existingError } = await adminClient
       .from("pos_metrics")
-      .select("id, created_by, assistant, voids")
+      .select("id, created_by, assistant")
       .eq("store_code", profile.store_code)
       .eq("date", validated.date)
       .eq("assistant", validated.assistant)
@@ -95,8 +100,9 @@ export async function savePosMetric(formData: FormData) {
         .update({
           assistant: validated.assistant,
           productivity: validated.productivity,
-          cancellations: validated.scan,
-          voids: existingRow.voids || 0,
+          scan: validated.scan,
+          cancellations: validated.cancellations,
+          voids: validated.voids,
         })
         .eq("id", existingRow.id);
 
@@ -111,8 +117,9 @@ export async function savePosMetric(formData: FormData) {
         date: validated.date,
         assistant: validated.assistant,
         productivity: validated.productivity,
-        cancellations: validated.scan,
-        voids: 0,
+        scan: validated.scan,
+        cancellations: validated.cancellations,
+        voids: validated.voids,
       });
 
       if (error) {
