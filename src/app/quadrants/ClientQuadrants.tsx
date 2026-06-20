@@ -2,9 +2,9 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, UserPlus, ShieldCheck, FileSignature } from "lucide-react";
+import { ArrowLeft, FileSignature, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
-import { assignQuadrant, acceptQuadrant } from "./actions";
+import { acceptQuadrant, assignQuadrant } from "./actions";
 
 type QuadrantAssignment = {
   id: string;
@@ -19,12 +19,14 @@ type Assistant = {
   name: string;
 };
 
-export default function ClientQuadrants({ 
-  assignments, 
-  assistants 
-}: { 
-  assignments: QuadrantAssignment[], 
-  assistants: Assistant[] 
+export default function ClientQuadrants({
+  assignments,
+  assistants,
+  areas,
+}: {
+  assignments: QuadrantAssignment[];
+  assistants: Assistant[];
+  areas: string[];
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -45,14 +47,18 @@ export default function ClientQuadrants({
   }
 
   function handleAccept(id: string) {
-    if (!confirm("Al aceptar, te comprometes a mantener el cuadrante asignado conforme al estándar establecido en: LAYOUT, MICROLAYOUT, PRECIOS, ASEO, EXHIBICIONES, FECHAS DE VENCIMIENTO Y PRODUCTOS NO APTOS PARA LA VENTA.")) {
+    if (
+      !confirm(
+        "Al aceptar, asumes la responsabilidad de mantener el cuadrante asignado conforme al estándar de orden, precios, aseo, exhibiciones, fechas y productos aptos para la venta.",
+      )
+    ) {
       return;
     }
 
     startTransition(async () => {
       try {
         await acceptQuadrant(id);
-        toast.success("Cuadrante aceptado. Firma registrada.");
+        toast.success("Responsabilidad aceptada con éxito.");
       } catch (err: unknown) {
         toast.error(err instanceof Error ? err.message : "Error al aceptar el cuadrante.");
       }
@@ -73,102 +79,135 @@ export default function ClientQuadrants({
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
               Pasillos
             </p>
-            <h1 className="text-lg font-black leading-tight text-white flex items-center gap-2">
+            <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-white">
               Control de Cuadrantes
             </h1>
             <p className="text-[10px] text-white/90">
-              Asignación y actas de responsabilidad
+              Asignación y aceptación de responsabilidades
             </p>
           </div>
         </div>
       </header>
 
-      <div className="p-4 space-y-6">
-        <form onSubmit={handleAssign} className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+      <div className="space-y-6 p-4">
+        <form
+          onSubmit={handleAssign}
+          className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm"
+        >
+          <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
             <UserPlus className="h-4 w-4 text-blue-500" />
             Nueva Asignación
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Asistente Responsable
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Responsable
               </label>
               <select
                 name="assigned_to"
                 required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
-                <option value="">Selecciona un asistente...</option>
-                {assistants.map((ast, idx: number) => (
-                  <option key={idx} value={ast.name}>{ast.name}</option>
+                <option value="">Selecciona la persona responsable...</option>
+                {assistants.map((ast) => (
+                  <option key={ast.name} value={ast.name}>
+                    {ast.name}
+                  </option>
                 ))}
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Cuadrante / Pasillo
               </label>
-              <input
-                type="text"
-                name="quadrant_name"
-                required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                placeholder="Ej. Pasillo 1 - Lácteos"
-              />
+              {areas.length > 0 ? (
+                <select
+                  name="quadrant_name"
+                  required
+                  className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">Selecciona un cuadrante guardado...</option>
+                  {areas.map((area) => (
+                    <option key={area} value={area}>
+                      {area}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  name="quadrant_name"
+                  required
+                  className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ej. Pasillo 1 - Lácteos"
+                />
+              )}
             </div>
 
             <button
               type="submit"
               disabled={isPending}
-              className="w-full flex items-center justify-center gap-2 bg-[#1d1b20] text-white py-3 rounded-xl font-bold text-sm hover:bg-black transition-colors disabled:opacity-50 mt-2"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d1b20] py-3 text-sm font-bold text-white transition-colors hover:bg-black disabled:opacity-50"
             >
-              Asignar Cuadrante
+              Asignar cuadrante
             </button>
           </div>
         </form>
 
         <div className="space-y-4">
-          <h2 className="text-sm font-bold text-slate-800 flex items-center gap-2 px-1">
+          <h2 className="flex items-center gap-2 px-1 text-sm font-bold text-slate-800">
             <FileSignature className="h-4 w-4 text-orange-500" />
-            Actas de Entrega
+            Responsabilidades asignadas
           </h2>
 
           {assignments && assignments.length > 0 ? (
             assignments.map((assignment) => (
-              <div key={assignment.id} className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-bold text-slate-800">{assignment.quadrant_name}</span>
-                  {assignment.status === 'aceptado' ? (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md">
+              <div
+                key={assignment.id}
+                className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="text-sm font-bold text-slate-800">
+                    {assignment.quadrant_name}
+                  </span>
+                  {assignment.status === "aceptado" ? (
+                    <span className="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-600">
                       <ShieldCheck className="h-3 w-3" /> Aceptado
                     </span>
                   ) : (
-                    <span className="text-[10px] font-bold text-amber-600 bg-amber-50 px-2 py-1 rounded-md">
-                      Pendiente Firma
+                    <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600">
+                      Pendiente aceptación
                     </span>
                   )}
                 </div>
-                
-                <div className="text-xs text-slate-500 mb-3 space-y-1">
-                  <p><strong>Responsable:</strong> {assignment.assigned_to}</p>
-                  <p><strong>Asignado por:</strong> {assignment.assigned_by}</p>
-                  <p><strong>Fecha:</strong> {new Date(assignment.created_at).toLocaleDateString('es-CO')}</p>
+
+                <div className="mb-3 space-y-1 text-xs text-slate-500">
+                  <p>
+                    <strong>Responsable:</strong> {assignment.assigned_to}
+                  </p>
+                  <p>
+                    <strong>Asignado por:</strong> {assignment.assigned_by}
+                  </p>
+                  <p>
+                    <strong>Fecha:</strong>{" "}
+                    {new Date(assignment.created_at).toLocaleDateString("es-CO")}
+                  </p>
                 </div>
 
-                {assignment.status !== 'aceptado' && (
-                  <div className="mt-3 pt-3 border-t border-slate-100">
-                    <p className="text-[10px] text-slate-500 mb-3 leading-tight italic">
-                      &quot;Me comprometo a mantener el cuadrante asignado conforme al estándar establecido en: LAYOUT, MICROLAYOUT, PRECIOS, ASEO, EXHIBICIONES, FECHAS DE VENCIMIENTO Y PRODUCTOS NO APTOS PARA LA VENTA.&quot;
+                {assignment.status !== "aceptado" && (
+                  <div className="mt-3 border-t border-slate-100 pt-3">
+                    <p className="mb-3 text-[10px] italic leading-tight text-slate-500">
+                      Aceptar esta responsabilidad confirma el compromiso de mantener
+                      el cuadrante conforme al estándar de la tienda.
                     </p>
                     <button
                       onClick={() => handleAccept(assignment.id)}
                       disabled={isPending}
-                      className="w-full flex items-center justify-center gap-2 bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 py-2 text-xs font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                     >
-                      Aceptar Responsabilidad (Firma Digital)
+                      Aceptar responsabilidad
                     </button>
                   </div>
                 )}

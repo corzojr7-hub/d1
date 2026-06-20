@@ -8,7 +8,8 @@ import { useProfile } from "./ProfileContext";
 
 const DAILY_MESSAGES: Record<string, string> = {
   domingo: "Revisión de productos abandonados, reintegros y validación general de precios",
-  lunes: "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
+  lunes:
+    "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
   martes: "Limpieza de polvo y revisión de fechas para fortalecer el control FEFO",
   miércoles: "Limpieza de porta precios y cambio de piezas dañadas o en mal estado",
   jueves: "Limpieza de góndolas y rotación de mercancía para mejorar orden y frescura",
@@ -16,10 +17,28 @@ const DAILY_MESSAGES: Record<string, string> = {
   sábado: "Organización de exhibiciones adicionales para reforzar la presentación comercial",
 };
 
+function normalizeDayKey(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/á/g, "a")
+    .replace(/é/g, "e")
+    .replace(/í/g, "i")
+    .replace(/ó/g, "o")
+    .replace(/ú/g, "u");
+}
+
 export default function TopBar() {
   const { profile: contextProfile } = useProfile();
   const [todayMessage, setTodayMessage] = useState("");
   const [currentDateTime, setCurrentDateTime] = useState("");
+
+  const profile = contextProfile || {
+    store_code: "",
+    store_name: "Tiendas D1",
+    role: "user",
+    display_name: "",
+    basic_tasks: [],
+  };
 
   useEffect(() => {
     const weekdayFormatter = new Intl.DateTimeFormat("es-CO", {
@@ -41,8 +60,30 @@ export default function TopBar() {
       const weekday = weekdayFormatter.format(now).toLowerCase();
       const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
       const priority = DAILY_MESSAGES[weekday] || "";
+      const normalizedDay = normalizeDayKey(weekday);
+      const aseoTask = Array.isArray(profile.basic_tasks)
+        ? profile.basic_tasks.find(
+            (task) =>
+              typeof task === "object" &&
+              task !== null &&
+              "id" in task &&
+              task.id === "aseo_semanal",
+          )
+        : null;
+      const aseoToday =
+        aseoTask &&
+        typeof aseoTask === "object" &&
+        "schedule" in aseoTask &&
+        aseoTask.schedule &&
+        typeof aseoTask.schedule === "object" &&
+        normalizedDay in aseoTask.schedule &&
+        typeof aseoTask.schedule[normalizedDay as keyof typeof aseoTask.schedule] === "string"
+          ? aseoTask.schedule[normalizedDay as keyof typeof aseoTask.schedule]
+          : "Sin asignar";
 
-      setTodayMessage(`Hoy es ${label} | Prioridad del día: ${priority}`);
+      setTodayMessage(
+        `Hoy es ${label} | Prioridad del día: ${priority} | Aseo de hoy: ${aseoToday}`,
+      );
       setCurrentDateTime(dateTimeFormatter.format(now));
     }
 
@@ -50,14 +91,8 @@ export default function TopBar() {
     const timer = window.setInterval(updateBogotaClock, 1000);
 
     return () => window.clearInterval(timer);
-  }, []);
+  }, [profile.basic_tasks]);
 
-  const profile = contextProfile || {
-    store_code: "",
-    store_name: "Tiendas D1",
-    role: "user",
-    display_name: "",
-  };
   const storeLine = profile.store_code
     ? `${profile.store_name} ${profile.store_code}`
     : profile.store_name;
@@ -120,8 +155,8 @@ export default function TopBar() {
 
       {todayMessage && (
         <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner lg:mx-auto lg:max-w-7xl lg:px-6 xl:px-8">
-          <div className="absolute left-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
-          <div className="absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
+          <div className="absolute bottom-0 left-0 top-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
+          <div className="absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
           <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
             <span className="mx-8">{todayMessage}</span>
             <span className="mx-8 opacity-50">|</span>

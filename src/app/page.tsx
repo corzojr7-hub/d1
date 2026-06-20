@@ -177,6 +177,7 @@ export default async function Home() {
   const currentDayName = dayNames[weekday];
 
   let todayAseoPerson = "Sin asignar";
+  let aseoSchedule: Record<string, string> = {};
   if (storeAdminProfile?.basic_tasks && Array.isArray(storeAdminProfile.basic_tasks)) {
     const aseoTask = storeAdminProfile.basic_tasks.find(
       (t: unknown) =>
@@ -197,6 +198,19 @@ export default async function Home() {
       if (typeof assignee === "string" && assignee.trim()) {
         todayAseoPerson = assignee;
       }
+    }
+    if (
+      aseoTask &&
+      typeof aseoTask === "object" &&
+      "schedule" in aseoTask &&
+      aseoTask.schedule &&
+      typeof aseoTask.schedule === "object"
+    ) {
+      aseoSchedule = Object.fromEntries(
+        Object.entries(aseoTask.schedule).filter(
+          ([, value]) => typeof value === "string" && value.trim(),
+        ),
+      );
     }
   }
 
@@ -250,6 +264,14 @@ export default async function Home() {
               </span>
               <span className="max-w-[190px] text-right text-[12px] font-semibold leading-snug">
                 {preShiftData.priority}
+              </span>
+            </div>
+            <div className="flex items-start justify-between gap-4">
+              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">
+                Aseo de Hoy
+              </span>
+              <span className="max-w-[190px] text-right text-[12px] font-semibold leading-snug">
+                {todayAseoPerson}
               </span>
             </div>
             {preShiftData.average_ticket_goal > 0 && (
@@ -558,6 +580,23 @@ export default async function Home() {
             </p>
           </div>
         </div>
+        {Object.keys(aseoSchedule).length > 0 && (
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {dayNames.map((day) => (
+              <div
+                key={day}
+                className="rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm"
+              >
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
+                  {day}
+                </p>
+                <p className="mt-1 text-[11px] font-bold leading-snug text-slate-700">
+                  {aseoSchedule[day] || "Sin asignar"}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {criticalFefoItems.length > 0 && (

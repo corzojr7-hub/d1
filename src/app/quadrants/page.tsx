@@ -16,7 +16,26 @@ export default async function QuadrantsPage() {
     .eq("store_code", profile.store_code)
     .order("created_at", { ascending: false });
 
-  const assistants = profile.assistants || [];
+  const assistants = Array.from(
+    new Set(
+      [
+        profile.supervisor_name || profile.display_name,
+        profile.second_in_charge,
+        profile.third_in_charge,
+        ...(profile.assistants || []).map((assistant) => assistant.name),
+      ]
+        .map((name) => name?.trim())
+        .filter(Boolean),
+    ),
+  ).map((name) => ({ name: name as string }));
 
-  return <ClientQuadrants assignments={assignments || []} assistants={assistants} />;
+  const areas = (profile.areas || []).map((area) => area.trim()).filter(Boolean);
+
+  return (
+    <ClientQuadrants
+      assignments={assignments || []}
+      assistants={assistants}
+      areas={areas}
+    />
+  );
 }
