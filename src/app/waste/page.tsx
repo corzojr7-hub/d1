@@ -118,6 +118,24 @@ export default async function WasteIndex({
 
       <div className="mt-6 space-y-3">
         <Link
+          href="/waste/new"
+          className="flex w-full items-center justify-between rounded-[24px] border border-emerald-200 bg-white p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98]"
+        >
+          <div className="flex items-center gap-3">
+            <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            </div>
+            <div className="text-left">
+              <h2 className="text-sm font-bold">Registrar Merma</h2>
+              <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                Crea una nueva merma desde este modulo
+              </p>
+            </div>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6"/></svg>
+        </Link>
+
+        <Link
           href="/waste/fefo"
           className="flex w-full items-center justify-between rounded-[24px] border border-red-200 bg-white p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98]"
         >
