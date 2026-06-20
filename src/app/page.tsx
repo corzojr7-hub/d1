@@ -206,10 +206,14 @@ export default async function Home() {
       aseoTask.schedule &&
       typeof aseoTask.schedule === "object"
     ) {
-      aseoSchedule = Object.fromEntries(
-        Object.entries(aseoTask.schedule).filter(
-          ([, value]) => typeof value === "string" && value.trim(),
-        ),
+      aseoSchedule = Object.entries(aseoTask.schedule).reduce<Record<string, string>>(
+        (acc, [key, value]) => {
+          if (typeof value === "string" && value.trim()) {
+            acc[key] = value;
+          }
+          return acc;
+        },
+        {},
       );
     }
   }

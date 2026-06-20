@@ -22,14 +22,14 @@ export default async function QuadrantsPage() {
         profile.supervisor_name || profile.display_name,
         profile.second_in_charge,
         profile.third_in_charge,
-        ...(profile.assistants || []).map((assistant) => assistant.name),
+        ...(profile.assistants || []).map((assistant: { name: string }) => assistant.name),
       ]
         .map((name) => name?.trim())
         .filter(Boolean),
     ),
   ).map((name) => ({ name: name as string }));
 
-  const areas = (profile.areas || []).map((area) => area.trim()).filter(Boolean);
+  const areas = (profile.areas || []).map((area: string) => area.trim()).filter(Boolean);
 
   return (
     <ClientQuadrants
