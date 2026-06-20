@@ -28,7 +28,7 @@ function parseMoneyInput(value: string) {
 function formatMoneyInput(value: string) {
   const digits = parseMoneyInput(value);
   if (!digits) return "";
-  return new Intl.NumberFormat("es-CO", {
+  return "$ " + new Intl.NumberFormat("es-CO", {
     maximumFractionDigits: 0,
   }).format(Number(digits));
 }
@@ -59,6 +59,7 @@ export default function SalesClient({
 
   const [currentDate, setCurrentDate] = useState(new Date());
   const [budgetInput, setBudgetInput] = useState("");
+  const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [saleDate, setSaleDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [saleAmount, setSaleAmount] = useState("");
   const [wasteAmount, setWasteAmount] = useState("");
@@ -213,6 +214,7 @@ export default function SalesClient({
         const res = await setMonthlyBudget(currentMonthYear, Number(parseMoneyInput(budgetInput)));
         if (!res.success) throw new Error(res.error);
         toast.success("Presupuesto guardado");
+        setIsEditingBudget(false);
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : "Error al guardar presupuesto");
       }
@@ -315,27 +317,55 @@ export default function SalesClient({
           <Target className="h-4 w-4" /> Presupuesto del Mes
         </h2>
         {isSupervisor ? (
-          <div className="mb-4 flex items-end gap-3">
-            <div className="flex-1">
-              <label className="text-[10px] font-bold uppercase text-slate-500">
-                Valor estimado ($)
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={budgetInput}
-                onChange={(e) => setBudgetInput(formatMoneyInput(e.target.value))}
-                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800"
-                placeholder="Ej: 150000000"
-              />
+          currentBudget > 0 && !isEditingBudget ? (
+            <div className="mb-4 flex items-end gap-3">
+              <div className="flex-1">
+                <label className="text-[10px] font-bold uppercase text-slate-500">
+                  Valor estimado ($)
+                </label>
+                <div className="mt-1 flex w-full items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-bold text-slate-800">
+                  <span>{formatCurrency(currentBudget)}</span>
+                  <span className="text-[10px] text-emerald-600">✓ Registrado</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsEditingBudget(true)}
+                className="h-10 rounded-xl bg-emerald-600 px-4 text-sm font-bold text-white transition-transform active:scale-95"
+              >
+                Editar
+              </button>
             </div>
-            <button
-              onClick={handleSaveBudget}
-              className="h-10 rounded-xl bg-[#0a3875] px-4 text-sm font-bold text-white transition-transform active:scale-95"
-            >
-              <Save className="h-4 w-4" />
-            </button>
-          </div>
+          ) : (
+            <div className="mb-4 flex items-end gap-3">
+              <div className="flex-1">
+                <label className="text-[10px] font-bold uppercase text-slate-500">
+                  Valor estimado ($)
+                </label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={budgetInput}
+                  onChange={(e) => setBudgetInput(formatMoneyInput(e.target.value))}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800"
+                  placeholder="Ej: $ 150.000.000"
+                />
+              </div>
+              <button
+                onClick={handleSaveBudget}
+                className="h-10 rounded-xl bg-[#0a3875] px-4 text-sm font-bold text-white transition-transform active:scale-95"
+              >
+                <Save className="h-4 w-4" />
+              </button>
+              {currentBudget > 0 && (
+                <button
+                  onClick={() => setIsEditingBudget(false)}
+                  className="h-10 rounded-xl bg-slate-200 px-4 text-sm font-bold text-slate-700 transition-transform active:scale-95"
+                >
+                  Cancelar
+                </button>
+              )}
+            </div>
+          )
         ) : (
           <div className="mb-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
             <p className="text-[10px] font-bold uppercase text-slate-400">Presupuesto actual</p>
