@@ -149,7 +149,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
 
   if (!data.length || chartData.every((point) => point.amount === 0)) {
     return (
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/40 p-5 shadow-sm">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 rounded-2xl bg-red-50 p-2 text-[#e51d2e]">
             <TrendingUp className="h-4 w-4" />
@@ -165,14 +165,14 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
   }
 
   return (
-    <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+    <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/40 p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">Ventas</p>
           <h3 className="mt-1 text-lg font-black text-slate-900">Comportamiento de ventas</h3>
           <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
         </div>
-        <div className="inline-flex self-start rounded-2xl bg-slate-50 p-1">
+        <div className="inline-flex self-start rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
           {periodOptions.map((option) => {
             const active = period === option.value;
             return (
@@ -192,11 +192,11 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
       </div>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-red-50/70 p-3">
+        <div className="rounded-2xl border border-red-100 bg-red-50/80 p-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-red-400">Total del periodo</p>
           <p className="mt-1 text-sm font-black text-slate-900">{currency.format(total)}</p>
         </div>
-        <div className="rounded-2xl bg-slate-50 p-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-3">
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Promedio</p>
           <p className="mt-1 text-sm font-black text-slate-900">{currency.format(average)}</p>
         </div>

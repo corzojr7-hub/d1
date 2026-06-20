@@ -34,7 +34,7 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/40 p-8 text-center shadow-sm">
         <p className="text-sm text-slate-500">No hay datos de impulso registrados aún.</p>
       </div>
     );
@@ -63,8 +63,11 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
   return (
     <div className="space-y-6">
       {/* Trend Line Chart */}
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/40 p-5 shadow-sm">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-600">
+          Impulso
+        </p>
+        <h3 className="mb-4 mt-1 text-sm font-black uppercase tracking-wide text-slate-800">
           Evolución de Impulso Diario
         </h3>
         <div className="h-64 w-full">
@@ -87,8 +90,11 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
       </div>
 
       {/* Assistant Bar Chart */}
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+          Equipo
+        </p>
+        <h3 className="mb-4 mt-1 text-sm font-black uppercase tracking-wide text-slate-800">
           Impulso por Colaborador
         </h3>
         <div className="h-64 w-full">

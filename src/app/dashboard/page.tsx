@@ -521,22 +521,27 @@ export default async function DashboardPage(props: {
 
         <section>
           <div className="mb-4">
-            <h2 className="text-lg font-bold text-slate-800">Ventas</h2>
-            <p className="mt-1 text-sm text-slate-500">Comportamiento por dia, semana y mes.</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Ventas</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Comportamiento comercial</h2>
+            <p className="mt-1 text-sm text-slate-500">Lectura por dia, semana y mes con el mismo corte del tablero.</p>
           </div>
           <SalesTrendsChart data={dailySales || []} />
         </section>
 
         <section>
-          <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-800">Impulso</h2>
+          <div className="mb-4">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Impulso</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Movimiento por colaborador</h2>
+            <p className="mt-1 text-sm text-slate-500">Evolucion diaria y participacion del equipo en piso.</p>
           </div>
           <ImpulseCharts data={impulseRecords || []} />
         </section>
 
         <section>
-          <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-800">Merma (Prevencion)</h2>
+          <div className="mb-4">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Merma</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Prevencion y trazabilidad</h2>
+            <p className="mt-1 text-sm text-slate-500">Productos criticos, motivos mas frecuentes y registradores con mas casos.</p>
           </div>
           <DashboardCharts topProducts={topProducts} reasonData={reasonData} userWasteData={userWasteData} />
         </section>

@@ -44,8 +44,11 @@ export default function DashboardCharts({
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+          Top de merma
+        </p>
+        <h3 className="mb-4 mt-1 text-sm font-black uppercase tracking-wide text-slate-800">
           Top 5 Merma (Unidades)
         </h3>
         <div className="h-64 w-full">
@@ -80,8 +83,11 @@ export default function DashboardCharts({
         </div>
       </div>
 
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/40 p-5 shadow-sm">
+        <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-amber-600">
+          Motivos
+        </p>
+        <h3 className="mb-4 mt-1 text-sm font-black uppercase tracking-wide text-slate-800">
           Distribución por Motivo
         </h3>
         <div className="h-64 w-full">
@@ -115,8 +121,11 @@ export default function DashboardCharts({
       </div>
 
       {userWasteData && userWasteData.length > 0 && (
-        <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-          <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-violet-50/40 p-5 shadow-sm">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-violet-600">
+            Equipo
+          </p>
+          <h3 className="mb-4 mt-1 text-sm font-black uppercase tracking-wide text-slate-800">
             Merma por Registrador
           </h3>
           <div className="h-64 w-full">
