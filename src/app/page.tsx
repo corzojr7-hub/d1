@@ -14,6 +14,23 @@ export const metadata: Metadata = {
   title: "Inicio - Sistema de Control Operativo de Tienda",
 };
 
+function getBogotaCalendar(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value ?? "0");
+  const month = Number(parts.find((part) => part.type === "month")?.value ?? "0");
+  const day = Number(parts.find((part) => part.type === "day")?.value ?? "0");
+  const dateString = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+  const bogotaMidnight = new Date(`${dateString}T00:00:00-05:00`);
+
+  return { year, month, day, dateString, bogotaMidnight };
+}
+
 export default async function Home() {
   const supabase = await createClient();
   const { profile } = await requireAuth();
@@ -42,20 +59,16 @@ export default async function Home() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  const today = new Date();
-  const currentMonthYear = `${today.getFullYear()}-${String(
-    today.getMonth() + 1,
-  ).padStart(2, "0")}`;
+  const { year, month, day: currentDay, dateString: bogotaToday, bogotaMidnight } =
+    getBogotaCalendar();
+  const currentMonthYear = `${year}-${String(month).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
-  const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-  const nextMonthStart = `${nextMonthDate.getFullYear()}-${String(
-    nextMonthDate.getMonth() + 1,
-  ).padStart(2, "0")}-01`;
-  const day = today.getDay();
-  const diff = today.getDate() - day + (day === 0 ? -6 : 1);
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(diff);
-  startOfWeek.setHours(0, 0, 0, 0);
+  const nextMonthYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextMonthStart = `${nextMonthYear}-${String(nextMonth).padStart(2, "0")}-01`;
+  const weekday = bogotaMidnight.getUTCDay();
+  const startOfWeek = new Date(bogotaMidnight);
+  startOfWeek.setUTCDate(startOfWeek.getUTCDate() - ((weekday + 6) % 7));
   const startOfWeekIso = startOfWeek.toISOString();
 
   const [
@@ -105,7 +118,7 @@ export default async function Home() {
       .from("pre_shifts")
       .select("*")
       .eq("store_code", storeCode)
-      .eq("date", new Date().toISOString().split("T")[0])
+      .eq("date", bogotaToday)
       .order("created_at", { ascending: false })
       .limit(1)
       .single(),
@@ -127,12 +140,7 @@ export default async function Home() {
   const accumulatedSales =
     monthlySales?.reduce((sum, sale) => sum + Number(sale.amount || 0), 0) || 0;
 
-  const daysInMonth = new Date(
-    today.getFullYear(),
-    today.getMonth() + 1,
-    0,
-  ).getDate();
-  const currentDay = today.getDate();
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const remainingDays = Math.max(1, daysInMonth - currentDay);
   const dailyGoal = Math.max(
     0,
@@ -140,9 +148,8 @@ export default async function Home() {
   );
 
   const calculateDaysLeft = (expDateStr: string) => {
-    const expDate = new Date(expDateStr);
-    expDate.setHours(0, 0, 0, 0);
-    const diffTime = expDate.getTime() - today.getTime();
+    const expDate = new Date(`${expDateStr}T00:00:00-05:00`);
+    const diffTime = expDate.getTime() - bogotaMidnight.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
 
@@ -167,7 +174,7 @@ export default async function Home() {
     "viernes",
     "sabado",
   ];
-  const currentDayName = dayNames[today.getDay()];
+  const currentDayName = dayNames[weekday];
 
   let todayAseoPerson = "Sin asignar";
   if (storeAdminProfile?.basic_tasks && Array.isArray(storeAdminProfile.basic_tasks)) {

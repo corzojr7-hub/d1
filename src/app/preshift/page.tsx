@@ -3,8 +3,23 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export const metadata = {
-  title: "Pre-Turno — SCO",
+  title: "Pre-Turno â€” SCO",
 };
+
+function getBogotaCalendar(now = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(now);
+
+  const year = Number(parts.find((part) => part.type === "year")?.value ?? "0");
+  const month = Number(parts.find((part) => part.type === "month")?.value ?? "0");
+  const day = Number(parts.find((part) => part.type === "day")?.value ?? "0");
+
+  return { year, month, day };
+}
 
 export default async function PreShiftPage() {
   const { profile } = await requireAuth();
@@ -14,15 +29,12 @@ export default async function PreShiftPage() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const today = new Date();
-  const currentMonthYear = `${today.getFullYear()}-${String(
-    today.getMonth() + 1,
-  ).padStart(2, "0")}`;
+  const { year, month, day } = getBogotaCalendar();
+  const currentMonthYear = `${year}-${String(month).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
-  const nextMonthDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
-  const nextMonthStart = `${nextMonthDate.getFullYear()}-${String(
-    nextMonthDate.getMonth() + 1,
-  ).padStart(2, "0")}-01`;
+  const nextMonthYear = month === 12 ? year + 1 : year;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const nextMonthStart = `${nextMonthYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
   const [{ data: currentBudgetRow }, { data: monthlySales }] = await Promise.all([
     adminClient
@@ -43,9 +55,8 @@ export default async function PreShiftPage() {
   const accumulatedSales =
     monthlySales?.reduce((sum, sale) => sum + Number(sale.amount || 0), 0) || 0;
 
-  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
-  const currentDay = today.getDate();
-  const remainingDays = Math.max(1, daysInMonth - currentDay);
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const remainingDays = Math.max(1, daysInMonth - day);
   const dailyGoal = Math.max(0, Math.round((monthlyBudget - accumulatedSales) / remainingDays));
 
   return <ClientPreShift defaultDailyGoal={dailyGoal} />;

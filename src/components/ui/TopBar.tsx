@@ -6,25 +6,51 @@ import { useEffect, useState } from "react";
 import { logout } from "@/app/login/actions";
 import { useProfile } from "./ProfileContext";
 
+const DAILY_MESSAGES: Record<string, string> = {
+  domingo: "Revisión de productos abandonados, reintegros y validación general de precios",
+  lunes: "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
+  martes: "Limpieza de polvo y revisión de fechas para fortalecer el control FEFO",
+  miércoles: "Limpieza de porta precios y cambio de piezas dañadas o en mal estado",
+  jueves: "Limpieza de góndolas y rotación de mercancía para mejorar orden y frescura",
+  viernes: "Restregado de piso y retiro de chicles para cuidar la imagen de la tienda",
+  sábado: "Organización de exhibiciones adicionales para reforzar la presentación comercial",
+};
+
 export default function TopBar() {
   const { profile: contextProfile } = useProfile();
   const [todayMessage, setTodayMessage] = useState("");
+  const [currentDateTime, setCurrentDateTime] = useState("");
 
   useEffect(() => {
-    const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
-    const alertas = [
-      "Revisión de productos abandonados, reintegros y validación general de precios",
-      "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
-      "Limpieza de polvo y revisión de fechas para fortalecer el control FEFO",
-      "Limpieza de porta precios y cambio de piezas dañadas o en mal estado",
-      "Limpieza de góndolas y rotación de mercancía para mejorar orden y frescura",
-      "Restregado de piso y retiro de chicles para cuidar la imagen de la tienda",
-      "Organización de exhibiciones adicionales para reforzar la presentación comercial",
-    ];
+    const weekdayFormatter = new Intl.DateTimeFormat("es-CO", {
+      timeZone: "America/Bogota",
+      weekday: "long",
+    });
 
-    const today = new Date().getDay();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTodayMessage(`Hoy es ${dias[today]} | Prioridad del día: ${alertas[today]}`);
+    const dateTimeFormatter = new Intl.DateTimeFormat("es-CO", {
+      timeZone: "America/Bogota",
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+    function updateBogotaClock() {
+      const now = new Date();
+      const weekday = weekdayFormatter.format(now).toLowerCase();
+      const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
+      const priority = DAILY_MESSAGES[weekday] || "";
+
+      setTodayMessage(`Hoy es ${label} | Prioridad del día: ${priority}`);
+      setCurrentDateTime(`Bogotá | ${dateTimeFormatter.format(now)}`);
+    }
+
+    updateBogotaClock();
+    const timer = window.setInterval(updateBogotaClock, 1000);
+
+    return () => window.clearInterval(timer);
   }, []);
 
   const profile = contextProfile || {
@@ -53,6 +79,9 @@ export default function TopBar() {
             </span>
             <span className="max-w-[170px] truncate text-[11px] font-medium text-white/88 sm:max-w-none">
               Control de Operaciones - {storeLine}
+            </span>
+            <span className="max-w-[220px] truncate text-[10px] font-medium text-white/72 sm:max-w-none">
+              {currentDateTime || "Bogotá"}
             </span>
           </div>
         </div>
