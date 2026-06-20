@@ -21,6 +21,18 @@ import { TrendingUp, Target, Save, Calendar, AlertCircle } from "lucide-react";
 import { useProfile } from "@/components/ui/ProfileContext";
 import { toast } from "sonner";
 
+function parseMoneyInput(value: string) {
+  return value.replace(/[^\d]/g, "");
+}
+
+function formatMoneyInput(value: string) {
+  const digits = parseMoneyInput(value);
+  if (!digits) return "";
+  return new Intl.NumberFormat("es-CO", {
+    maximumFractionDigits: 0,
+  }).format(Number(digits));
+}
+
 export default function SalesClient({
   initialBudgets,
   initialSales,
@@ -63,7 +75,7 @@ export default function SalesClient({
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setBudgetInput(currentBudget > 0 ? currentBudget.toString() : "");
+      setBudgetInput(currentBudget > 0 ? formatMoneyInput(String(currentBudget)) : "");
     }, 0);
     return () => clearTimeout(timer);
   }, [currentBudget]);
@@ -144,7 +156,7 @@ export default function SalesClient({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (existingDailySale) {
-        setSaleAmount(existingDailySale.amount.toString());
+        setSaleAmount(formatMoneyInput(String(existingDailySale.amount)));
       } else {
         setSaleAmount("");
       }
@@ -198,7 +210,7 @@ export default function SalesClient({
     if (!budgetInput) return;
     startTransition(async () => {
       try {
-        const res = await setMonthlyBudget(currentMonthYear, Number(budgetInput));
+        const res = await setMonthlyBudget(currentMonthYear, Number(parseMoneyInput(budgetInput)));
         if (!res.success) throw new Error(res.error);
         toast.success("Presupuesto guardado");
       } catch (error: unknown) {
@@ -211,7 +223,7 @@ export default function SalesClient({
     if (!saleDate || !saleAmount) return;
     startTransition(async () => {
       try {
-        const res = await setDailySale(saleDate, Number(saleAmount));
+        const res = await setDailySale(saleDate, Number(parseMoneyInput(saleAmount)));
         if (!res.success) throw new Error(res.error);
         setSaleAmount("");
         toast.success(res.mode === "updated" ? "Venta diaria actualizada" : "Venta diaria guardada");
@@ -225,7 +237,7 @@ export default function SalesClient({
     if (!amountStr) return;
     setIsSavingWaste(true);
     const endStr = format(weekEndIso, "yyyy-MM-dd");
-    await setWeeklyWaste(weekStart, endStr, Number(amountStr));
+    await setWeeklyWaste(weekStart, endStr, Number(parseMoneyInput(amountStr)));
     setIsSavingWaste(false);
     setWasteAmount("");
     setWasteWeek("");
@@ -306,10 +318,10 @@ export default function SalesClient({
                 Valor estimado ($)
               </label>
               <input
-                type="number"
-                inputMode="decimal"
+                type="text"
+                inputMode="numeric"
                 value={budgetInput}
-                onChange={(e) => setBudgetInput(e.target.value)}
+                onChange={(e) => setBudgetInput(formatMoneyInput(e.target.value))}
                 className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800"
                 placeholder="Ej: 150000000"
               />
@@ -470,10 +482,10 @@ export default function SalesClient({
               <label className="text-[10px] font-bold uppercase text-slate-500">Venta ($)</label>
               <div className="flex gap-2">
                 <input
-                  type="number"
-                  inputMode="decimal"
+                  type="text"
+                  inputMode="numeric"
                   value={saleAmount}
-                  onChange={(e) => setSaleAmount(e.target.value)}
+                  onChange={(e) => setSaleAmount(formatMoneyInput(e.target.value))}
                   placeholder="Ej: 5000000"
                   disabled={Boolean(existingDailySale && !canEditSale)}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm font-bold text-slate-800 transition-colors ${
@@ -576,11 +588,11 @@ export default function SalesClient({
                 {isEditingWaste && (
                   <div className="mb-3 flex gap-2 rounded-xl border border-blue-100 bg-blue-50 p-2">
                     <input
-                      type="number"
-                      inputMode="decimal"
+                      type="text"
+                      inputMode="numeric"
                       placeholder="Total Merma ($)"
                       value={wasteAmount}
-                      onChange={(e) => setWasteAmount(e.target.value)}
+                      onChange={(e) => setWasteAmount(formatMoneyInput(e.target.value))}
                       className="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-bold"
                     />
                     <button
