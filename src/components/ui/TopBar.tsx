@@ -13,22 +13,26 @@ export default function TopBar() {
   useEffect(() => {
     const dias = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
     const alertas = [
-      "Atención al cliente y revisión de abandonados",
-      "Día de limpieza de polvo y fechas (FEFO)",
-      "Día de actualizar precios y limpiar acrílicos",
-      "Día de limpieza de parales y rotación interna",
-      "Día de raspar piso, chicles y revisar exhibiciones",
-      "Día de facing milimétrico y remover basuras ocultas",
-      "Mantenimiento visual ligero de fin de semana"
+      "Revisión de productos abandonados, reintegros y validación general de precios",
+      "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
+      "Limpieza de polvo y revisión de fechas para fortalecer el control FEFO",
+      "Limpieza de porta precios y cambio de piezas dañadas o en mal estado",
+      "Limpieza de góndolas y rotación de mercancía para mejorar orden y frescura",
+      "Restregado de piso y retiro de chicles para cuidar la imagen de la tienda",
+      "Organización de exhibiciones adicionales para reforzar la presentación comercial",
     ];
 
     const today = new Date().getDay();
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTodayMessage(`✨ Hoy es ${dias[today]} ✨ Enfoque de pasillo: ${alertas[today]}`);
+    setTodayMessage(`Hoy es ${dias[today]} | Prioridad del día: ${alertas[today]}`);
   }, []);
 
-  // Fallback default profile si no carga
-  const profile = contextProfile || { store_code: "", store_name: "Tiendas D1", role: "user", display_name: "" };
+  const profile = contextProfile || {
+    store_code: "",
+    store_name: "Tiendas D1",
+    role: "user",
+    display_name: "",
+  };
   const storeLine = profile.store_code
     ? `${profile.store_name} ${profile.store_code}`
     : profile.store_name;
@@ -37,7 +41,10 @@ export default function TopBar() {
     <header className="relative z-40 border-b border-black/5 bg-[#e51d2e] shadow-[0_8px_24px_rgba(136,19,29,0.18)]">
       <div className="mx-auto flex items-center justify-between px-4 py-3.5 lg:max-w-7xl lg:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-3">
-          <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-extrabold text-[#e51d2e] shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105 active:scale-95">
+          <Link
+            href="/"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-extrabold text-[#e51d2e] shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105 active:scale-95"
+          >
             D1
           </Link>
           <div className="flex min-w-0 flex-col">
@@ -89,9 +96,9 @@ export default function TopBar() {
           <div className="absolute right-0 top-0 bottom-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
           <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
             <span className="mx-8">{todayMessage}</span>
-            <span className="mx-8 opacity-50">•</span>
+            <span className="mx-8 opacity-50">|</span>
             <span className="mx-8">{todayMessage}</span>
-            <span className="mx-8 opacity-50">•</span>
+            <span className="mx-8 opacity-50">|</span>
             <span className="mx-8">{todayMessage}</span>
           </div>
         </div>
