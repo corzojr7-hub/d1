@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { z } from "zod";
+import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -58,7 +59,7 @@ export async function rewriteFeedbackWhatsappMessage(input: {
   rawMessage: string;
   tone: "suave" | "directo" | "formal";
 }) {
-  await requireAuth();
+  const { profile } = await requireAuth();
 
   if (!apiKey) {
     throw new Error("La IA no esta configurada en este momento.");
@@ -117,6 +118,15 @@ Devuelve solo JSON valido con esta forma:
 
   const result = await model.generateContent(prompt);
   const text = result.response.text();
+
+  await logAiUsage({
+    adminId: profile.id,
+    storeCode: profile.store_code,
+    actionType: AI_ACTIONS.feedback,
+    model: "gemini-3.5-flash",
+    usage: result.response.usageMetadata,
+  });
+
   const jsonMatch = text.match(/\{[\s\S]*\}/);
 
   if (!jsonMatch) {

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
-import { createClient } from "@/lib/supabase/server";
 import { requireSupervisor } from "@/lib/supabase/require-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
@@ -10,6 +10,25 @@ import path from "path";
 // Initialize Gemini
 const apiKey = process.env.GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(apiKey);
+
+type TeamMemberPayload = {
+  nombre: string;
+  rol: string;
+  contrato: string;
+};
+
+type AssistantProfile = {
+  name?: string;
+  role?: string;
+};
+
+type ScheduleRow = {
+  assistant: string;
+};
+
+type ScheduleResponse = {
+  schedule?: ScheduleRow[];
+};
 
 export async function POST(request: Request) {
   try {
@@ -36,7 +55,7 @@ export async function POST(request: Request) {
 
     // Build the payload team
     const realNames: Record<string, string> = {};
-    const team: any[] = [];
+    const team: TeamMemberPayload[] = [];
     
     let operatorIndex = 1;
     const addMember = (realName: string, role: string, contract: string) => {
@@ -49,8 +68,12 @@ export async function POST(request: Request) {
     if (profile.second_in_charge) addMember(profile.second_in_charge, "Segunda", "Full-Time");
     if (profile.third_in_charge) addMember(profile.third_in_charge, "Tercero", "Full-Time");
     
-    (profile.assistants || []).forEach((a: any) => {
-      addMember(a.name, "Asistente", a.role === "Part-Time" ? "Part-Time" : "Full-Time");
+    (profile.assistants as AssistantProfile[] | null | undefined || []).forEach((assistant) => {
+      addMember(
+        assistant.name || "Sin nombre",
+        "Asistente",
+        assistant.role === "Part-Time" ? "Part-Time" : "Full-Time",
+      );
     });
 
     // Read the master prompt
@@ -58,7 +81,7 @@ export async function POST(request: Request) {
     let masterPrompt = "";
     try {
       masterPrompt = fs.readFileSync(promptPath, "utf8");
-    } catch (e) {
+    } catch {
       // Fallback if the path is wrong
       masterPrompt = `
       Eres un experto Planner de recursos humanos.
@@ -113,11 +136,19 @@ export async function POST(request: Request) {
       model: "gemini-3.5-flash",
       generationConfig: {
         responseMimeType: "application/json",
-        responseSchema: responseSchema as any
-      }
+        responseSchema: responseSchema as never,
+      },
     });
     const result = await model.generateContent(finalPrompt);
     const responseText = result.response.text();
+
+    await logAiUsage({
+      adminId: profile.id,
+      storeCode: profile.store_code,
+      actionType: AI_ACTIONS.schedule,
+      model: "gemini-3.5-flash",
+      usage: result.response.usageMetadata,
+    });
 
     // Parse JSON
     const jsonMatch = responseText.match(/\{[\s\S]*\}/);
@@ -125,11 +156,11 @@ export async function POST(request: Request) {
       throw new Error("El modelo no devolvió un JSON válido.");
     }
 
-    const scheduleData = JSON.parse(jsonMatch[0]);
+    const scheduleData = JSON.parse(jsonMatch[0]) as ScheduleResponse;
 
     // Remapear nombres reales
     if (scheduleData.schedule) {
-      scheduleData.schedule.forEach((row: any) => {
+      scheduleData.schedule.forEach((row) => {
         if (realNames[row.assistant]) {
           row.assistant = realNames[row.assistant];
         }
@@ -152,8 +183,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, schedule: inserted });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Schedule Generate Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Error generando el horario." },
+      { status: 500 },
+    );
   }
 }

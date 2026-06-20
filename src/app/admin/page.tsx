@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { startOfMonth, format } from "date-fns";
+import { AI_ACTIONS } from "@/lib/ai/usage";
 import AdminClientPage from "./AdminClientPage";
 
 export const dynamic = "force-dynamic";
@@ -44,12 +45,32 @@ export default async function AdminPage() {
   const [
     { data: globalSales },
     { data: globalBudgets },
-    { data: globalWaste }
+    { data: globalWaste },
+    { data: aiUsageLogsRaw },
   ] = await Promise.all([
     adminSupabase.from("daily_sales").select("*").gte("date", startMonthStr),
     adminSupabase.from("sales_budgets").select("*").eq("month_year", monthYearStr),
-    adminSupabase.from("weekly_waste").select("*").gte("week_start", startMonthStr) // Aproximado para este mes
+    adminSupabase.from("weekly_waste").select("*").gte("week_start", startMonthStr), // Aproximado para este mes
+    adminSupabase
+      .from("admin_audit_logs")
+      .select("id, action_type, store_code, created_at, details")
+      .gte("created_at", `${startMonthStr}T00:00:00`)
+      .in("action_type", [AI_ACTIONS.schedule, AI_ACTIONS.feedback]),
   ]);
+
+  const aiUsageLogs = (aiUsageLogsRaw || []).map((log) => ({
+    id: String(log.id),
+    action_type: String(log.action_type),
+    store_code: String(log.store_code || ""),
+    created_at: String(log.created_at || ""),
+    details: (log.details || {}) as {
+      model?: string;
+      prompt_tokens?: number;
+      output_tokens?: number;
+      total_tokens?: number;
+      estimated_cost_usd?: number;
+    },
+  }));
 
   return (
     <AdminClientPage 
@@ -57,6 +78,7 @@ export default async function AdminPage() {
       globalSales={globalSales || []}
       globalBudgets={globalBudgets || []}
       globalWaste={globalWaste || []}
+      aiUsageLogs={aiUsageLogs}
     />
   );
 }

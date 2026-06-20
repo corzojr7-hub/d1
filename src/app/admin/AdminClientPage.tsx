@@ -7,17 +7,34 @@ import { useRouter } from "next/navigation";
 import { updateStoreInfo } from "./actions";
 import { toast } from "sonner";
 import type { Profile, DailySale, SalesBudget, WeeklyWaste } from "@/lib/domain/types";
+import { AI_ACTIONS } from "@/lib/ai/usage";
+
+type AiUsageLog = {
+  id: string;
+  action_type: string;
+  store_code: string;
+  created_at: string;
+  details: {
+    model?: string;
+    prompt_tokens?: number;
+    output_tokens?: number;
+    total_tokens?: number;
+    estimated_cost_usd?: number;
+  };
+};
 
 export default function AdminClientPage({ 
   stores, 
   globalSales, 
   globalBudgets, 
-  globalWaste 
+  globalWaste,
+  aiUsageLogs,
 }: { 
   stores: Profile[];
   globalSales: DailySale[];
   globalBudgets: SalesBudget[];
   globalWaste: WeeklyWaste[];
+  aiUsageLogs: AiUsageLog[];
 }) {
   const [selectedStore, setSelectedStore] = useState<Profile | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -29,18 +46,10 @@ export default function AdminClientPage({
 
   // Calcular KPIs Globales
   const kpiData = useMemo(() => {
-    let totalBudget = 0;
-    let totalSales = 0;
-    let totalWaste = 0;
-    
     const storeStats = realStores.map(store => {
       const sBudget = globalBudgets.find(b => b.store_code === store.store_code)?.budget_amount || 0;
       const sSales = globalSales.filter(s => s.store_code === store.store_code).reduce((sum, s) => sum + Number(s.amount), 0);
       const sWaste = globalWaste.filter(w => w.store_code === store.store_code).reduce((sum, w) => sum + Number(w.waste_amount), 0);
-      
-      totalBudget += sBudget;
-      totalSales += sSales;
-      totalWaste += sWaste;
 
       return {
         store,
@@ -51,6 +60,10 @@ export default function AdminClientPage({
         wastePercent: sSales > 0 ? (sWaste / sSales) * 100 : 0
       };
     });
+
+    const totalBudget = storeStats.reduce((sum, stat) => sum + stat.budget, 0);
+    const totalSales = storeStats.reduce((sum, stat) => sum + stat.sales, 0);
+    const totalWaste = storeStats.reduce((sum, stat) => sum + stat.waste, 0);
 
     const sortedByProgress = [...storeStats].sort((a, b) => b.progress - a.progress);
     const sortedByWaste = [...storeStats].sort((a, b) => b.wastePercent - a.wastePercent);
@@ -67,6 +80,33 @@ export default function AdminClientPage({
   }, [realStores, globalSales, globalBudgets, globalWaste]);
 
   const formatCurrency = (val: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(val);
+  const formatUsd = (val: number) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4,
+    }).format(val);
+
+  const aiUsageSummary = useMemo(() => {
+    const scheduleLogs = aiUsageLogs.filter((log) => log.action_type === AI_ACTIONS.schedule);
+    const feedbackLogs = aiUsageLogs.filter((log) => log.action_type === AI_ACTIONS.feedback);
+    const totalCostUsd = aiUsageLogs.reduce(
+      (sum, log) => sum + Number(log.details?.estimated_cost_usd || 0),
+      0,
+    );
+    const totalTokens = aiUsageLogs.reduce(
+      (sum, log) => sum + Number(log.details?.total_tokens || 0),
+      0,
+    );
+
+    return {
+      totalCostUsd,
+      totalTokens,
+      scheduleCount: scheduleLogs.length,
+      feedbackCount: feedbackLogs.length,
+    };
+  }, [aiUsageLogs]);
 
   return (
     <div className="mx-auto min-h-screen max-w-4xl bg-slate-50 pb-20">
@@ -137,6 +177,43 @@ export default function AdminClientPage({
                     {kpiData.globalWastePercent.toFixed(2)}% s/Ventas
                   </span>
                 </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Costo IA Estimado Mes
+                </p>
+                <h3 className="text-2xl font-black text-violet-700">
+                  {formatUsd(aiUsageSummary.totalCostUsd)}
+                </h3>
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Basado en tokens de Gemini 3.5 Flash.
+                </p>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-bold text-violet-700">
+                    Horarios: {aiUsageSummary.scheduleCount}
+                  </span>
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700">
+                    Correcciones IA: {aiUsageSummary.feedbackCount}
+                  </span>
+                </div>
+              </div>
+
+              <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-100">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                  Consumo IA Mes
+                </p>
+                <h3 className="text-2xl font-black text-slate-900">
+                  {new Intl.NumberFormat("es-CO").format(aiUsageSummary.totalTokens)}
+                </h3>
+                <p className="mt-2 text-xs font-medium text-slate-500">
+                  Tokens totales acumulados en horarios y cualificacion de mensajes.
+                </p>
+                <p className="mt-4 text-[11px] font-semibold text-slate-400">
+                  Vista operativa estimada, no factura oficial del proveedor.
+                </p>
               </div>
             </div>
 
