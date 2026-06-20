@@ -19,6 +19,7 @@ const POS_EDIT_ROLES: ProfileRole[] = ["supervisor", "admin"];
 
 const savePosMetricSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "La fecha no es valida."),
+  assistant: z.string().min(1, "Debes seleccionar un colaborador."),
   productivity: z.number().min(0, "Articulos por minuto no puede ser negativo."),
   scan: z.number().min(0, "Escaneo no puede ser negativo."),
 });
@@ -31,10 +32,16 @@ function parseMetric(rawValue: FormDataEntryValue | null) {
   return Number.isFinite(value) ? value : Number.NaN;
 }
 
-function redirectWithStatus(status: "success" | "error", date: string, message: string) {
+function redirectWithStatus(
+  status: "success" | "error",
+  date: string,
+  assistant: string,
+  message: string,
+) {
   const params = new URLSearchParams({
     posStatus: status,
     posDate: date,
+    posAssistant: assistant,
     posMessage: message,
   });
   redirect(`/dashboard?${params.toString()}`);
@@ -42,6 +49,7 @@ function redirectWithStatus(status: "success" | "error", date: string, message: 
 
 export async function savePosMetric(formData: FormData) {
   const date = String(formData.get("date") ?? "");
+  const assistant = String(formData.get("assistant") ?? "");
 
   try {
     const { profile, user } = await requireAuth();
@@ -56,6 +64,7 @@ export async function savePosMetric(formData: FormData) {
 
     const validated = savePosMetricSchema.parse({
       date,
+      assistant,
       productivity: parseMetric(formData.get("productivity")),
       scan: parseMetric(formData.get("scan")),
     });
@@ -66,6 +75,7 @@ export async function savePosMetric(formData: FormData) {
       .select("id, created_by, assistant, voids")
       .eq("store_code", profile.store_code)
       .eq("date", validated.date)
+      .eq("assistant", validated.assistant)
       .order("created_at", { ascending: false })
       .limit(1);
 
@@ -79,18 +89,11 @@ export async function savePosMetric(formData: FormData) {
       throw new Error("Este dia ya fue cargado. Solo el supervisor puede editarlo.");
     }
 
-    const assistantName =
-      existingRow?.assistant ||
-      profile.display_name ||
-      profile.full_name ||
-      profile.email ||
-      "Equipo tienda";
-
     if (existingRow) {
       const { error } = await adminClient
         .from("pos_metrics")
         .update({
-          assistant: assistantName,
+          assistant: validated.assistant,
           productivity: validated.productivity,
           cancellations: validated.scan,
           voids: existingRow.voids || 0,
@@ -106,7 +109,7 @@ export async function savePosMetric(formData: FormData) {
         created_by: user.id,
         store_code: profile.store_code,
         date: validated.date,
-        assistant: assistantName,
+        assistant: validated.assistant,
         productivity: validated.productivity,
         cancellations: validated.scan,
         voids: 0,
@@ -118,12 +121,13 @@ export async function savePosMetric(formData: FormData) {
     }
 
     revalidatePath("/dashboard");
-    redirectWithStatus("success", validated.date, "Productividad POS guardada.");
+    redirectWithStatus("success", validated.date, validated.assistant, "Productividad POS guardada.");
   } catch (error: unknown) {
     console.error("savePosMetric error:", error);
     redirectWithStatus(
       "error",
       date || new Date().toISOString().slice(0, 10),
+      assistant,
       error instanceof Error ? error.message : "No se pudo guardar la productividad POS.",
     );
   }

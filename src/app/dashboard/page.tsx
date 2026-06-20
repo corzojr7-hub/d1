@@ -10,6 +10,7 @@ import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
 import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { savePosMetric } from "./actions";
+import type { StoreAssistant } from "@/lib/domain/types";
 
 type WasteRecordForDashboard = {
   qty: number;
@@ -84,6 +85,25 @@ function formatDayLabel(date: string) {
   }).format(new Date(`${date}T12:00:00`));
 }
 
+function getAssistantOptions(profile: {
+  display_name?: string;
+  supervisor_name?: string;
+  second_in_charge?: string;
+  third_in_charge?: string;
+  assistants?: StoreAssistant[];
+}) {
+  const values = [
+    profile.supervisor_name || profile.display_name || "",
+    profile.second_in_charge || "",
+    profile.third_in_charge || "",
+    ...(profile.assistants || []).map((assistant) => assistant.name || ""),
+  ];
+
+  return Array.from(
+    new Set(values.map((value) => value.trim()).filter(Boolean)),
+  );
+}
+
 export const metadata: Metadata = {
   title: "Estadisticas - Sistema Operativo",
 };
@@ -93,6 +113,7 @@ export default async function DashboardPage(props: {
     posStatus?: string;
     posMessage?: string;
     posDate?: string;
+    posAssistant?: string;
   }>;
 }) {
   const searchParams = await props.searchParams;
@@ -156,6 +177,7 @@ export default async function DashboardPage(props: {
   let topProducts: TopProduct[] = [];
   let reasonData: ReasonData[] = [];
   let userWasteData: ReasonData[] = [];
+  const assistantOptions = getAssistantOptions(profile);
 
   const bogotaToday = getBogotaDateParts();
   const currentMonthPrefix = `${bogotaToday.year}-${String(bogotaToday.month).padStart(2, "0")}`;
@@ -232,8 +254,18 @@ export default async function DashboardPage(props: {
         ? 100
         : 0;
 
+  const selectedAssistant =
+    (searchParams.posAssistant || "").trim() ||
+    assistantOptions[0] ||
+    profile.supervisor_name ||
+    profile.display_name;
+
+  const selectedAssistantMetrics = posMetrics.filter(
+    (item) => (item.assistant || "").trim() === selectedAssistant,
+  );
+
   const posDailyStats = new Map<string, { count: number; productivitySum: number; scanSum: number }>();
-  posMetrics.forEach((item) => {
+  selectedAssistantMetrics.forEach((item) => {
     const existing = posDailyStats.get(item.date) || { count: 0, productivitySum: 0, scanSum: 0 };
     existing.count += 1;
     existing.productivitySum += Number(item.productivity || 0);
@@ -491,6 +523,23 @@ export default async function DashboardPage(props: {
 
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Colaborador
+                  </span>
+                  <select
+                    name="assistant"
+                    defaultValue={selectedAssistant}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  >
+                    {assistantOptions.map((assistant) => (
+                      <option key={assistant} value={assistant}>
+                        {assistant}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                     Articulos por minuto
                   </span>
                   <input
@@ -614,7 +663,7 @@ export default async function DashboardPage(props: {
             </div>
           </div>
 
-          <PosMetricsCharts data={posMetrics || []} />
+          <PosMetricsCharts data={selectedAssistantMetrics || []} />
         </section>
       </div>
     </div>
