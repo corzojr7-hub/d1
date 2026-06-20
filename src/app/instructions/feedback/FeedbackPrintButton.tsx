@@ -104,9 +104,6 @@ function buildActaDocument(feedback: FeedbackRecord) {
 
 export default function FeedbackPrintButton({ feedback }: { feedback: FeedbackRecord }) {
   function handleDownload() {
-    const printWindow = window.open("", "_blank", "noopener,noreferrer,width=960,height=1200");
-    if (!printWindow) return;
-
     const isActa = Boolean(parseActaReason(feedback.reason));
     const body = isActa ? buildActaDocument(feedback) : buildStandardDocument(feedback);
     const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
@@ -148,18 +145,36 @@ export default function FeedbackPrintButton({ feedback }: { feedback: FeedbackRe
         <body>${body}</body>
       </html>
     `;
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
 
-    const blob = new Blob([html], { type: "text/html" });
-    const objectUrl = URL.createObjectURL(blob);
+    const iframeDoc = iframe.contentWindow?.document;
+    if (!iframeDoc || !iframe.contentWindow) {
+      iframe.remove();
+      return;
+    }
 
-    printWindow.location.replace(objectUrl);
-    printWindow.onload = () => {
-      printWindow.focus();
-      printWindow.setTimeout(() => {
-        printWindow.print();
-        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
-      }, 350);
+    iframeDoc.open();
+    iframeDoc.write(html);
+    iframeDoc.close();
+
+    iframe.onload = () => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      window.setTimeout(() => iframe.remove(), 1500);
     };
+
+    window.setTimeout(() => {
+      iframe.contentWindow?.focus();
+      iframe.contentWindow?.print();
+      window.setTimeout(() => iframe.remove(), 1500);
+    }, 500);
   }
 
   return (
