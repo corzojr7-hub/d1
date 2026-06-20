@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { createLogbookEntry } from "./actions";
 
-export default function ClientLogbook({ entries }: { entries: any[] }) {
+type LogbookEntry = {
+  id: string;
+  author: string;
+  content: string;
+  created_at: string;
+};
+
+export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) {
   const [isPending, startTransition] = useTransition();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -19,15 +26,15 @@ export default function ClientLogbook({ entries }: { entries: any[] }) {
         await createLogbookEntry(formData);
         toast.success("Novedad registrada con éxito.");
         form.reset();
-      } catch (err: any) {
-        toast.error(err.message || "Error al registrar la novedad.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Error al registrar la novedad.");
       }
     });
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#0a3875] px-4 py-4 shadow-sm">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#0a3875] via-[#0f4c97] to-[#2b6fc0] px-4 py-4 shadow-[0_16px_34px_rgba(10,56,117,0.18)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -36,7 +43,10 @@ export default function ClientLogbook({ entries }: { entries: any[] }) {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-white flex items-center gap-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+              Seguimiento diario
+            </p>
+            <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-white">
               Bitácora Diaria
             </h1>
             <p className="text-[10px] text-white/90">
@@ -46,8 +56,11 @@ export default function ClientLogbook({ entries }: { entries: any[] }) {
         </div>
       </header>
 
-      <div className="p-4 flex flex-col gap-6">
-        <form onSubmit={handleSubmit} className="bg-white p-4 rounded-2xl shadow-sm border border-zinc-100 flex gap-2">
+      <div className="flex flex-col gap-6 p-4">
+        <form
+          onSubmit={handleSubmit}
+          className="flex gap-2 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm"
+        >
           <textarea
             name="content"
             required
@@ -67,7 +80,10 @@ export default function ClientLogbook({ entries }: { entries: any[] }) {
         <div className="space-y-4">
           {entries && entries.length > 0 ? (
             entries.map((entry) => (
-              <div key={entry.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 relative">
+              <div
+                key={entry.id}
+                className="relative rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm"
+              >
                 <div className="absolute -left-2 top-6 h-2 w-2 rounded-full bg-blue-500 ring-4 ring-slate-50" />
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-slate-800">{entry.author}</span>
@@ -85,7 +101,7 @@ export default function ClientLogbook({ entries }: { entries: any[] }) {
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white/50 px-4 py-16 text-center">
+            <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-white px-4 py-16 text-center shadow-sm">
               <BookOpen className="h-10 w-10 text-zinc-300 mb-3" />
               <p className="text-sm font-medium text-zinc-500">
                 Aún no hay novedades registradas hoy.

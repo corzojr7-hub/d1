@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Target, TrendingUp, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { createPreShift } from "./actions";
 import { useRouter } from "next/navigation";
@@ -20,15 +20,15 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
         await createPreShift(formData);
         toast.success("Pre-turno registrado con éxito.");
         router.push("/");
-      } catch (err: any) {
-        toast.error(err.message || "Error al registrar el pre-turno.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Error al registrar el pre-turno.");
       }
     });
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -37,7 +37,10 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-white">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+              Apertura
+            </p>
+            <h1 className="text-lg font-black leading-tight text-white">
               Pre-Turno
             </h1>
             <p className="text-[10px] text-white/90">
@@ -48,7 +51,7 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
       </header>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Target className="h-4 w-4 text-amber-500" />
             Metas de Venta
@@ -71,7 +74,7 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-emerald-500" />
             Foco Operativo

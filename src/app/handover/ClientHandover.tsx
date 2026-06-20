@@ -41,15 +41,15 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
         await submitHandover(formData);
         toast.success("Entrega de turno registrada con éxito.");
         router.push("/");
-      } catch (err: any) {
-        toast.error(err.message || "Error al registrar la entrega.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Error al registrar la entrega.");
       }
     });
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -58,7 +58,10 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-white">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+              Relevo operativo
+            </p>
+            <h1 className="text-lg font-black leading-tight text-white">
               Entrega de Turno
             </h1>
             <p className="text-[10px] text-white/90">
@@ -69,7 +72,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
       </header>
 
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800 mb-4">¿Quiénes realizan el cambio?</h2>
           
           <div className="space-y-4">
@@ -103,7 +106,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800 mb-4">Estado de la Bodega</h2>
           
           <div 

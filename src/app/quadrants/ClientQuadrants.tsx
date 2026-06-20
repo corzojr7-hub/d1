@@ -1,17 +1,30 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, UserPlus, ShieldCheck, FileSignature } from "lucide-react";
 import { toast } from "sonner";
 import { assignQuadrant, acceptQuadrant } from "./actions";
 
+type QuadrantAssignment = {
+  id: string;
+  quadrant_name: string;
+  assigned_to: string;
+  assigned_by: string;
+  created_at: string;
+  status: string;
+};
+
+type Assistant = {
+  name: string;
+};
+
 export default function ClientQuadrants({ 
   assignments, 
   assistants 
 }: { 
-  assignments: any[], 
-  assistants: any[] 
+  assignments: QuadrantAssignment[], 
+  assistants: Assistant[] 
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -25,8 +38,8 @@ export default function ClientQuadrants({
         await assignQuadrant(formData);
         toast.success("Cuadrante asignado con éxito.");
         form.reset();
-      } catch (err: any) {
-        toast.error(err.message || "Error al asignar el cuadrante.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Error al asignar el cuadrante.");
       }
     });
   }
@@ -40,15 +53,15 @@ export default function ClientQuadrants({
       try {
         await acceptQuadrant(id);
         toast.success("Cuadrante aceptado. Firma registrada.");
-      } catch (err: any) {
-        toast.error(err.message || "Error al aceptar el cuadrante.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "Error al aceptar el cuadrante.");
       }
     });
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <header className="sticky top-0 z-40 bg-[#e51d2e] px-4 py-4 shadow-sm">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -57,7 +70,10 @@ export default function ClientQuadrants({
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">
-            <h1 className="text-lg font-bold leading-tight text-white flex items-center gap-2">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+              Pasillos
+            </p>
+            <h1 className="text-lg font-black leading-tight text-white flex items-center gap-2">
               Control de Cuadrantes
             </h1>
             <p className="text-[10px] text-white/90">
@@ -68,7 +84,7 @@ export default function ClientQuadrants({
       </header>
 
       <div className="p-4 space-y-6">
-        <form onSubmit={handleAssign} className="bg-white p-5 rounded-2xl shadow-sm border border-zinc-100">
+        <form onSubmit={handleAssign} className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <UserPlus className="h-4 w-4 text-blue-500" />
             Nueva Asignación
@@ -85,7 +101,7 @@ export default function ClientQuadrants({
                 className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="">Selecciona un asistente...</option>
-                {assistants.map((ast: any, idx: number) => (
+                {assistants.map((ast, idx: number) => (
                   <option key={idx} value={ast.name}>{ast.name}</option>
                 ))}
               </select>
@@ -122,7 +138,7 @@ export default function ClientQuadrants({
 
           {assignments && assignments.length > 0 ? (
             assignments.map((assignment) => (
-              <div key={assignment.id} className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
+              <div key={assignment.id} className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-bold text-slate-800">{assignment.quadrant_name}</span>
                   {assignment.status === 'aceptado' ? (
@@ -145,7 +161,7 @@ export default function ClientQuadrants({
                 {assignment.status !== 'aceptado' && (
                   <div className="mt-3 pt-3 border-t border-slate-100">
                     <p className="text-[10px] text-slate-500 mb-3 leading-tight italic">
-                      "Me comprometo a mantener el cuadrante asignado conforme al estándar establecido en: LAYOUT, MICROLAYOUT, PRECIOS, ASEO, EXHIBICIONES, FECHAS DE VENCIMIENTO Y PRODUCTOS NO APTOS PARA LA VENTA."
+                      &quot;Me comprometo a mantener el cuadrante asignado conforme al estándar establecido en: LAYOUT, MICROLAYOUT, PRECIOS, ASEO, EXHIBICIONES, FECHAS DE VENCIMIENTO Y PRODUCTOS NO APTOS PARA LA VENTA.&quot;
                     </p>
                     <button
                       onClick={() => handleAccept(assignment.id)}
@@ -159,7 +175,7 @@ export default function ClientQuadrants({
               </div>
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-zinc-200 bg-white/50 px-4 py-10 text-center">
+            <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm">
               <p className="text-sm font-medium text-zinc-500">
                 No hay cuadrantes asignados.
               </p>
