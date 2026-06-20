@@ -30,7 +30,7 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
 
   if (!data || data.length === 0) {
     return (
-      <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
+      <div className="rounded-[28px] border border-slate-200/80 bg-white p-8 text-center shadow-sm">
         <p className="text-sm text-slate-500">No hay metricas de POS registradas aun.</p>
       </div>
     );
@@ -78,7 +78,7 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
 
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[28px] border border-violet-100 bg-gradient-to-br from-white to-violet-50/70 p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
             Articulos por minuto
@@ -106,7 +106,7 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
         </div>
       </div>
 
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[28px] border border-sky-100 bg-gradient-to-br from-white to-sky-50/70 p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
             Escaneo
@@ -134,7 +134,7 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
         </div>
       </div>
 
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[28px] border border-amber-100 bg-gradient-to-br from-white to-amber-50/70 p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
             Cancelaciones
@@ -162,7 +162,7 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
         </div>
       </div>
 
-      <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
+      <div className="rounded-[28px] border border-rose-100 bg-gradient-to-br from-white to-rose-50/70 p-5 shadow-sm">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
             Anulaciones

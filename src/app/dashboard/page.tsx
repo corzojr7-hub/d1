@@ -516,9 +516,25 @@ export default async function DashboardPage(props: {
           <DashboardCharts topProducts={topProducts} reasonData={reasonData} userWasteData={userWasteData} />
         </section>
 
-        <section>
-          <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-800">Productividad POS</h2>
+        <section className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6">
+          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
+                Productividad POS
+              </p>
+              <h2 className="mt-1 text-xl font-black text-slate-900">Rendimiento por asistente</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Seguimiento diario de productividad, escaneo y novedades de caja.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-600">
+                {selectedAssistant}
+              </span>
+              <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700">
+                Corte {formatDayLabel(posDate)}
+              </span>
+            </div>
           </div>
 
           {posStatus && posMessage ? (
@@ -535,7 +551,7 @@ export default async function DashboardPage(props: {
 
           <form
             action="/dashboard"
-            className="mb-4 rounded-3xl border border-slate-100 bg-white p-4 shadow-sm"
+            className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm"
           >
             <div className="flex flex-col gap-3 md:flex-row md:items-end">
               <label className="block flex-1">
@@ -561,8 +577,8 @@ export default async function DashboardPage(props: {
             </div>
           </form>
 
-          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-            <form action={savePosMetric} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+            <form action={savePosMetric} className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
@@ -578,7 +594,7 @@ export default async function DashboardPage(props: {
                 </div>
               </div>
 
-              <div className="mt-5 space-y-4">
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
                     Fecha
@@ -590,6 +606,14 @@ export default async function DashboardPage(props: {
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
                   />
                 </label>
+
+                <div className="rounded-2xl border border-violet-100 bg-violet-50/80 px-4 py-3">
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-violet-700">
+                    Meta sugerida
+                  </p>
+                  <p className="mt-2 text-sm font-bold text-slate-800">30 artículos/min</p>
+                  <p className="mt-1 text-xs text-slate-500">Escaneo ideal: 15 o más</p>
+                </div>
 
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
@@ -671,34 +695,34 @@ export default async function DashboardPage(props: {
             </form>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                   Hoy vs ayer
                 </p>
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Articulos/min</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-violet-50 p-3">
+                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Ayer: {formatMetric(posYesterday.productivity)} · {getMetricDelta(posToday.productivity, posYesterday.productivity).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Escaneo</p>
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs font-bold text-sky-700">Escaneo</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Ayer: {formatMetric(posYesterday.scan)} · {getMetricDelta(posToday.scan, posYesterday.scan).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                  <div className="rounded-2xl bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Ayer: {posYesterday.cancellations} · {getMetricDelta(posToday.cancellations, posYesterday.cancellations).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                  <div className="rounded-2xl bg-rose-50 p-3">
+                    <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Ayer: {posYesterday.voids} · {getMetricDelta(posToday.voids, posYesterday.voids).toFixed(1)}%
@@ -707,34 +731,34 @@ export default async function DashboardPage(props: {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                   Hoy vs hace un mes
                 </p>
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Articulos/min</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-violet-50 p-3">
+                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMonthSameDay.productivity)} · {getMetricDelta(posToday.productivity, posPreviousMonthSameDay.productivity).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Escaneo</p>
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs font-bold text-sky-700">Escaneo</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMonthSameDay.scan)} · {getMetricDelta(posToday.scan, posPreviousMonthSameDay.scan).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                  <div className="rounded-2xl bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousMonthSameDay.cancellations} · {getMetricDelta(posToday.cancellations, posPreviousMonthSameDay.cancellations).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                  <div className="rounded-2xl bg-rose-50 p-3">
+                    <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousMonthSameDay.voids} · {getMetricDelta(posToday.voids, posPreviousMonthSameDay.voids).toFixed(1)}%
@@ -743,34 +767,34 @@ export default async function DashboardPage(props: {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                   Mes actual vs mes pasado
                 </p>
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Articulos/min promedio</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-violet-50 p-3">
+                    <p className="text-xs font-bold text-violet-700">Articulos/min promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousMtdProductivity).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Escaneo promedio</p>
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs font-bold text-sky-700">Escaneo promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousMtdScan).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                  <div className="rounded-2xl bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousMtdCancellations).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                  <div className="rounded-2xl bg-rose-50 p-3">
+                    <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousMtdVoids).toFixed(1)}%
@@ -779,34 +803,34 @@ export default async function DashboardPage(props: {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                   Mes actual vs mismo mes ano anterior
                 </p>
-                <div className="mt-3 space-y-3">
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Articulos/min promedio</p>
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl bg-violet-50 p-3">
+                    <p className="text-xs font-bold text-violet-700">Articulos/min promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousYearMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousYearMtdProductivity).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Escaneo promedio</p>
+                  <div className="rounded-2xl bg-sky-50 p-3">
+                    <p className="text-xs font-bold text-sky-700">Escaneo promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousYearMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousYearMtdScan).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Cancelaciones</p>
+                  <div className="rounded-2xl bg-amber-50 p-3">
+                    <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousYearMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousYearMtdCancellations).toFixed(1)}%
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500">Anulaciones</p>
+                  <div className="rounded-2xl bg-rose-50 p-3">
+                    <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {posPreviousYearMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousYearMtdVoids).toFixed(1)}%
