@@ -16,8 +16,14 @@ import {
 import { toast } from "sonner";
 import { useProfile } from "@/components/ui/ProfileContext";
 import { createFeedback, rewriteFeedbackWhatsappMessage } from "../actions";
+import {
+  ACTA_TEMPLATES,
+  buildActaReason,
+  type ActaTemplateKey,
+} from "../actaTemplates";
 
-type FeedbackType = "retroalimentacion" | "llamado_atencion";
+type FeedbackType = "retroalimentacion" | "llamado_atencion" | "acta_compromiso";
+type StoredFeedbackType = "retroalimentacion" | "llamado_atencion";
 type AssistantTone = "suave" | "directo" | "formal";
 type AssistantDraft = {
   whatsapp_message: string;
@@ -43,13 +49,20 @@ export default function NewFeedbackPage() {
   const [formData, setFormData] = useState({
     directed_to: "",
     type: "retroalimentacion" as FeedbackType,
+    acta_template: "" as ActaTemplateKey | "",
     reason: "",
     description: "",
     commitment: "",
   });
+  const isActaType = formData.type === "acta_compromiso";
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (isActaType && !formData.acta_template) {
+      toast.error("Selecciona el tipo de acta de compromiso");
+      return;
+    }
+
     if (!formData.directed_to || !formData.reason || !formData.description || !formData.commitment) {
       toast.error("Por favor completa todos los campos");
       return;
@@ -57,7 +70,17 @@ export default function NewFeedbackPage() {
 
     startTransition(async () => {
       try {
-        await createFeedback(formData);
+        const storedType: StoredFeedbackType =
+          isActaType ? "llamado_atencion" : (formData.type as StoredFeedbackType);
+        const actaReason = isActaType ? buildActaReason(formData.acta_template as ActaTemplateKey) : formData.reason;
+
+        await createFeedback({
+          directed_to: formData.directed_to,
+          type: storedType,
+          reason: actaReason,
+          description: formData.description,
+          commitment: formData.commitment,
+        });
         toast.success("Registro guardado exitosamente");
         router.push("/instructions/feedback");
       } catch {
@@ -81,7 +104,7 @@ export default function NewFeedbackPage() {
       try {
         const result = await rewriteFeedbackWhatsappMessage({
           directedTo: formData.directed_to,
-          type: formData.type,
+          type: formData.type === "acta_compromiso" ? "llamado_atencion" : formData.type,
           rawMessage,
           tone: assistantTone,
         });
@@ -103,6 +126,17 @@ export default function NewFeedbackPage() {
       commitment: assistantDraft.commitment,
     }));
     toast.success("Mensaje aplicado al registro");
+  }
+
+  function handleActaTemplateChange(value: string) {
+    const nextTemplate = ACTA_TEMPLATES.find((item) => item.key === value);
+    setFormData((current) => ({
+      ...current,
+      acta_template: value as ActaTemplateKey,
+      reason: nextTemplate ? buildActaReason(nextTemplate.key) : current.reason,
+      description: nextTemplate ? nextTemplate.responsibility : current.description,
+      commitment: nextTemplate ? nextTemplate.commitment : current.commitment,
+    }));
   }
 
   async function handleCopyDraft() {
@@ -135,7 +169,7 @@ export default function NewFeedbackPage() {
 
       <h1 className="mt-4 text-2xl font-extrabold text-slate-800">Nuevo Registro</h1>
       <p className="mt-1 text-sm text-slate-500">
-        Documenta retroalimentaciones o llamados de atencion
+        Documenta retroalimentaciones, llamados de atencion o actas de compromiso
       </p>
 
       <form
@@ -275,18 +309,40 @@ export default function NewFeedbackPage() {
               setFormData((current) => ({
                 ...current,
                 type: e.target.value as FeedbackType,
+                acta_template: e.target.value === "acta_compromiso" ? current.acta_template : "",
               }))
             }
             className={`${inputBase} ${
-              formData.type === "llamado_atencion"
+              formData.type === "llamado_atencion" || formData.type === "acta_compromiso"
                 ? "bg-red-50 font-bold text-red-700 ring-red-200"
                 : "bg-amber-50 font-bold text-amber-700 ring-amber-200"
             }`}
           >
             <option value="retroalimentacion">Retroalimentacion</option>
             <option value="llamado_atencion">Llamado de atencion</option>
+            <option value="acta_compromiso">Acta de compromiso</option>
           </select>
         </label>
+
+        {isActaType && (
+          <label className="block">
+            <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
+              <FileText className="h-4 w-4 text-slate-400" /> Tipo de acta
+            </span>
+            <select
+              value={formData.acta_template}
+              onChange={(e) => handleActaTemplateChange(e.target.value)}
+              className={`${inputBase} bg-white font-semibold text-slate-700`}
+            >
+              <option value="">Selecciona el formato...</option>
+              {ACTA_TEMPLATES.map((template) => (
+                <option key={template.key} value={template.key}>
+                  {template.subtitle}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         <label className="block">
           <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
@@ -295,9 +351,10 @@ export default function NewFeedbackPage() {
           <input
             type="text"
             placeholder="Ej. Llegadas tarde, error en inventario..."
-            value={formData.reason}
+            value={isActaType ? formData.reason.replace(/^\[ACTA:[^\]]+\]\s*/, "") : formData.reason}
             onChange={(e) => setFormData((current) => ({ ...current, reason: e.target.value }))}
             className={inputBase}
+            readOnly={isActaType}
           />
         </label>
 
