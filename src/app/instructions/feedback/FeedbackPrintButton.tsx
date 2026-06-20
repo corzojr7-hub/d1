@@ -109,14 +109,21 @@ export default function FeedbackPrintButton({ feedback }: { feedback: FeedbackRe
 
     const isActa = Boolean(parseActaReason(feedback.reason));
     const body = isActa ? buildActaDocument(feedback) : buildStandardDocument(feedback);
-
-    printWindow.document.write(`
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((node) => node.outerHTML)
+      .join("");
+    const html = `
       <html>
         <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
           <title>${escapeHtml(feedback.directed_to)} - ${escapeHtml(feedback.reason)}</title>
+          ${styles}
           <style>
-            body { margin: 0; background: #f5f5f5; font-family: Arial, sans-serif; color: #111827; }
-            .sheet { box-sizing: border-box; width: 210mm; min-height: 297mm; margin: 0 auto; background: white; padding: 24mm 18mm; }
+            * { box-sizing: border-box; }
+            html, body { margin: 0; padding: 0; background: #f5f5f5; color: #111827; font-family: Arial, sans-serif; }
+            body { padding: 24px; }
+            .sheet { width: 100%; max-width: 820px; min-height: 1120px; margin: 0 auto; background: white; padding: 24mm 18mm; }
             .eyebrow { margin: 0 0 8px; font-size: 11px; letter-spacing: .18em; font-weight: 700; color: #b91c1c; }
             h1 { margin: 0 0 18px; font-size: 24px; line-height: 1.2; }
             h2 { margin: 0 0 8px; font-size: 14px; text-transform: uppercase; letter-spacing: .08em; }
@@ -129,18 +136,30 @@ export default function FeedbackPrintButton({ feedback }: { feedback: FeedbackRe
             section { margin-bottom: 18px; }
             .signatures { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; margin-top: 36px; padding-top: 20px; }
             .signatures div { border-top: 1px solid #111827; padding-top: 10px; }
+            button, select, svg.lucide { display: none !important; }
+            @page { size: A4 portrait; margin: 12mm; }
             @media print {
-              body { background: white; }
-              .sheet { width: auto; min-height: auto; margin: 0; padding: 18mm 14mm; }
+              html, body { background: white; }
+              body { padding: 0; }
+              .sheet { max-width: none; min-height: auto; margin: 0; padding: 18mm 14mm; box-shadow: none; }
             }
           </style>
         </head>
         <body>${body}</body>
       </html>
-    `);
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
+    `;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const objectUrl = URL.createObjectURL(blob);
+
+    printWindow.location.replace(objectUrl);
+    printWindow.onload = () => {
+      printWindow.focus();
+      printWindow.setTimeout(() => {
+        printWindow.print();
+        window.setTimeout(() => URL.revokeObjectURL(objectUrl), 2000);
+      }, 350);
+    };
   }
 
   return (
