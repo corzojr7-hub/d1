@@ -547,7 +547,7 @@ export default async function Home() {
             }
           />
           <QuickAccessCard
-            href="/instructions/feedback/new"
+            href="/instructions/feedback/new?mode=whatsapp"
             title="Mensaje IA"
             subtitle="Retroalimentacion WhatsApp"
             iconBg="bg-rose-50"
