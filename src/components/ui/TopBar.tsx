@@ -30,11 +30,10 @@ export default function TopBar() {
     const dateTimeFormatter = new Intl.DateTimeFormat("es-CO", {
       timeZone: "America/Bogota",
       day: "2-digit",
-      month: "long",
+      month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      second: "2-digit",
     });
 
     function updateBogotaClock() {
@@ -44,7 +43,7 @@ export default function TopBar() {
       const priority = DAILY_MESSAGES[weekday] || "";
 
       setTodayMessage(`Hoy es ${label} | Prioridad del día: ${priority}`);
-      setCurrentDateTime(`Bogotá | ${dateTimeFormatter.format(now)}`);
+      setCurrentDateTime(dateTimeFormatter.format(now));
     }
 
     updateBogotaClock();
@@ -80,8 +79,8 @@ export default function TopBar() {
             <span className="max-w-[170px] truncate text-[11px] font-medium text-white/88 sm:max-w-none">
               Control de Operaciones - {storeLine}
             </span>
-            <span className="max-w-[220px] truncate text-[10px] font-medium text-white/72 sm:max-w-none">
-              {currentDateTime || "Bogotá"}
+            <span className="max-w-[220px] text-[10px] font-medium leading-tight text-white/72 sm:max-w-none">
+              {currentDateTime}
             </span>
           </div>
         </div>
