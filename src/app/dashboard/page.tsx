@@ -1,14 +1,15 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { format, subMonths } from "date-fns";
+import { format, subDays, subMonths, subYears } from "date-fns";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { DailySale } from "@/lib/domain/types";
-import { requireAuth } from "@/lib/supabase/require-auth";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
+import ExportDataButton from "@/components/dashboard/ExportDataButton";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
 import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
-import ExportDataButton from "@/components/dashboard/ExportDataButton";
+import { requireAuth } from "@/lib/supabase/require-auth";
+import { savePosMetric } from "./actions";
 
 type WasteRecordForDashboard = {
   qty: number;
@@ -27,8 +28,14 @@ type ImpulseRecordForDashboard = {
 type PosMetricForDashboard = {
   assistant?: string | null;
   productivity?: number | null;
+  scan?: number | null;
+  date: string;
+};
+
+type PosMetricRow = {
+  assistant?: string | null;
+  productivity?: number | null;
   cancellations?: number | null;
-  voids?: number | null;
   date: string;
 };
 
@@ -57,11 +64,38 @@ function formatCop(value: number) {
   }).format(value);
 }
 
+function formatMetric(value: number) {
+  return new Intl.NumberFormat("es-CO", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
+function getMetricDelta(current: number, previous: number) {
+  if (previous > 0) return ((current - previous) / previous) * 100;
+  return current > 0 ? 100 : 0;
+}
+
+function formatDayLabel(date: string) {
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Bogota",
+  }).format(new Date(`${date}T12:00:00`));
+}
+
 export const metadata: Metadata = {
   title: "Estadisticas - Sistema Operativo",
 };
 
-export default async function DashboardPage() {
+export default async function DashboardPage(props: {
+  searchParams: Promise<{
+    posStatus?: string;
+    posMessage?: string;
+    posDate?: string;
+  }>;
+}) {
+  const searchParams = await props.searchParams;
   const { profile } = await requireAuth();
 
   if (!profile) return <div>Cargando...</div>;
@@ -90,7 +124,7 @@ export default async function DashboardPage() {
     .select("*")
     .eq("store_code", profile.store_code)
     .order("date", { ascending: false })
-    .limit(30);
+    .limit(450);
 
   const salesPromise = adminClient
     .from("daily_sales")
@@ -102,14 +136,22 @@ export default async function DashboardPage() {
   const [
     { data: allWaste },
     { data: impulseRecords },
-    { data: posMetrics },
+    { data: rawPosMetrics },
     { data: dailySales },
   ] = (await Promise.all([wastePromise, impulsePromise, posPromise, salesPromise])) as [
     { data: WasteRecordForDashboard[] | null },
     { data: ImpulseRecordForDashboard[] | null },
-    { data: PosMetricForDashboard[] | null },
+    { data: PosMetricRow[] | null },
     { data: DailySale[] | null },
   ];
+
+  const posMetrics: PosMetricForDashboard[] = (rawPosMetrics || []).map((item) => ({
+    assistant: item.assistant,
+    productivity: item.productivity,
+    // ponytail: reuse the existing field until the DB gets a real scan column.
+    scan: Number(item.cancellations || 0),
+    date: item.date,
+  }));
 
   let topProducts: TopProduct[] = [];
   let reasonData: ReasonData[] = [];
@@ -117,8 +159,18 @@ export default async function DashboardPage() {
 
   const bogotaToday = getBogotaDateParts();
   const currentMonthPrefix = `${bogotaToday.year}-${String(bogotaToday.month).padStart(2, "0")}`;
+  const todayKey = `${currentMonthPrefix}-${String(bogotaToday.day).padStart(2, "0")}`;
   const previousMonthDate = subMonths(new Date(`${currentMonthPrefix}-01T00:00:00`), 1);
   const previousMonthPrefix = format(previousMonthDate, "yyyy-MM");
+  const previousYearMonthPrefix = format(
+    subYears(new Date(`${currentMonthPrefix}-01T00:00:00`), 1),
+    "yyyy-MM",
+  );
+  const yesterdayKey = format(subDays(new Date(`${todayKey}T12:00:00`), 1), "yyyy-MM-dd");
+  const previousMonthSameDayKey = format(
+    subMonths(new Date(`${todayKey}T12:00:00`), 1),
+    "yyyy-MM-dd",
+  );
 
   const currentMonthSales = (dailySales || []).filter((sale) => sale.date.startsWith(currentMonthPrefix));
   const previousMonthSales = (dailySales || []).filter((sale) => sale.date.startsWith(previousMonthPrefix));
@@ -180,6 +232,56 @@ export default async function DashboardPage() {
         ? 100
         : 0;
 
+  const posDailyStats = new Map<string, { count: number; productivitySum: number; scanSum: number }>();
+  posMetrics.forEach((item) => {
+    const existing = posDailyStats.get(item.date) || { count: 0, productivitySum: 0, scanSum: 0 };
+    existing.count += 1;
+    existing.productivitySum += Number(item.productivity || 0);
+    existing.scanSum += Number(item.scan || 0);
+    posDailyStats.set(item.date, existing);
+  });
+
+  const posDailyMetrics = Array.from(posDailyStats.entries()).map(([date, stats]) => ({
+    date,
+    day: Number(date.slice(8, 10)),
+    productivity: stats.count > 0 ? stats.productivitySum / stats.count : 0,
+    scan: stats.count > 0 ? stats.scanSum / stats.count : 0,
+  }));
+
+  const getDailyPosMetric = (date: string) =>
+    posDailyMetrics.find((item) => item.date === date) || { date, day: 0, productivity: 0, scan: 0 };
+
+  const averagePosMetric = (
+    items: Array<{ productivity: number; scan: number }>,
+    key: "productivity" | "scan",
+  ) => {
+    if (items.length === 0) return 0;
+    return items.reduce((sum, item) => sum + item[key], 0) / items.length;
+  };
+
+  const posCurrentMtd = posDailyMetrics.filter(
+    (item) => item.date.startsWith(currentMonthPrefix) && item.day <= bogotaToday.day,
+  );
+  const posPreviousMtd = posDailyMetrics.filter(
+    (item) => item.date.startsWith(previousMonthPrefix) && item.day <= bogotaToday.day,
+  );
+  const posPreviousYearMtd = posDailyMetrics.filter(
+    (item) => item.date.startsWith(previousYearMonthPrefix) && item.day <= bogotaToday.day,
+  );
+  const posToday = getDailyPosMetric(todayKey);
+  const posYesterday = getDailyPosMetric(yesterdayKey);
+  const posPreviousMonthSameDay = getDailyPosMetric(previousMonthSameDayKey);
+  const posCurrentMtdProductivity = averagePosMetric(posCurrentMtd, "productivity");
+  const posPreviousMtdProductivity = averagePosMetric(posPreviousMtd, "productivity");
+  const posCurrentMtdScan = averagePosMetric(posCurrentMtd, "scan");
+  const posPreviousMtdScan = averagePosMetric(posPreviousMtd, "scan");
+  const posPreviousYearMtdProductivity = averagePosMetric(posPreviousYearMtd, "productivity");
+  const posPreviousYearMtdScan = averagePosMetric(posPreviousYearMtd, "scan");
+  const posStatus = searchParams.posStatus;
+  const posMessage = searchParams.posMessage;
+  const posDate = searchParams.posDate || todayKey;
+  const posFormDefaults = getDailyPosMetric(posDate);
+
   if (allWaste) {
     const productCounts: Record<string, number> = {};
     const reasonCounts: Record<string, number> = {};
@@ -211,7 +313,7 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 pt-6 pb-24 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+    <div className="mx-auto w-full max-w-md px-4 pb-24 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <Link
         href="/"
         className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
@@ -342,8 +444,176 @@ export default async function DashboardPage() {
 
         <section>
           <div className="mb-4 flex items-center gap-2">
-            <h2 className="text-lg font-bold text-slate-800">Productividad Caja</h2>
+            <h2 className="text-lg font-bold text-slate-800">Productividad POS</h2>
           </div>
+
+          {posStatus && posMessage ? (
+            <div
+              className={`mb-4 rounded-2xl px-4 py-3 text-sm font-medium ${
+                posStatus === "success"
+                  ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100"
+                  : "bg-red-50 text-red-700 ring-1 ring-red-100"
+              }`}
+            >
+              {posMessage}
+            </div>
+          ) : null}
+
+          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+            <form action={savePosMetric} className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+                    Carga diaria
+                  </p>
+                  <h3 className="mt-1 text-lg font-black text-slate-900">Registrar productividad POS</h3>
+                  <p className="mt-1 text-sm text-slate-500">
+                    Meta articulos/min: 30. Meta escaneo: 15 o mas.
+                  </p>
+                </div>
+                <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-500">
+                  {formatDayLabel(posDate)}
+                </div>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Fecha
+                  </span>
+                  <input
+                    name="date"
+                    type="date"
+                    defaultValue={posDate}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Articulos por minuto
+                  </span>
+                  <input
+                    name="productivity"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    defaultValue={posFormDefaults.productivity ? posFormDefaults.productivity.toFixed(1) : ""}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Escaneo
+                  </span>
+                  <input
+                    name="scan"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    defaultValue={posFormDefaults.scan ? posFormDefaults.scan.toFixed(1) : ""}
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
+                  />
+                </label>
+              </div>
+
+              <button type="submit" className="app-cta-primary mt-5 w-full justify-center text-sm font-bold">
+                Guardar productividad POS
+              </button>
+            </form>
+
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Hoy vs ayer
+                </p>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Articulos/min</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Ayer: {formatMetric(posYesterday.productivity)} · {getMetricDelta(posToday.productivity, posYesterday.productivity).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Escaneo</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Ayer: {formatMetric(posYesterday.scan)} · {getMetricDelta(posToday.scan, posYesterday.scan).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Hoy vs hace un mes
+                </p>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Articulos/min</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousMonthSameDay.productivity)} · {getMetricDelta(posToday.productivity, posPreviousMonthSameDay.productivity).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Escaneo</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousMonthSameDay.scan)} · {getMetricDelta(posToday.scan, posPreviousMonthSameDay.scan).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Mes actual vs mes pasado
+                </p>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Articulos/min promedio</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousMtdProductivity).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Escaneo promedio</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousMtdScan).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Mes actual vs mismo mes ano anterior
+                </p>
+                <div className="mt-3 space-y-3">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Articulos/min promedio</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousYearMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousYearMtdProductivity).toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-500">Escaneo promedio</p>
+                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Antes: {formatMetric(posPreviousYearMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousYearMtdScan).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <PosMetricsCharts data={posMetrics || []} />
         </section>
       </div>

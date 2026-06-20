@@ -3,15 +3,39 @@
 import { Download, FileText } from "lucide-react";
 import * as XLSX from "xlsx";
 
+type WasteExportRow = {
+  created_at?: string;
+  products?: { name?: string | null } | null;
+  qty?: number;
+  reason?: string | null;
+  deposited_by?: string | null;
+  area?: string | null;
+  status?: string | null;
+};
+
+type ImpulseExportRow = {
+  date: string;
+  assistant?: string | null;
+  product_name?: string | null;
+  quantity?: number;
+  impulse_type?: string | null;
+};
+
+type PosExportRow = {
+  date: string;
+  assistant?: string | null;
+  productivity?: number | null;
+  scan?: number | null;
+};
+
 type ExportDataButtonProps = {
-  wasteData: any[];
-  impulseData: any[];
-  posData: any[];
+  wasteData: WasteExportRow[];
+  impulseData: ImpulseExportRow[];
+  posData: PosExportRow[];
 };
 
 export default function ExportDataButton({ wasteData, impulseData, posData }: ExportDataButtonProps) {
-  
-  const sanitizeCell = (value: any) => {
+  const sanitizeCell = (value: string | number | boolean | null | undefined) => {
     if (typeof value !== "string") return value;
     const unsafeChars = ["=", "+", "-", "@"];
     if (unsafeChars.some(char => value.startsWith(char))) {
@@ -25,7 +49,7 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
 
     // Hoja 1: Merma
     const wsWaste = XLSX.utils.json_to_sheet(wasteData.map(item => ({
-      Fecha: new Date(item.created_at).toLocaleString("es-CO"),
+      Fecha: item.created_at ? new Date(item.created_at).toLocaleString("es-CO") : "",
       Producto: sanitizeCell(item.products?.name || "Desconocido"),
       Cantidad: item.qty,
       Motivo: sanitizeCell(item.reason),
@@ -50,8 +74,7 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
       Fecha: item.date,
       Colaborador: sanitizeCell(item.assistant),
       Productividad_Art_Min: item.productivity,
-      Anulaciones: item.cancellations,
-      Voids: item.voids
+      Escaneo: item.scan
     })));
     XLSX.utils.book_append_sheet(wb, wsPos, "Productividad Caja");
 

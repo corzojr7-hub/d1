@@ -1,25 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-  Legend
-} from "recharts";
-
-const COLORS = ["#f59e0b", "#ef4444", "#3b82f6", "#10b981", "#8b5cf6"];
+import { Bar, BarChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 type PosMetricRecord = {
   assistant?: string | null;
   productivity?: number | null;
-  cancellations?: number | null;
-  voids?: number | null;
+  scan?: number | null;
+  date: string;
 };
+
+function formatShortDate(date: string) {
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    timeZone: "America/Bogota",
+  }).format(new Date(`${date}T12:00:00`));
+}
 
 export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) {
   const [mounted, setMounted] = useState(false);
@@ -32,58 +29,54 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
   if (!data || data.length === 0) {
     return (
       <div className="rounded-3xl border border-zinc-100 bg-white p-8 text-center shadow-sm">
-        <p className="text-sm text-slate-500">No hay métricas de POS registradas aún.</p>
+        <p className="text-sm text-slate-500">No hay metricas de POS registradas aun.</p>
       </div>
     );
   }
 
-  // Aggregate average productivity and sum of voids/cancellations by assistant
-  const assistantStats: Record<string, { count: number; prodSum: number; cancels: number; voids: number }> = {};
-  
+  const dailyStats: Record<string, { count: number; productivitySum: number; scanSum: number }> = {};
+
   data.forEach((item) => {
-    const name = item.assistant || "Desconocido";
-    if (!assistantStats[name]) {
-      assistantStats[name] = { count: 0, prodSum: 0, cancels: 0, voids: 0 };
+    if (!dailyStats[item.date]) {
+      dailyStats[item.date] = { count: 0, productivitySum: 0, scanSum: 0 };
     }
-    assistantStats[name].count += 1;
-    assistantStats[name].prodSum += Number(item.productivity || 0);
-    assistantStats[name].cancels += Number(item.cancellations || 0);
-    assistantStats[name].voids += Number(item.voids || 0);
+    dailyStats[item.date].count += 1;
+    dailyStats[item.date].productivitySum += Number(item.productivity || 0);
+    dailyStats[item.date].scanSum += Number(item.scan || 0);
   });
 
-  const chartData = Object.entries(assistantStats).map(([name, stats]) => ({
-    name,
-    productividad: Math.round(stats.prodSum / stats.count),
-    anulaciones: stats.cancels,
-    voids: stats.voids,
-    erroresTotales: stats.cancels + stats.voids
-  })).sort((a, b) => b.productividad - a.productividad);
+  const chartData = Object.entries(dailyStats)
+    .map(([date, stats]) => ({
+      date,
+      label: formatShortDate(date),
+      productividad: Number((stats.productivitySum / stats.count).toFixed(1)),
+      escaneo: Number((stats.scanSum / stats.count).toFixed(1)),
+    }))
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .slice(-14);
 
   return (
-    <div className="space-y-6">
-      {/* Productivity Bar Chart */}
+    <div className="grid gap-4 lg:grid-cols-2">
       <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
-          Productividad Media (Artículos/Min)
-        </h3>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
+            Articulos por minuto
+          </h3>
+          <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-bold text-violet-700">
+            Meta 30
+          </span>
+        </div>
         <div className="h-64 w-full">
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <BarChart
-                data={chartData}
-                margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
-              >
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <Tooltip
                   cursor={{ fill: "#f8fafc" }}
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                 />
-                <Bar dataKey="productividad" fill="#8b5cf6" radius={[4, 4, 0, 0]} barSize={32}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />
-                  ))}
-                </Bar>
+                <Bar dataKey="productividad" fill="#8b5cf6" radius={[8, 8, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
@@ -92,35 +85,26 @@ export default function PosMetricsCharts({ data }: { data: PosMetricRecord[] }) 
         </div>
       </div>
 
-      {/* Errors (Cancels + Voids) Chart */}
       <div className="rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm">
-        <h3 className="mb-4 text-sm font-bold uppercase tracking-wide text-slate-800">
-          Anulaciones y Voids Totales
-        </h3>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-800">
+            Escaneo
+          </h3>
+          <span className="rounded-full bg-sky-50 px-3 py-1 text-[11px] font-bold text-sky-700">
+            Meta 15+
+          </span>
+        </div>
         <div className="h-64 w-full">
           {mounted ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-              <BarChart
-                data={chartData.sort((a,b) => b.erroresTotales - a.erroresTotales)}
-                layout="vertical"
-                margin={{ top: 0, right: 0, left: -10, bottom: 0 }}
-              >
-                <XAxis type="number" hide />
-                <YAxis
-                  dataKey="name"
-                  type="category"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#64748b", fontSize: 11, fontWeight: 600 }}
-                  width={90}
-                />
+              <BarChart data={chartData} margin={{ top: 10, right: 10, left: -18, bottom: 0 }}>
+                <XAxis dataKey="label" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <Tooltip
-                  cursor={{ fill: "transparent" }}
+                  cursor={{ fill: "#f8fafc" }}
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                 />
-                <Bar dataKey="anulaciones" stackId="a" fill="#ef4444" name="Anulaciones" radius={[0, 0, 0, 0]} barSize={24} />
-                <Bar dataKey="voids" stackId="a" fill="#f59e0b" name="Voids" radius={[0, 4, 4, 0]} barSize={24} />
-                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
+                <Bar dataKey="escaneo" fill="#0ea5e9" radius={[8, 8, 0, 0]} barSize={28} />
               </BarChart>
             </ResponsiveContainer>
           ) : (
