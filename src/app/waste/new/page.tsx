@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, useTransition, useEffect } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Barcode, Camera, Search, PackagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import { WASTE_REASONS } from "@/lib/domain/catalogs";
 import type { Tables } from "@/lib/supabase/database.types";
 import { findProductByBarcode, submitWaste } from "@/app/waste/actions";
 import { useProfile } from '@/components/ui/ProfileContext';
-import { useMemo } from "react";
 import { compressImage } from "@/lib/image-compression";
 
 type WasteProduct = Tables<"products">;
@@ -34,9 +33,6 @@ export default function NewWastePage() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [fileNames, setFileNames] = useState<Record<string, string>>({});
-  const [transportComment, setTransportComment] = useState("");
-  const [transportEvidence, setTransportEvidence] = useState<{novedad: string, lote: string, proveedor: string, cantidades: string} | null>(null);
-
   useEffect(() => {
     get("waste_draft").then((draft) => {
       if (draft && draft.barcode) {
@@ -83,7 +79,6 @@ export default function NewWastePage() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const activeBarcode = searchedBarcode || barcode.trim();
@@ -311,6 +306,19 @@ export default function NewWastePage() {
               }
             }
 
+            if (reason === "averia_transporte") {
+              const driver = formData.get("transport_driver");
+              const plate = formData.get("transport_plate");
+              if (typeof driver !== "string" || !driver.trim()) {
+                toast.error("Ingresa el nombre del conductor.");
+                return;
+              }
+              if (typeof plate !== "string" || !plate.trim()) {
+                toast.error("Ingresa la placa del conductor.");
+                return;
+              }
+            }
+
             startTransition(async () => {
               try {
                 const payload = new FormData();
@@ -349,9 +357,6 @@ export default function NewWastePage() {
           <input type="hidden" name="barcode_id" value={activeBarcode} />
           <input type="hidden" name="product_name" value={product?.name || "DESCONOCIDO"} />
           <input type="hidden" name="deposited_by" value={operator || profile?.display_name || "Desconocido"} />
-          {transportEvidence && (
-            <input type="hidden" name="transport_evidence" value={JSON.stringify(transportEvidence)} />
-          )}
           <input type="hidden" name="product_id" value={product?.id ?? ""} />
 
           <div className="rounded-2xl bg-slate-50 px-5 py-4">
@@ -471,6 +476,54 @@ export default function NewWastePage() {
                 className={`${inputBase} resize-none`}
               />
             </label>
+
+            {reason === "averia_transporte" && (
+              <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
+                  Datos del transporte
+                </p>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">
+                      Nombre del conductor
+                    </span>
+                    <input
+                      name="transport_driver"
+                      type="text"
+                      required
+                      className={inputBase}
+                      placeholder="Ej. Juan Perez"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">
+                      Placa del conductor
+                    </span>
+                    <input
+                      name="transport_plate"
+                      type="text"
+                      required
+                      className={inputBase}
+                      placeholder="Ej. ABC123"
+                    />
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                    Novedad del transporte
+                  </span>
+                  <textarea
+                    name="transport_comment"
+                    rows={3}
+                    className={`${inputBase} resize-none`}
+                    placeholder="Describe brevemente el dano o la novedad detectada."
+                  />
+                </label>
+              </div>
+            )}
 
             {photoRequirements.map(req => (
               <label key={req.id} className="block mb-4">

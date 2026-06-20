@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Camera, CameraOff, X, Pencil, Trash2 } from "lucide-react";
+import { Camera, CameraOff, X, Pencil, Trash2, Copy } from "lucide-react";
 import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
 import EditWasteModal from "./EditWasteModal";
 import { WASTE_REASONS, getLabel } from "@/lib/domain/catalogs";
@@ -22,6 +22,8 @@ type WasteRecord = {
   created_at: string;
   products: { name: string } | null;
   author?: string;
+  store_code?: string;
+  store_name?: string;
   transport_driver?: string | null;
   transport_plate?: string | null;
   transport_comment?: string | null;
@@ -74,6 +76,14 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     minute: "2-digit",
     timeZone: "America/Bogota",
   }).format(new Date(record.created_at));
+  const formattedDateTime = new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Bogota",
+  }).format(new Date(record.created_at));
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     const newStatus = e.target.value;
@@ -100,6 +110,28 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
       "Mermado automáticamente desde Radar FEFO. Producto: ",
       "",
     );
+  }
+
+  async function handleCopyTransportReport() {
+    const report = [
+      "Reporte de novedad de transporte",
+      `Tienda: ${record.store_name || "Sin tienda"}`,
+      `Codigo tienda: ${record.store_code || "Sin codigo"}`,
+      `Fecha y hora: ${formattedDateTime}`,
+      `Conductor: ${record.transport_driver || "N/A"}`,
+      `Placa: ${record.transport_plate || "N/A"}`,
+      `Producto afectado: ${productName}`,
+      `Unidades afectadas: ${record.qty} ${record.unit}`,
+      `Motivo: ${getLabel(WASTE_REASONS, record.reason as WasteReason)}`,
+      `Descripcion: ${record.transport_comment || record.observation || "Sin descripcion"}`,
+    ].join("\n");
+
+    try {
+      await navigator.clipboard.writeText(report);
+      toast.success("Reporte copiado para WhatsApp");
+    } catch {
+      toast.error("No se pudo copiar el reporte");
+    }
   }
 
   return (
@@ -224,7 +256,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         ) : null}
 
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
-          <div className="flex items-center gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
             {record.image_url || record.transport_evidence ? (
               <button
                 type="button"
@@ -243,6 +275,18 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                   Sin evidencia
                 </span>
               </div>
+            )}
+            {record.reason === "averia_transporte" && (
+              <button
+                type="button"
+                onClick={handleCopyTransportReport}
+                className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1.5 transition-colors hover:bg-blue-100 active:scale-95"
+              >
+                <Copy className="h-3.5 w-3.5 text-blue-600" />
+                <span className="text-[11px] font-bold text-blue-700">
+                  Copiar reporte
+                </span>
+              </button>
             )}
           </div>
 

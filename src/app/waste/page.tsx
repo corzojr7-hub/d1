@@ -31,7 +31,7 @@ export default async function WasteIndex({
   } = await supabase.auth.getUser();
   const { data: currentUserProfile } = await supabase
     .from("profiles")
-    .select("store_code, role")
+    .select("store_code, store_name, role")
     .eq("user_id", user?.id)
     .single();
 
@@ -201,7 +201,12 @@ export default async function WasteIndex({
           signedRecords.map((rec) => (
             <WasteCard
               key={rec.id}
-              record={{ ...rec, author: profileMap.get(rec.created_by) }}
+              record={{
+                ...rec,
+                author: profileMap.get(rec.created_by),
+                store_code: currentUserProfile?.store_code || "",
+                store_name: currentUserProfile?.store_name || "",
+              }}
               userRole={currentUserProfile?.role}
             />
           ))

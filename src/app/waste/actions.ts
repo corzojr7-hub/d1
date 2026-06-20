@@ -116,6 +116,15 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
   const productName = getString(formData, "product_name")?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
   const dateStr = new Date().toISOString().split('T')[0];
 
+  if (reason === "averia_transporte") {
+    if (!validatedData.transportDriver) {
+      return { error: "El nombre del conductor es obligatorio para averia de transporte." };
+    }
+    if (!validatedData.transportPlate) {
+      return { error: "La placa del conductor es obligatoria para averia de transporte." };
+    }
+  }
+
   let imageUrl: string | null = null;
   let transportEvidenceUrls: { novedad: string; lote: string; proveedor: string; cantidades: string } | null = null;
 
