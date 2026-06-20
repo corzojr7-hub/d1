@@ -115,7 +115,7 @@ export default function ChecklistsClient({
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
         <div className="flex items-start gap-3">
           <Link
             href="/"
@@ -142,7 +142,7 @@ export default function ChecklistsClient({
 
       {/* Tabs */}
       <div className="px-4 pt-4">
-        <div className="grid grid-cols-2 gap-1.5 rounded-[22px] bg-white p-1.5 shadow-sm ring-1 ring-slate-200">
+        <div className="grid grid-cols-2 gap-1.5 rounded-[22px] border border-slate-200/80 bg-white/95 p-1.5 shadow-sm">
         <button
           onClick={() => setActiveTab("verificacion")}
           className={`rounded-[18px] py-2.5 text-[13px] font-bold transition-all ${
@@ -219,7 +219,7 @@ export default function ChecklistsClient({
               configuredBasics.map((basic) => {
                 const alreadyAssigned = initialTasks.some((t) => t.task_name === basic.name);
                 return (
-                  <div key={basic.id} className="rounded-[28px] bg-white p-4 shadow-sm ring-1 ring-slate-100">
+                  <div key={basic.id} className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm">
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <h3 className="min-w-0 text-sm font-black leading-tight text-slate-900">{basic.name}</h3>
                       <span className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${basic.type === 'apertura' ? 'bg-amber-100 text-amber-700 ring-1 ring-amber-100' : 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-100'}`}>
@@ -299,7 +299,7 @@ export default function ChecklistsClient({
                 const isWarning = isPendingTask && minutesLeft > 0 && minutesLeft <= 15;
 
                 return (
-                  <div key={task.id} className={`rounded-[28px] bg-white p-4 shadow-sm border ${isOverdue ? 'border-red-300 ring-1 ring-red-300' : isWarning ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-100 ring-1 ring-slate-100'}`}>
+                  <div key={task.id} className={`rounded-[28px] bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm border ${isOverdue ? 'border-red-300 ring-1 ring-red-300' : isWarning ? 'border-amber-300 ring-1 ring-amber-300' : 'border-slate-200/80'}`}>
                     <div className="mb-2 flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <h3 className="text-sm font-black leading-tight text-slate-900">{task.task_name}</h3>
@@ -381,7 +381,7 @@ export default function ChecklistsClient({
 
         {activeTab === "configuracion" && isSupervisor && (
           <form onSubmit={handleSaveConfig} className="space-y-4">
-            <div className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100">
+            <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
               <h2 className="text-sm font-extrabold tracking-wide text-slate-800 uppercase mb-4">
                 Configuración de Básicos
               </h2>

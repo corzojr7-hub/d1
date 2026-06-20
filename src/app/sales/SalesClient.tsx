@@ -281,9 +281,11 @@ export default function SalesClient({
         Volver
       </Link>
 
-      <div className="flex items-center justify-between">
+      <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Ventas</h1>
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Ventas</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875]">Control comercial</h1>
           <p className="mt-1 text-sm font-medium capitalize text-slate-500">
             {format(currentDate, "MMMM yyyy", { locale: es })}
           </p>
@@ -305,10 +307,11 @@ export default function SalesClient({
             →
           </button>
         </div>
+        </div>
       </div>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
           <Target className="h-4 w-4" /> Presupuesto del Mes
         </h2>
         {isSupervisor ? (
@@ -384,7 +387,7 @@ export default function SalesClient({
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
         <div className="mb-4">
           <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
             Life for Life
@@ -463,8 +466,8 @@ export default function SalesClient({
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
           <Calendar className="h-4 w-4" /> Venta Diaria
         </h2>
         {canCreateSale ? (
@@ -534,8 +537,8 @@ export default function SalesClient({
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/30 p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
           <AlertCircle className="h-4 w-4" /> Cortes Semanales e Impacto Merma
         </h2>
 
@@ -644,8 +647,8 @@ export default function SalesClient({
         </div>
       </section>
 
-      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
           <Calendar className="h-4 w-4" /> Historial de {format(currentDate, "MMMM", { locale: es })}
         </h2>
         {monthSales.length === 0 ? (
