@@ -1,6 +1,7 @@
 "use client";
 
 import { Download, FileText } from "lucide-react";
+import { useState } from "react";
 import * as XLSX from "xlsx";
 
 type WasteExportRow = {
@@ -37,6 +38,8 @@ type ExportDataButtonProps = {
 };
 
 export default function ExportDataButton({ wasteData, impulseData, posData }: ExportDataButtonProps) {
+  const [pdfSection, setPdfSection] = useState("ventas");
+
   const sanitizeCell = (value: string | number | boolean | null | undefined) => {
     if (typeof value !== "string") return value;
     const unsafeChars = ["=", "+", "-", "@"];
@@ -86,7 +89,65 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
   };
 
   const handlePrintPDF = () => {
-    window.print();
+    const section = document.querySelector<HTMLElement>(`[data-pdf-section="${pdfSection}"]`);
+    if (!section) return;
+
+    const printWindow = window.open("", "_blank", "width=1200,height=900");
+    if (!printWindow) return;
+
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((node) => node.outerHTML)
+      .join("");
+
+    const titles: Record<string, string> = {
+      "life-for-life": "Life for Life",
+      ventas: "Ventas",
+      impulso: "Impulso",
+      merma: "Merma",
+      "productividad-pos": "Productividad POS",
+    };
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${titles[pdfSection] || "Estadísticas"}</title>
+          ${styles}
+          <style>
+            body {
+              margin: 0;
+              padding: 24px;
+              background: white;
+              color: #0f172a;
+            }
+            .pdf-shell {
+              max-width: 1100px;
+              margin: 0 auto;
+            }
+            .recharts-responsive-container,
+            .recharts-wrapper,
+            svg {
+              max-width: 100% !important;
+            }
+            .recharts-surface {
+              overflow: visible;
+            }
+            button, select {
+              display: none !important;
+            }
+            @page {
+              size: A4 portrait;
+              margin: 12mm;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="pdf-shell">${section.outerHTML}</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   };
 
   return (
@@ -105,6 +166,18 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
         <FileText className="h-3.5 w-3.5" />
         PDF
       </button>
+      <select
+        value={pdfSection}
+        onChange={(event) => setPdfSection(event.target.value)}
+        className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm outline-none transition focus:border-[#0a3875]"
+        aria-label="Seleccionar sección para PDF"
+      >
+        <option value="ventas">PDF ventas</option>
+        <option value="impulso">PDF impulso</option>
+        <option value="merma">PDF merma</option>
+        <option value="productividad-pos">PDF productividad POS</option>
+        <option value="life-for-life">PDF comparativo</option>
+      </select>
     </div>
   );
 }

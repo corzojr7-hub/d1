@@ -109,7 +109,7 @@ function getAssistantOptions(profile: {
 }
 
 export const metadata: Metadata = {
-  title: "Estadisticas - Sistema Operativo",
+  title: "Estadísticas - Sistema Operativo",
 };
 
 export default async function DashboardPage(props: {
@@ -410,9 +410,9 @@ export default async function DashboardPage(props: {
 
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Estadisticas</h1>
+          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Estadísticas</h1>
           <p className="mt-1 text-sm font-medium text-slate-500">
-            Metricas y eficiencia de la tienda
+            Métricas y eficiencia de la tienda
           </p>
         </div>
         <ExportDataButton
@@ -423,14 +423,17 @@ export default async function DashboardPage(props: {
       </div>
 
       <div className="space-y-8">
-        <section className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6">
+        <section
+          data-pdf-section="life-for-life"
+          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6"
+        >
           <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
               Life for Life
               </p>
               <h2 className="mt-1 text-xl font-black text-slate-900">
-                Comparativo del dia {bogotaToday.day} vs {previousMonthPrefix}
+                Comparativo del día {bogotaToday.day} vs {previousMonthPrefix}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
                 Corte acumulado del mes actual frente al mismo punto del mes anterior.
@@ -450,7 +453,7 @@ export default async function DashboardPage(props: {
                   Punto de corte
                 </p>
                 <p className="mt-1 text-lg font-black text-blue-900">
-                  Dia {bogotaToday.day}
+                  Día {bogotaToday.day}
                 </p>
               </div>
             </div>
@@ -508,45 +511,48 @@ export default async function DashboardPage(props: {
 
           <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-[12px] text-blue-900">
             <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-500">
-              Dia comparable
+              Día comparable
             </p>
             <p className="mt-2 text-sm">
-              Venta del dia {bogotaToday.day}: <span className="font-black">{formatCop(currentSalesExactDay)}</span>
+              Venta del día {bogotaToday.day}: <span className="font-black">{formatCop(currentSalesExactDay)}</span>
               {" "}vs{" "}
-              <span className="font-black">{formatCop(previousSalesExactDay)}</span> en el mismo dia
+              <span className="font-black">{formatCop(previousSalesExactDay)}</span> en el mismo día
               del mes anterior.
             </p>
           </div>
         </section>
 
-        <section>
+        <section data-pdf-section="ventas">
           <div className="mb-4">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Ventas</p>
             <h2 className="mt-1 text-lg font-black text-slate-900">Comportamiento comercial</h2>
-            <p className="mt-1 text-sm text-slate-500">Lectura por dia, semana y mes con el mismo corte del tablero.</p>
+            <p className="mt-1 text-sm text-slate-500">Lectura por día, semana y mes con el mismo corte del tablero.</p>
           </div>
           <SalesTrendsChart data={dailySales || []} />
         </section>
 
-        <section>
+        <section data-pdf-section="impulso">
           <div className="mb-4">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Impulso</p>
             <h2 className="mt-1 text-lg font-black text-slate-900">Movimiento por colaborador</h2>
-            <p className="mt-1 text-sm text-slate-500">Evolucion diaria y participacion del equipo en piso.</p>
+            <p className="mt-1 text-sm text-slate-500">Evolución diaria y participación del equipo en piso.</p>
           </div>
           <ImpulseCharts data={impulseRecords || []} />
         </section>
 
-        <section>
+        <section data-pdf-section="merma">
           <div className="mb-4">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Merma</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">Prevencion y trazabilidad</h2>
-            <p className="mt-1 text-sm text-slate-500">Productos criticos, motivos mas frecuentes y registradores con mas casos.</p>
+            <h2 className="mt-1 text-lg font-black text-slate-900">Prevención y trazabilidad</h2>
+            <p className="mt-1 text-sm text-slate-500">Productos críticos, motivos más frecuentes y registradores con más casos.</p>
           </div>
           <DashboardCharts topProducts={topProducts} reasonData={reasonData} userWasteData={userWasteData} />
         </section>
 
-        <section className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6">
+        <section
+          data-pdf-section="productividad-pos"
+          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6"
+        >
           <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
@@ -616,7 +622,7 @@ export default async function DashboardPage(props: {
                   </p>
                   <h3 className="mt-1 text-lg font-black text-slate-900">Registrar productividad POS</h3>
                   <p className="mt-1 text-sm text-slate-500">
-                    Meta articulos/min: 30. Meta escaneo: 15 o mas.
+                    Meta artículos/min: 30. Meta escaneo: 15 o más.
                   </p>
                 </div>
                 <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-500">
@@ -664,7 +670,7 @@ export default async function DashboardPage(props: {
 
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                    Articulos por minuto
+                    Artículos por minuto
                   </span>
                   <input
                     name="productivity"
@@ -731,7 +737,7 @@ export default async function DashboardPage(props: {
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
+                    <p className="text-xs font-bold text-violet-700">Artículos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Ayer: {formatMetric(posYesterday.productivity)} · {getMetricDelta(posToday.productivity, posYesterday.productivity).toFixed(1)}%
@@ -767,7 +773,7 @@ export default async function DashboardPage(props: {
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
+                    <p className="text-xs font-bold text-violet-700">Artículos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMonthSameDay.productivity)} · {getMetricDelta(posToday.productivity, posPreviousMonthSameDay.productivity).toFixed(1)}%
@@ -803,7 +809,7 @@ export default async function DashboardPage(props: {
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Articulos/min promedio</p>
+                    <p className="text-xs font-bold text-violet-700">Artículos/min promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousMtdProductivity).toFixed(1)}%
@@ -835,11 +841,11 @@ export default async function DashboardPage(props: {
 
               <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-                  Mes actual vs mismo mes ano anterior
+                  Mes actual vs mismo mes año anterior
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Articulos/min promedio</p>
+                    <p className="text-xs font-bold text-violet-700">Artículos/min promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
                       Antes: {formatMetric(posPreviousYearMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousYearMtdProductivity).toFixed(1)}%
