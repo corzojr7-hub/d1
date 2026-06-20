@@ -2,13 +2,24 @@
 
 import { useState, useMemo, useEffect, startTransition } from "react";
 import Link from "next/link";
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDaysInMonth, isWithinInterval, startOfWeek, endOfWeek, parseISO } from "date-fns";
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  getDaysInMonth,
+  isWithinInterval,
+  startOfWeek,
+  endOfWeek,
+  parseISO,
+  subMonths,
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste } from "./actions";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
 import { TrendingUp, Target, Save, Calendar, AlertCircle } from "lucide-react";
-import { useProfile } from '@/components/ui/ProfileContext';
-import { toast } from 'sonner';
+import { useProfile } from "@/components/ui/ProfileContext";
+import { toast } from "sonner";
 
 export default function SalesClient({
   initialBudgets,
@@ -29,26 +40,21 @@ export default function SalesClient({
   }, []);
 
   const [currentDate, setCurrentDate] = useState(new Date());
-  
-  // States for forms
-  const [isSavingBudget] = useState(false);
   const [budgetInput, setBudgetInput] = useState("");
-  
   const [saleDate, setSaleDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [saleAmount, setSaleAmount] = useState("");
-  const [isSavingSale] = useState(false);
-
   const [wasteAmount, setWasteAmount] = useState("");
   const [wasteWeek, setWasteWeek] = useState("");
   const [isSavingWaste, setIsSavingWaste] = useState(false);
 
   const currentMonthYear = format(currentDate, "yyyy-MM");
-  
+  const previousMonthDate = useMemo(() => subMonths(currentDate, 1), [currentDate]);
+  const previousMonthYear = format(previousMonthDate, "yyyy-MM");
+
   const currentBudget = useMemo(() => {
-    return initialBudgets.find(b => b.month_year === currentMonthYear)?.budget_amount || 0;
+    return initialBudgets.find((budget) => budget.month_year === currentMonthYear)?.budget_amount || 0;
   }, [initialBudgets, currentMonthYear]);
 
-  // Use budgetInput state only when editing
   useEffect(() => {
     const timer = setTimeout(() => {
       setBudgetInput(currentBudget > 0 ? currentBudget.toString() : "");
@@ -59,17 +65,74 @@ export default function SalesClient({
   const monthSales = useMemo(() => {
     const start = startOfMonth(currentDate);
     const end = endOfMonth(currentDate);
-    return initialSales.filter(s => {
-      const date = parseISO(s.date);
+    return initialSales.filter((sale) => {
+      const date = parseISO(sale.date);
       return isWithinInterval(date, { start, end });
     });
   }, [initialSales, currentDate]);
 
+  const previousMonthSales = useMemo(() => {
+    const start = startOfMonth(previousMonthDate);
+    const end = endOfMonth(previousMonthDate);
+    return initialSales.filter((sale) => {
+      const date = parseISO(sale.date);
+      return isWithinInterval(date, { start, end });
+    });
+  }, [initialSales, previousMonthDate]);
+
   const totalSalesMonth = monthSales.reduce((acc, curr) => acc + Number(curr.amount), 0);
 
-  // Pre-fill daily sale amount if it already exists
+  const salesLifeForLife = useMemo(() => {
+    const currentSalesByDay = new Map<number, number>();
+    monthSales.forEach((sale) => {
+      const day = parseISO(sale.date).getDate();
+      currentSalesByDay.set(day, (currentSalesByDay.get(day) || 0) + Number(sale.amount));
+    });
+
+    const previousSalesByDay = new Map<number, number>();
+    previousMonthSales.forEach((sale) => {
+      const day = parseISO(sale.date).getDate();
+      previousSalesByDay.set(day, (previousSalesByDay.get(day) || 0) + Number(sale.amount));
+    });
+
+    const cutoffDay =
+      monthSales.length > 0
+        ? Math.max(...monthSales.map((sale) => parseISO(sale.date).getDate()))
+        : 0;
+
+    const currentMtd = Array.from(currentSalesByDay.entries())
+      .filter(([day]) => day <= cutoffDay)
+      .reduce((sum, [, amount]) => sum + amount, 0);
+
+    const previousMtd = Array.from(previousSalesByDay.entries())
+      .filter(([day]) => day <= cutoffDay)
+      .reduce((sum, [, amount]) => sum + amount, 0);
+
+    const exactCurrent = cutoffDay > 0 ? currentSalesByDay.get(cutoffDay) || 0 : 0;
+    const exactPrevious = cutoffDay > 0 ? previousSalesByDay.get(cutoffDay) || 0 : 0;
+
+    const deltaPercent =
+      previousMtd > 0 ? ((currentMtd - previousMtd) / previousMtd) * 100 : currentMtd > 0 ? 100 : 0;
+    const dailyDeltaPercent =
+      exactPrevious > 0
+        ? ((exactCurrent - exactPrevious) / exactPrevious) * 100
+        : exactCurrent > 0
+          ? 100
+          : 0;
+
+    return {
+      cutoffDay,
+      currentMtd,
+      previousMtd,
+      exactCurrent,
+      exactPrevious,
+      deltaPercent,
+      dailyDeltaPercent,
+    };
+  }, [monthSales, previousMonthSales]);
+
   const existingDailySale = useMemo(() => {
-    return initialSales.find(s => s.date === saleDate);
+    return initialSales.find((sale) => sale.date === saleDate);
   }, [initialSales, saleDate]);
 
   useEffect(() => {
@@ -82,48 +145,47 @@ export default function SalesClient({
     }, 0);
     return () => clearTimeout(timer);
   }, [existingDailySale]);
-  
-  // Forecast
+
   const daysInMonth = getDaysInMonth(currentDate);
-  const daysWithSales = new Set(monthSales.map(s => s.date)).size;
+  const daysWithSales = new Set(monthSales.map((sale) => sale.date)).size;
   const averageDailySale = daysWithSales > 0 ? totalSalesMonth / daysWithSales : 0;
   const forecastedTotal = averageDailySale * daysInMonth;
   const progressPercent = currentBudget > 0 ? (totalSalesMonth / currentBudget) * 100 : 0;
   const forecastPercent = currentBudget > 0 ? (forecastedTotal / currentBudget) * 100 : 0;
 
-  // Weekly cuts
   const weeksInMonth = useMemo(() => {
-    const days = eachDayOfInterval({ start: startOfMonth(currentDate), end: endOfMonth(currentDate) });
-    const weeksMap = new Map<string, { start: Date, end: Date, sales: number, waste: number }>();
-    
-    days.forEach(day => {
-      // Use Monday as start of week
+    const days = eachDayOfInterval({
+      start: startOfMonth(currentDate),
+      end: endOfMonth(currentDate),
+    });
+    const weeksMap = new Map<string, { start: Date; end: Date; sales: number; waste: number }>();
+
+    days.forEach((day) => {
       const weekStart = startOfWeek(day, { weekStartsOn: 1 });
       const weekEnd = endOfWeek(day, { weekStartsOn: 1 });
       const weekKey = format(weekStart, "yyyy-MM-dd");
-      
+
       if (!weeksMap.has(weekKey)) {
-        const wasteEntry = initialWaste.find(w => w.week_start === weekKey);
+        const wasteEntry = initialWaste.find((waste) => waste.week_start === weekKey);
         weeksMap.set(weekKey, {
           start: weekStart,
           end: weekEnd,
           sales: 0,
-          waste: wasteEntry ? Number(wasteEntry.waste_amount) : 0
+          waste: wasteEntry ? Number(wasteEntry.waste_amount) : 0,
         });
       }
-      
+
       const daySaleStr = format(day, "yyyy-MM-dd");
-      const sale = monthSales.find(s => s.date === daySaleStr);
+      const sale = monthSales.find((item) => item.date === daySaleStr);
       if (sale) {
-        const w = weeksMap.get(weekKey)!;
-        w.sales += Number(sale.amount);
+        const week = weeksMap.get(weekKey)!;
+        week.sales += Number(sale.amount);
       }
     });
 
-    return Array.from(weeksMap.entries()).map(([key, data]) => ({
-      key,
-      ...data
-    })).sort((a, b) => a.key.localeCompare(b.key));
+    return Array.from(weeksMap.entries())
+      .map(([key, data]) => ({ key, ...data }))
+      .sort((a, b) => a.key.localeCompare(b.key));
   }, [currentDate, monthSales, initialWaste]);
 
   async function handleSaveBudget() {
@@ -153,10 +215,10 @@ export default function SalesClient({
     });
   }
 
-  async function handleSaveWaste(weekStart: string, weekEnd: string, amountStr: string) {
+  async function handleSaveWaste(weekStart: string, weekEndIso: string, amountStr: string) {
     if (!amountStr) return;
     setIsSavingWaste(true);
-    const endStr = format(weekEnd, "yyyy-MM-dd");
+    const endStr = format(weekEndIso, "yyyy-MM-dd");
     await setWeeklyWaste(weekStart, endStr, Number(amountStr));
     setIsSavingWaste(false);
     setWasteAmount("");
@@ -164,100 +226,139 @@ export default function SalesClient({
     alert("Merma semanal guardada");
   }
 
-  const formatCurrency = (val: number) => new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 }).format(val);
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      maximumFractionDigits: 0,
+    }).format(value);
 
-  if (!isMounted) return <div className="flex justify-center p-10"><p className="text-sm font-bold text-slate-400">Cargando...</p></div>;
+  if (!isMounted) {
+    return (
+      <div className="flex justify-center p-10">
+        <p className="text-sm font-bold text-slate-400">Cargando...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-md px-4 pt-6 pb-24 space-y-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8 lg:pt-10">
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+    <div className="mx-auto max-w-md space-y-6 px-4 pt-6 pb-24 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8 lg:pt-10">
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="m15 18-6-6 6-6" />
+        </svg>
         Volver
       </Link>
+
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black text-[#0a3875] tracking-tight">Ventas</h1>
-          <p className="text-sm font-medium text-slate-500 mt-1 capitalize">
+          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Ventas</h1>
+          <p className="mt-1 text-sm font-medium capitalize text-slate-500">
             {format(currentDate, "MMMM yyyy", { locale: es })}
+          </p>
+          <p className="mt-1 text-[11px] font-medium text-slate-400">
+            Puedes cargar meses anteriores moviendo el mes y registrando la fecha exacta.
           </p>
         </div>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
-            className="p-2 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200"
+            className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
           >
             ←
           </button>
-          <button 
+          <button
             onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
-            className="p-2 bg-slate-100 rounded-full text-slate-600 hover:bg-slate-200"
+            className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
           >
             →
           </button>
         </div>
       </div>
 
-      {/* Presupuesto */}
-      <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-          <Target className="w-4 h-4" /> Presupuesto del Mes
+      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <Target className="h-4 w-4" /> Presupuesto del Mes
         </h2>
         {isSupervisor ? (
-          <div className="flex items-end gap-3 mb-4">
+          <div className="mb-4 flex items-end gap-3">
             <div className="flex-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Valor estimado ($)</label>
-              <input 
-                type="number" 
-                inputMode="decimal" 
+              <label className="text-[10px] font-bold uppercase text-slate-500">
+                Valor estimado ($)
+              </label>
+              <input
+                type="number"
+                inputMode="decimal"
                 value={budgetInput}
                 onChange={(e) => setBudgetInput(e.target.value)}
-                className="w-full mt-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-800"
                 placeholder="Ej: 150000000"
               />
             </div>
-            <button 
+            <button
               onClick={handleSaveBudget}
-              disabled={isSavingBudget}
-              className="h-10 px-4 bg-[#0a3875] text-white rounded-xl text-sm font-bold active:scale-95 transition-transform"
+              className="h-10 rounded-xl bg-[#0a3875] px-4 text-sm font-bold text-white transition-transform active:scale-95"
             >
-              {isSavingBudget ? "..." : <Save className="w-4 h-4" />}
+              <Save className="h-4 w-4" />
             </button>
           </div>
         ) : (
-          <div className="mb-4 bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <p className="text-[10px] font-bold text-slate-400 uppercase">Presupuesto Actual</p>
-            <p className="text-lg font-black text-[#0a3875]">{currentBudget > 0 ? formatCurrency(currentBudget) : "An no asignado"}</p>
+          <div className="mb-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <p className="text-[10px] font-bold uppercase text-slate-400">Presupuesto actual</p>
+            <p className="text-lg font-black text-[#0a3875]">
+              {currentBudget > 0 ? formatCurrency(currentBudget) : "Aun no asignado"}
+            </p>
           </div>
         )}
 
         {currentBudget > 0 && (
-          <div className="mt-6 pt-4 border-t border-slate-100">
-            <div className="flex justify-between items-end mb-2">
+          <div className="mt-6 border-t border-slate-100 pt-4">
+            <div className="mb-2 flex items-end justify-between">
               <div>
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Venta Acumulada</p>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Venta acumulada</p>
                 <p className="text-lg font-black text-slate-800">{formatCurrency(totalSalesMonth)}</p>
               </div>
               <div className="text-right">
-                <p className="text-[10px] font-bold text-slate-400 uppercase">Progreso</p>
-                <p className={`text-lg font-black ${progressPercent >= 100 ? 'text-emerald-500' : 'text-[#0a3875]'}`}>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Progreso</p>
+                <p
+                  className={`text-lg font-black ${
+                    progressPercent >= 100 ? "text-emerald-500" : "text-[#0a3875]"
+                  }`}
+                >
                   {progressPercent.toFixed(1)}%
                 </p>
               </div>
             </div>
-            
-            <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden mt-2">
-              <div 
-                className={`h-full rounded-full transition-all ${progressPercent >= 100 ? 'bg-emerald-500' : 'bg-[#e51d2e]'}`} 
+
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-slate-100">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  progressPercent >= 100 ? "bg-emerald-500" : "bg-[#e51d2e]"
+                }`}
                 style={{ width: `${Math.min(progressPercent, 100)}%` }}
-              ></div>
+              />
             </div>
 
-            <div className="mt-4 p-3 bg-blue-50 rounded-xl flex items-start gap-3">
-              <TrendingUp className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+            <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-3">
+              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <div>
-                <p className="text-xs font-bold text-blue-900">Pronóstico (Run Rate)</p>
-                <p className="text-[11px] text-blue-700 leading-tight mt-1">
-                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}/día</b>, cerrarás el mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
+                <p className="text-xs font-bold text-blue-900">Pronostico (Run Rate)</p>
+                <p className="mt-1 text-[11px] leading-tight text-blue-700">
+                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}/dia</b>,
+                  cerraras el mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
                 </p>
               </div>
             </div>
@@ -265,133 +366,240 @@ export default function SalesClient({
         )}
       </section>
 
-      {/* Registro de Venta Diaria */}
-      <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-          <Calendar className="w-4 h-4" /> Venta Diaria
+      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="mb-4">
+          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
+            Life for Life
+          </h2>
+          <p className="mt-1 text-sm font-medium text-slate-500">
+            Comparacion del corte actual frente al mismo corte del mes anterior.
+          </p>
+        </div>
+
+        {salesLifeForLife.cutoffDay === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center">
+            <p className="text-[11px] font-bold text-slate-400">
+              Aun no hay ventas registradas en este mes para comparar.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl bg-slate-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                  Corte acumulado al dia {salesLifeForLife.cutoffDay}
+                </p>
+                <p className="mt-2 text-lg font-black text-slate-900">
+                  {formatCurrency(salesLifeForLife.currentMtd)}
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Mes anterior: {formatCurrency(salesLifeForLife.previousMtd)}
+                </p>
+              </div>
+
+              <div className="rounded-2xl bg-blue-50 p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-500">
+                  Variacion acumulada
+                </p>
+                <p
+                  className={`mt-2 text-lg font-black ${
+                    salesLifeForLife.deltaPercent >= 0 ? "text-emerald-600" : "text-red-600"
+                  }`}
+                >
+                  {salesLifeForLife.deltaPercent >= 0 ? "+" : ""}
+                  {salesLifeForLife.deltaPercent.toFixed(1)}%
+                </p>
+                <p className="mt-1 text-[11px] text-slate-500">
+                  {salesLifeForLife.deltaPercent >= 0 ? "Mejora" : "Caida"} frente a{" "}
+                  {previousMonthYear}
+                </p>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white px-4 py-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                Dia exacto vs mes anterior
+              </p>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-sm font-black text-slate-900">
+                    Dia {salesLifeForLife.cutoffDay}: {formatCurrency(salesLifeForLife.exactCurrent)}
+                  </p>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Mismo dia en {previousMonthYear}: {formatCurrency(salesLifeForLife.exactPrevious)}
+                  </p>
+                </div>
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold ${
+                    salesLifeForLife.dailyDeltaPercent >= 0
+                      ? "bg-emerald-50 text-emerald-600"
+                      : "bg-red-50 text-red-600"
+                  }`}
+                >
+                  {salesLifeForLife.dailyDeltaPercent >= 0 ? "+" : ""}
+                  {salesLifeForLife.dailyDeltaPercent.toFixed(1)}%
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <Calendar className="h-4 w-4" /> Venta Diaria
         </h2>
         {isSupervisor ? (
           <div className="flex gap-3">
             <div className="w-1/3">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Da</label>
-              <input 
-                type="date" 
+              <label className="text-[10px] font-bold uppercase text-slate-500">Dia</label>
+              <input
+                type="date"
                 value={saleDate}
                 onChange={(e) => setSaleDate(e.target.value)}
-                className="w-full mt-1 px-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-800"
+                className="mt-1 w-full rounded-xl border border-slate-200 bg-slate-50 px-2 py-2 text-xs font-bold text-slate-800"
               />
             </div>
             <div className="flex-1">
-              <label className="text-[10px] font-bold text-slate-500 uppercase">Venta ($)</label>
+              <label className="text-[10px] font-bold uppercase text-slate-500">Venta ($)</label>
               <div className="flex gap-2">
-                <input 
-                  type="number" 
-                  inputMode="decimal" 
+                <input
+                  type="number"
+                  inputMode="decimal"
                   value={saleAmount}
                   onChange={(e) => setSaleAmount(e.target.value)}
                   placeholder="Ej: 5000000"
-                  className={`w-full mt-1 px-3 py-2 bg-slate-50 border rounded-xl text-sm font-bold text-slate-800 transition-colors ${existingDailySale ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200'}`}
+                  className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm font-bold text-slate-800 transition-colors ${
+                    existingDailySale
+                      ? "border-emerald-300 bg-emerald-50"
+                      : "border-slate-200 bg-slate-50"
+                  }`}
                 />
-                <button 
+                <button
                   onClick={handleSaveSale}
-                  disabled={isSavingSale}
-                  className={`h-10 mt-1 px-4 text-white rounded-xl text-sm font-bold active:scale-95 transition-all ${existingDailySale ? 'bg-emerald-600' : 'bg-[#0a3875]'}`}
+                  className={`mt-1 h-10 rounded-xl px-4 text-sm font-bold text-white transition-all active:scale-95 ${
+                    existingDailySale ? "bg-emerald-600" : "bg-[#0a3875]"
+                  }`}
                 >
-                  {isSavingSale ? "..." : (existingDailySale ? "Editar" : <Save className="w-4 h-4" />)}
+                  {existingDailySale ? "Editar" : <Save className="h-4 w-4" />}
                 </button>
               </div>
               {existingDailySale && (
-                <p className="text-[10px] text-emerald-600 font-bold mt-1.5 flex items-center gap-1">
+                <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-emerald-600">
                   ✓ Ya registrada (puedes editarla)
                 </p>
               )}
             </div>
           </div>
         ) : (
-          <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 text-center">
-            <p className="text-[11px] font-bold text-slate-400">Solo el supervisor puede registrar la venta diaria</p>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
+            <p className="text-[11px] font-bold text-slate-400">
+              Solo el supervisor puede registrar la venta diaria
+            </p>
           </div>
         )}
       </section>
 
-      {/* Cortes Semanales */}
-      <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4" /> Cortes Semanales e Impacto Merma
+      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <AlertCircle className="h-4 w-4" /> Cortes Semanales e Impacto Merma
         </h2>
-        
+
         <div className="space-y-4">
           {weeksInMonth.map((week, idx) => {
             const isEditingWaste = wasteWeek === week.key;
             const impactPercent = week.sales > 0 ? (week.waste / week.sales) * 100 : 0;
             const weeklyBudget = currentBudget > 0 ? currentBudget / weeksInMonth.length : 0;
-            const wasteGoal = weeklyBudget * 0.0020; // 0.20%
-            
+            const wasteGoal = weeklyBudget * 0.002;
+
             return (
-              <div key={week.key} className="border border-slate-100 rounded-2xl p-4">
-                <p className="text-[10px] font-bold text-slate-400 uppercase mb-2">
+              <div key={week.key} className="rounded-2xl border border-slate-100 p-4">
+                <p className="mb-2 text-[10px] font-bold uppercase text-slate-400">
                   Semana {idx + 1} ({format(week.start, "dd MMM")} - {format(week.end, "dd MMM")})
                 </p>
-                <div className="flex justify-between items-center mb-3">
+                <div className="mb-3 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] text-slate-500">Ventas Semana</p>
+                    <p className="text-[10px] text-slate-500">Ventas semana</p>
                     <p className="text-sm font-black text-slate-800">{formatCurrency(week.sales)}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] text-slate-500">Merma ($) {wasteGoal > 0 && <span className="font-bold text-blue-600">| Meta: {formatCurrency(wasteGoal)}</span>}</p>
+                    <p className="text-[10px] text-slate-500">
+                      Merma ($){" "}
+                      {wasteGoal > 0 && (
+                        <span className="font-bold text-blue-600">
+                          | Meta: {formatCurrency(wasteGoal)}
+                        </span>
+                      )}
+                    </p>
                     {week.waste > 0 && !isEditingWaste ? (
-                      <p className="text-sm font-black text-slate-800 cursor-pointer" onClick={() => isSupervisor && setWasteWeek(week.key)}>
+                      <p
+                        className="cursor-pointer text-sm font-black text-slate-800"
+                        onClick={() => isSupervisor && setWasteWeek(week.key)}
+                      >
                         {formatCurrency(week.waste)}
                       </p>
                     ) : isSupervisor ? (
-                      <button 
+                      <button
                         onClick={() => setWasteWeek(week.key)}
-                        className="text-[10px] font-bold text-[#0a3875] bg-blue-50 px-2 py-1 rounded-lg mt-1"
+                        className="mt-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#0a3875]"
                       >
                         + INGRESAR
                       </button>
                     ) : (
-                      <p className="text-[11px] font-bold text-slate-400 mt-1">Sin registrar</p>
+                      <p className="mt-1 text-[11px] font-bold text-slate-400">Sin registrar</p>
                     )}
                   </div>
                 </div>
 
                 {isEditingWaste && (
-                  <div className="flex gap-2 mb-3 bg-blue-50 p-2 rounded-xl border border-blue-100">
-                    <input 
+                  <div className="mb-3 flex gap-2 rounded-xl border border-blue-100 bg-blue-50 p-2">
+                    <input
                       type="number"
                       inputMode="decimal"
                       placeholder="Total Merma ($)"
                       value={wasteAmount}
                       onChange={(e) => setWasteAmount(e.target.value)}
-                      className="w-full px-2 py-1.5 rounded-lg text-xs font-bold border border-blue-200"
+                      className="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-bold"
                     />
-                    <button 
+                    <button
                       onClick={() => handleSaveWaste(week.key, week.end.toISOString(), wasteAmount)}
                       disabled={isSavingWaste}
-                      className="bg-[#0a3875] text-white px-3 rounded-lg text-xs font-bold"
+                      className="rounded-lg bg-[#0a3875] px-3 text-xs font-bold text-white"
                     >
                       Guardar
                     </button>
-                    <button onClick={() => setWasteWeek("")} className="px-2 text-xs text-blue-800 font-bold">X</button>
+                    <button
+                      onClick={() => setWasteWeek("")}
+                      className="px-2 text-xs font-bold text-blue-800"
+                    >
+                      X
+                    </button>
                   </div>
                 )}
 
-                {(week.waste > 0 && week.sales > 0) && (
-                  <div className="pt-3 border-t border-slate-50 flex flex-col gap-2">
-                    <div className="flex justify-between items-center">
-                      <p className="text-[10px] font-bold text-slate-500 uppercase">Impacto sobre ventas</p>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold ${impactPercent > 0.20 ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                {week.waste > 0 && week.sales > 0 && (
+                  <div className="flex flex-col gap-2 border-t border-slate-50 pt-3">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[10px] font-bold uppercase text-slate-500">
+                        Impacto sobre ventas
+                      </p>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          impactPercent > 0.2
+                            ? "bg-red-100 text-red-700"
+                            : "bg-emerald-100 text-emerald-700"
+                        }`}
+                      >
                         {impactPercent.toFixed(2)}%
                       </span>
                     </div>
-                    {impactPercent <= 0.20 ? (
-                      <p className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg text-center">
-                        ✅ ¡Cumpliste la meta! No superaste el 0.20%
+                    {impactPercent <= 0.2 ? (
+                      <p className="rounded-lg bg-emerald-50 px-2 py-1 text-center text-[10px] font-bold text-emerald-600">
+                        Cumpliste la meta. No superaste el 0.20%
                       </p>
                     ) : (
-                      <p className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-1 rounded-lg text-center">
-                        ❌ No cumpliste la meta. Te pasaste por {(impactPercent - 0.20).toFixed(2)}%
+                      <p className="rounded-lg bg-red-50 px-2 py-1 text-center text-[10px] font-bold text-red-600">
+                        No cumpliste la meta. Te pasaste por {(impactPercent - 0.2).toFixed(2)}%
                       </p>
                     )}
                   </div>
@@ -402,23 +610,33 @@ export default function SalesClient({
         </div>
       </section>
 
-      {/* Historial de Ventas del Mes */}
-      <section className="bg-white rounded-3xl p-5 shadow-sm border border-slate-100">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-          <Calendar className="w-4 h-4" /> Historial de {format(currentDate, "MMMM", { locale: es })}
+      <section className="rounded-3xl border border-slate-100 bg-white p-5 shadow-sm">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
+          <Calendar className="h-4 w-4" /> Historial de {format(currentDate, "MMMM", { locale: es })}
         </h2>
         {monthSales.length === 0 ? (
-          <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-            <p className="text-[11px] font-bold text-slate-400">Aún no hay ventas registradas en este mes</p>
+          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
+            <p className="text-[11px] font-bold text-slate-400">
+              Aun no hay ventas registradas en este mes
+            </p>
           </div>
         ) : (
           <div className="space-y-2">
-            {[...monthSales].sort((a, b) => b.date.localeCompare(a.date)).map(sale => (
-              <div key={sale.id} className="flex justify-between items-center p-3 border border-slate-100 rounded-xl">
-                <p className="text-xs font-bold text-slate-500">{format(parseISO(sale.date), "EEEE dd", { locale: es }).toUpperCase()}</p>
-                <p className="text-sm font-black text-slate-800">{formatCurrency(Number(sale.amount))}</p>
-              </div>
-            ))}
+            {[...monthSales]
+              .sort((a, b) => b.date.localeCompare(a.date))
+              .map((sale) => (
+                <div
+                  key={sale.id}
+                  className="flex items-center justify-between rounded-xl border border-slate-100 p-3"
+                >
+                  <p className="text-xs font-bold text-slate-500">
+                    {format(parseISO(sale.date), "EEEE dd", { locale: es }).toUpperCase()}
+                  </p>
+                  <p className="text-sm font-black text-slate-800">
+                    {formatCurrency(Number(sale.amount))}
+                  </p>
+                </div>
+              ))}
           </div>
         )}
       </section>
