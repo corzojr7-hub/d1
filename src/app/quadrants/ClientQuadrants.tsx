@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileSignature, ShieldCheck, UserPlus } from "lucide-react";
+import { ArrowLeft, Download, FileSignature, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { acceptQuadrant, assignQuadrant, updateQuadrantAssignment } from "./actions";
 
@@ -24,11 +24,15 @@ export default function ClientQuadrants({
   assistants,
   areas,
   canManage,
+  storeName,
+  supervisorName,
 }: {
   assignments: QuadrantAssignment[];
   assistants: Assistant[];
   areas: string[];
   canManage: boolean;
+  storeName: string;
+  supervisorName: string;
 }) {
   const [isPending, startTransition] = useTransition();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -92,6 +96,203 @@ export default function ClientQuadrants({
         toast.error(err instanceof Error ? err.message : "Error al actualizar el cuadrante.");
       }
     });
+  }
+
+  function handleDownloadPdf(assignment: QuadrantAssignment) {
+    const printWindow = window.open("", "_blank", "width=1100,height=900");
+    if (!printWindow) {
+      toast.error("No se pudo abrir la ventana de impresión.");
+      return;
+    }
+
+    const assignmentDate = new Date(assignment.created_at).toLocaleDateString("es-CO");
+    const responsibilities = [
+      "Mantener layout, microlayout y exhibición del pasillo conforme al estándar.",
+      "Verificar precios visibles, correctos y con porta precios en buen estado.",
+      "Revisar rotación, fechas de vencimiento y control FEFO en cada frente.",
+      "Retirar productos no aptos para la venta y reportar novedades de inmediato.",
+      "Conservar limpieza de góndolas, entrepaños, bases y zona de tránsito.",
+      "Sostener surtido, orden, frenteo y presentación comercial durante el turno.",
+      "Validar averías, empaques dañados y oportunidades de merma o recuperación.",
+      "Asegurar señalización, material POP y exhibiciones adicionales del pasillo.",
+    ];
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${assignment.quadrant_name} - ${assignment.assigned_to}</title>
+          <style>
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              padding: 32px;
+              font-family: Arial, sans-serif;
+              color: #111827;
+              background: #ffffff;
+            }
+            .sheet {
+              max-width: 900px;
+              margin: 0 auto;
+              border: 2px solid #111827;
+              padding: 28px 28px 32px;
+            }
+            .eyebrow {
+              font-size: 11px;
+              font-weight: 700;
+              letter-spacing: 0.18em;
+              text-transform: uppercase;
+              color: #b91c1c;
+            }
+            h1 {
+              margin: 6px 0 10px;
+              font-size: 28px;
+              line-height: 1.1;
+            }
+            .intro {
+              margin: 0 0 18px;
+              font-size: 14px;
+              line-height: 1.6;
+            }
+            .grid {
+              display: grid;
+              grid-template-columns: repeat(2, minmax(0, 1fr));
+              gap: 12px;
+              margin-bottom: 20px;
+            }
+            .card {
+              border: 1px solid #d1d5db;
+              padding: 12px 14px;
+              border-radius: 12px;
+              background: #f8fafc;
+            }
+            .label {
+              font-size: 11px;
+              font-weight: 700;
+              text-transform: uppercase;
+              letter-spacing: 0.12em;
+              color: #6b7280;
+            }
+            .value {
+              margin-top: 6px;
+              font-size: 18px;
+              font-weight: 700;
+              color: #111827;
+            }
+            .section-title {
+              margin: 22px 0 10px;
+              font-size: 15px;
+              font-weight: 800;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            }
+            ol {
+              margin: 0;
+              padding-left: 20px;
+            }
+            li {
+              margin-bottom: 10px;
+              font-size: 14px;
+              line-height: 1.55;
+            }
+            .note {
+              margin-top: 18px;
+              padding: 14px 16px;
+              border-radius: 12px;
+              background: #fef2f2;
+              border: 1px solid #fecaca;
+              font-size: 13px;
+              line-height: 1.6;
+            }
+            .mini-table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-top: 12px;
+            }
+            .mini-table th,
+            .mini-table td {
+              border: 1px solid #cbd5e1;
+              padding: 10px 12px;
+              text-align: left;
+              font-size: 13px;
+            }
+            .mini-table th {
+              background: #e5e7eb;
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 0.08em;
+            }
+            @media print {
+              body { padding: 0; }
+              .sheet { border: none; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sheet">
+            <div class="eyebrow">Control de Cuadrantes</div>
+            <h1>Acta Operativa de Pasillo</h1>
+            <p class="intro">
+              En la tienda <strong>${storeName}</strong> se deja registrada la asignación operativa del pasillo
+              <strong> ${assignment.quadrant_name}</strong>, bajo responsabilidad de <strong>${assignment.assigned_to}</strong>,
+              para seguimiento comercial y control diario del estándar del punto de venta.
+            </p>
+
+            <div class="grid">
+              <div class="card">
+                <div class="label">Pasillo asignado</div>
+                <div class="value">${assignment.quadrant_name}</div>
+              </div>
+              <div class="card">
+                <div class="label">Responsable</div>
+                <div class="value">${assignment.assigned_to}</div>
+              </div>
+              <div class="card">
+                <div class="label">Supervisor</div>
+                <div class="value">${supervisorName}</div>
+              </div>
+              <div class="card">
+                <div class="label">Fecha de asignación</div>
+                <div class="value">${assignmentDate}</div>
+              </div>
+            </div>
+
+            <div class="section-title">Resumen de asignación</div>
+            <table class="mini-table">
+              <thead>
+                <tr>
+                  <th>Cuadrante de la tienda</th>
+                  <th>Responsable</th>
+                  <th>Supervisor</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>${assignment.quadrant_name}</td>
+                  <td>${assignment.assigned_to}</td>
+                  <td>${supervisorName}</td>
+                  <td>${assignmentDate}</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div class="section-title">Responsabilidades del pasillo</div>
+            <ol>
+              ${responsibilities.map((item) => `<li>${item}</li>`).join("")}
+            </ol>
+
+            <div class="note">
+              Este documento es de control operativo interno. Registra la responsabilidad del pasillo asignado y
+              sirve como guía de seguimiento semanal, sin incluir firmas.
+            </div>
+          </div>
+        </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
   }
 
   return (
@@ -300,13 +501,36 @@ export default function ClientQuadrants({
                 )}
 
                 {canManage && editingId !== assignment.id && (
-                  <button
-                    type="button"
-                    onClick={() => setEditingId(assignment.id)}
-                    className="mb-3 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 transition-colors hover:bg-slate-100"
-                  >
-                    Editar asignación
-                  </button>
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(assignment.id)}
+                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-slate-600 transition-colors hover:bg-slate-100"
+                    >
+                      Editar asignación
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPdf(assignment)}
+                      className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 transition-colors hover:bg-blue-100"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Descargar PDF
+                    </button>
+                  </div>
+                )}
+
+                {!canManage && editingId !== assignment.id && (
+                  <div className="mb-3">
+                    <button
+                      type="button"
+                      onClick={() => handleDownloadPdf(assignment)}
+                      className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wide text-blue-700 transition-colors hover:bg-blue-100"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      Descargar PDF
+                    </button>
+                  </div>
                 )}
 
                 {assignment.status !== "aceptado" && (
