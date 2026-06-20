@@ -32,6 +32,12 @@ export default function SalesClient({
 }) {
   const { profile } = useProfile();
   const isSupervisor = profile?.role === "supervisor";
+  const canCreateSale =
+    profile?.role === "supervisor" ||
+    profile?.role === "segundo_al_mando" ||
+    profile?.role === "tercero_al_mando" ||
+    profile?.role === "admin";
+  const canEditSale = profile?.role === "supervisor" || profile?.role === "admin";
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -208,7 +214,7 @@ export default function SalesClient({
         const res = await setDailySale(saleDate, Number(saleAmount));
         if (!res.success) throw new Error(res.error);
         setSaleAmount("");
-        toast.success("Venta diaria guardada");
+        toast.success(res.mode === "updated" ? "Venta diaria actualizada" : "Venta diaria guardada");
       } catch (error: unknown) {
         toast.error(error instanceof Error ? error.message : "Error al guardar venta");
       }
@@ -449,7 +455,7 @@ export default function SalesClient({
         <h2 className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-slate-400">
           <Calendar className="h-4 w-4" /> Venta Diaria
         </h2>
-        {isSupervisor ? (
+        {canCreateSale ? (
           <div className="flex gap-3">
             <div className="w-1/3">
               <label className="text-[10px] font-bold uppercase text-slate-500">Dia</label>
@@ -469,24 +475,40 @@ export default function SalesClient({
                   value={saleAmount}
                   onChange={(e) => setSaleAmount(e.target.value)}
                   placeholder="Ej: 5000000"
+                  disabled={Boolean(existingDailySale && !canEditSale)}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm font-bold text-slate-800 transition-colors ${
                     existingDailySale
                       ? "border-emerald-300 bg-emerald-50"
                       : "border-slate-200 bg-slate-50"
-                  }`}
+                  } ${existingDailySale && !canEditSale ? "cursor-not-allowed opacity-70" : ""}`}
                 />
                 <button
                   onClick={handleSaveSale}
+                  disabled={Boolean(existingDailySale && !canEditSale)}
                   className={`mt-1 h-10 rounded-xl px-4 text-sm font-bold text-white transition-all active:scale-95 ${
-                    existingDailySale ? "bg-emerald-600" : "bg-[#0a3875]"
-                  }`}
+                    existingDailySale
+                      ? canEditSale
+                        ? "bg-emerald-600"
+                        : "bg-slate-400"
+                      : "bg-[#0a3875]"
+                  } ${existingDailySale && !canEditSale ? "cursor-not-allowed" : ""}`}
                 >
-                  {existingDailySale ? "Editar" : <Save className="h-4 w-4" />}
+                  {existingDailySale ? (canEditSale ? "Editar" : "Bloqueado") : <Save className="h-4 w-4" />}
                 </button>
               </div>
-              {existingDailySale && (
+              {existingDailySale && canEditSale && (
                 <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-emerald-600">
                   ✓ Ya registrada (puedes editarla)
+                </p>
+              )}
+              {existingDailySale && !canEditSale && (
+                <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-amber-600">
+                  ✓ Ya registrada. Solo el supervisor puede editarla.
+                </p>
+              )}
+              {!existingDailySale && !canEditSale && (
+                <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-blue-600">
+                  Puedes registrar una venta nueva, pero no editar una ya cargada.
                 </p>
               )}
             </div>
@@ -494,7 +516,7 @@ export default function SalesClient({
         ) : (
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
             <p className="text-[11px] font-bold text-slate-400">
-              Solo el supervisor puede registrar la venta diaria
+              Solo supervisor, segunda o tercera encargada pueden registrar ventas
             </p>
           </div>
         )}
