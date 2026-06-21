@@ -14,6 +14,18 @@ import {
   Legend,
 } from "recharts";
 
+const REASON_LABELS: Record<string, string> = {
+  averia_transporte: "Avería de transporte",
+  dano_manipulacion: "Daño por manipulación",
+  reporte_calidad: "Reporte de calidad",
+  vencimiento: "Vencimiento",
+};
+
+function formatLabel(key: string) {
+  if (REASON_LABELS[key]) return REASON_LABELS[key];
+  return key.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
 const COLORS = ["#0a58ca", "#e51d2e", "#f59e0b", "#10b981", "#8b5cf6"];
 
 type TopProduct = {
@@ -42,6 +54,11 @@ export default function DashboardCharts({
     setMounted(true);
   }, []);
 
+  const formattedReasonData = reasonData.map((d) => ({
+    ...d,
+    name: formatLabel(d.name),
+  }));
+
   return (
     <div className="space-y-6">
       <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm">
@@ -67,6 +84,7 @@ export default function DashboardCharts({
                   width={120}
                 />
                 <Tooltip
+                  formatter={(value) => [value, "Cantidad"]}
                   cursor={{ fill: "#f8fafc" }}
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                 />
@@ -95,7 +113,7 @@ export default function DashboardCharts({
             <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
               <PieChart>
                 <Pie
-                  data={reasonData}
+                  data={formattedReasonData}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -110,8 +128,8 @@ export default function DashboardCharts({
                     />
                   ))}
                 </Pie>
-                <Tooltip formatter={(value) => `${value} uds`} />
-                <Legend />
+                <Tooltip formatter={(value) => [`${value} uds`, "Cantidad"]} />
+                <Legend wrapperStyle={{ fontSize: '11px' }} />
               </PieChart>
             </ResponsiveContainer>
           ) : (
@@ -146,6 +164,7 @@ export default function DashboardCharts({
                     width={100}
                   />
                   <Tooltip
+                    formatter={(value) => [value, "Cantidad"]}
                     cursor={{ fill: "transparent" }}
                     contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                   />

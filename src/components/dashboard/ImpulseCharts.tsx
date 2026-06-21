@@ -78,6 +78,7 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
                 <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} />
                 <Tooltip
+                  formatter={(value) => [value, "Cantidad"]}
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                 />
                 <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={3} dot={{ r: 4, strokeWidth: 2 }} activeDot={{ r: 6 }} />
@@ -115,6 +116,7 @@ export default function ImpulseCharts({ data }: { data: ImpulseRecord[] }) {
                   width={90}
                 />
                 <Tooltip
+                  formatter={(value) => [value, "Cantidad"]}
                   cursor={{ fill: "transparent" }}
                   contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)" }}
                 />
