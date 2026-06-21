@@ -8,6 +8,7 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
 import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
+import TruckArrivalReportCard from "@/components/dashboard/TruckArrivalReportCard";
 import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
 
 export const metadata: Metadata = {
@@ -368,6 +369,8 @@ export default async function Home() {
           </Link>
         </div>
       </section>
+
+      <TruckArrivalReportCard storeName={profile.store_name} />
 
       <div className="mx-4 mt-6 rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
