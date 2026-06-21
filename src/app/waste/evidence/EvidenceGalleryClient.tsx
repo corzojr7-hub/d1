@@ -25,6 +25,13 @@ type EvidenceRecord = {
   products: { name: string } | { name: string }[] | null;
 };
 
+const REASON_LABELS: Record<string, string> = {
+  averia_transporte: "Avería de transporte",
+  reporte_calidad: "Calidad",
+  calidad_nacional: "Calidad nacional",
+  fecha_corta_cedi: "Fecha corta CEDI",
+};
+
 export default function EvidenceGalleryClient() {
   const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().split("T")[0]);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -82,7 +89,7 @@ export default function EvidenceGalleryClient() {
         ) {
           const evidences = (record.transport_evidence || {}) as Record<string, string>;
           const txtLines = [
-            `Tipo de registro: ${record.reason}`,
+            `Tipo de registro: ${REASON_LABELS[record.reason] || record.reason}`,
             `Producto: ${productData?.name || "Producto no identificado"}`,
             `Cantidad: ${record.qty} ${record.unit}`,
             `Fecha y hora: ${new Date(record.created_at).toLocaleString("es-CO")}`,
