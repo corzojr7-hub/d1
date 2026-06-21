@@ -219,6 +219,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
                 tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
                 axisLine={false}
                 tickLine={false}
+                padding={{ left: 30, right: 30 }}
               />
               <YAxis
                 tick={{ fontSize: 11, fill: "#64748b", fontWeight: 600 }}
@@ -236,8 +237,8 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
                 }}
                 formatter={(value, name) => [currency.format(Number(value)), name]}
               />
-              <Bar dataKey="amountPrevious" fill="#fecaca" radius={[6, 6, 0, 0]} barSize={14} name="Anterior" />
-              <Bar dataKey="amount" fill="#e51d2e" radius={[6, 6, 0, 0]} barSize={14} name="Actual" />
+              <Bar dataKey="amountPrevious" fill="#fecaca" radius={[6, 6, 0, 0]} barSize={14} name="Anterior" activeBar={false} />
+              <Bar dataKey="amount" fill="#e51d2e" radius={[6, 6, 0, 0]} barSize={14} name="Actual" activeBar={false} />
             </BarChart>
           </ResponsiveContainer>
         ) : (
