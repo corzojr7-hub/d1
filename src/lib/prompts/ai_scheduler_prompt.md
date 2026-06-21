@@ -62,10 +62,24 @@ Cada lunes cambia la franja principal de trabajo:
 Puedes usar bloques como estos, siempre respetando las horas efectivas:
 
 **Aperturas**
-- 06:00-14:30 = 8 horas efectivas (Sale a las 14:30)
-- 06:00-13:30 = 7 horas efectivas (Sale a las 13:30)
-- 06:00-11:00 = 5 horas efectivas (Sale a las 11:00)
-- 06:00-10:00 = 4 horas efectivas (Sale a las 10:00)
+- 06:00-14:30 = 8 horas efectivas
+- 06:00-13:30 = 7 horas efectivas
+- 06:00-11:00 = 5 horas efectivas
+- 06:00-10:00 = 4 horas efectivas
+
+- 08:00-16:30 = 8 horas efectivas
+- 08:00-15:30 = 7 horas efectivas
+- 08:00-14:30 = 6 horas efectivas
+- 08:00-13:00 = 5 horas efectivas
+- 08:00-12:00 = 4 horas efectivas
+
+- 09:00-17:30 = 8 horas efectivas
+- 09:00-16:30 = 7 horas efectivas
+- 09:00-15:30 = 6 horas efectivas
+- 09:00-14:00 = 5 horas efectivas
+- 09:00-13:00 = 4 horas efectivas
+
+*REGLA DE ENTRADA AM:* Mínimo 2 personas DEBEN entrar a las 06:00 todos los días. Si asignas más Aperturas, pueden usar los turnos de las 08:00 o 09:00.
 
 **Cierres**
 - 13:30-22:00 = 8 horas efectivas (Entra a las 13:30)
@@ -81,9 +95,6 @@ Estas "parejitas" garantizan que no haya solapamiento ni huecos. DEBES usarlas n
 ¡NUNCA pongas 06:00-14:30 con 13:30-22:00 el mismo día para quienes deben empalmar, porque se solapan 1 hora!
 
 **Intermedios**
-- 09:00-15:30 = 6 horas efectivas
-- 09:00-16:30 = 7 horas efectivas
-- 09:00-17:30 = 8 horas efectivas
 - 10:00-18:30 = 8 horas efectivas
 - 11:00-16:00 = 5 horas efectivas
 
