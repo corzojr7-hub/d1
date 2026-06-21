@@ -63,7 +63,7 @@ const scheduleDays = [
 const canonicalShifts: ShiftCell[] = [
   { shift: "06:00-14:30", hours: 8, type: "Apertura" },
   { shift: "06:00-13:30", hours: 7, type: "Apertura" },
-  { shift: "06:00-11:30", hours: 5, type: "Apertura" },
+  { shift: "06:00-11:00", hours: 5, type: "Apertura" },
   { shift: "06:00-10:00", hours: 4, type: "Apertura" },
   { shift: "13:30-22:00", hours: 8, type: "Cierre" },
   { shift: "14:30-22:00", hours: 7, type: "Cierre" },

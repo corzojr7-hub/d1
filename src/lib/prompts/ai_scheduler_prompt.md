@@ -53,8 +53,8 @@ Cada lunes cambia la franja principal de trabajo:
 - Puede haber dos descansos seguidos entre viernes y sabado por el corte sabado-viernes de nomina. Eso es valido si al revisar el corte de nomina cada persona sigue teniendo su descanso dentro de esa semana.
 
 ## 6. BREAK Y HORAS EFECTIVAS
-- Todo turno de mas de 5 horas lleva 30 minutos de break no remunerado y no computable.
-- Los turnos de 5 horas o menos no llevan break.
+- Todo turno de 6 horas o más lleva 30 minutos de break no remunerado y no computable.
+- Los turnos de menos de 6 horas (ej. 4 o 5 horas) no llevan break.
 - Ejemplo: 06:00 a 14:30 equivale a 8 horas efectivas.
 - El campo `hours` del JSON siempre debe reflejar horas efectivas reales, no tiempo reloj bruto.
 
@@ -64,7 +64,7 @@ Puedes usar bloques como estos, siempre respetando las horas efectivas:
 **Aperturas**
 - 06:00-14:30 = 8 horas efectivas (Sale a las 14:30)
 - 06:00-13:30 = 7 horas efectivas (Sale a las 13:30)
-- 06:00-11:30 = 5 horas efectivas (Sale a las 11:30)
+- 06:00-11:00 = 5 horas efectivas (Sale a las 11:00)
 - 06:00-10:00 = 4 horas efectivas (Sale a las 10:00)
 
 **Cierres**
@@ -141,7 +141,13 @@ Usa esta logica para cuadrar horas sin romper cobertura.
 - Deben sumar idealmente entre 36 y 40 horas. Nunca superar 42.
 - Pueden tener dias de 4, 5, 6, 7 u 8 horas segun necesidad operativa.
 - Si hay varios, se trata de repartir: uno apoya en la mañana y otro en la tarde.
-- **Foco principal:** Debes empujarlos fuertemente hacia la tarde/noche (ej. a partir de las 14:00, 16:00 o 17:00), ya que es cuando más se vende en la tienda y se necesita el refuerzo para atención y fila.
+- Foco principal: Debes empujarlos fuertemente hacia la tarde/noche (ej. a partir de las 14:00, 16:00 o 17:00), ya que es cuando más se vende en la tienda y se necesita el refuerzo para atención y fila.
+
+## 11.5 COBERTURA DIARIA Y PROPORCIONES (NUEVO)
+- **MÍNIMO DE 5 PERSONAS:** SIEMPRE deben trabajar por día un MÍNIMO de 5 personas en la tienda. No puedes dejar un día con 4 personas.
+- **PROPORCIÓN EN IMPARES:** Siempre que la cantidad de personas trabajando en un día sea impar (ej. 5 o 7 personas), la mayor cantidad SIEMPRE debe ir al Cierre, ya que es cuando más se vende.
+  - Ejemplo con 5 personas: 2 de Apertura y 3 de Cierre.
+- **LO IDEAL (6 personas):** 3 de Apertura y 3 de Cierre.
 
 ## 12. FESTIVOS
 - Quien trabaje festivo genera compensatorio.
