@@ -39,6 +39,12 @@ type ScheduleResponse = {
   schedule?: ScheduleRow[];
 };
 
+type KeyRoleAliases = {
+  supervisor: string;
+  second?: string;
+  third?: string;
+};
+
 type ShiftCell = {
   shift: string;
   hours: number;
@@ -173,6 +179,62 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
   } satisfies ScheduleResponse;
 }
 
+function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
+  const schedule = scheduleData.schedule ?? [];
+  const rowByAssistant = new Map(
+    schedule.map((row) => [normalizeText(row.assistant), row] as const),
+  );
+
+  const normalizedNames = schedule.map((row) => normalizeText(row.assistant));
+  if (new Set(normalizedNames).size !== normalizedNames.length) {
+    throw new Error("La IA repitio personas en la malla.");
+  }
+
+  const supervisorRow = rowByAssistant.get(normalizeText(keyRoles.supervisor));
+  const secondRow = keyRoles.second
+    ? rowByAssistant.get(normalizeText(keyRoles.second))
+    : undefined;
+  const thirdRow = keyRoles.third
+    ? rowByAssistant.get(normalizeText(keyRoles.third))
+    : undefined;
+
+  if (!supervisorRow) {
+    throw new Error("La IA no incluyo al supervisor en la malla.");
+  }
+
+  if (keyRoles.second && !secondRow) {
+    throw new Error("La IA no incluyo a la segunda encargada en la malla.");
+  }
+
+  if (keyRoles.third && !thirdRow) {
+    throw new Error("La IA no incluyo a la tercera encargada en la malla.");
+  }
+
+  if (!secondRow || !thirdRow) return;
+
+  for (const day of scheduleDays) {
+    const supervisorShift = supervisorRow[day] as ShiftCell;
+    const secondShift = secondRow[day] as ShiftCell;
+    const thirdShift = thirdRow[day] as ShiftCell;
+
+    if (supervisorShift.type === "Descanso") {
+      if (secondShift.type !== "Partido" || thirdShift.type !== "Intermedio") {
+        throw new Error(
+          `Si descansa el supervisor, la segunda debe quedar en Partido y la tercera en Intermedio (${day}).`,
+        );
+      }
+    }
+
+    if (secondShift.type === "Descanso") {
+      if (supervisorShift.type !== "Partido" || thirdShift.type !== "Intermedio") {
+        throw new Error(
+          `Si descansa la segunda, el supervisor debe quedar en Partido y la tercera en Intermedio (${day}).`,
+        );
+      }
+    }
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const { profile, supabase } = await requireSupervisor();
@@ -199,9 +261,18 @@ export async function POST(request: Request) {
     // Build the payload team
     const realNames: Record<string, string> = {};
     const team: TeamMemberPayload[] = [];
+    const seenMembers = new Set<string>();
+    const keyRoles: KeyRoleAliases = {
+      supervisor: profile.display_name,
+      second: profile.second_in_charge || undefined,
+      third: profile.third_in_charge || undefined,
+    };
     
     let operatorIndex = 1;
     const addMember = (realName: string, role: string, contract: string) => {
+      const normalizedName = normalizeText(realName);
+      if (!normalizedName || seenMembers.has(normalizedName)) return;
+      seenMembers.add(normalizedName);
       const alias = `Operador ${operatorIndex++}`;
       realNames[alias] = realName;
       team.push({ nombre: alias, rol: role, contrato: contract });
@@ -245,6 +316,13 @@ export async function POST(request: Request) {
 
     EQUIPO:
     ${JSON.stringify(team, null, 2)}
+
+    REGLAS EXTRA OBLIGATORIAS PARA ESTA RESPUESTA:
+    - Debes usar exactamente ${team.length} filas en schedule, una por cada persona del EQUIPO.
+    - No repitas personas.
+    - No conviertas a Segunda o Tercera en asistentes duplicados.
+    - Si descansa el Supervisor, la Segunda debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
+    - Si descansa la Segunda, el Supervisor debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
 
     Genera el JSON AHORA. No incluyas markdown, solo el JSON raw.
     `;
@@ -309,6 +387,8 @@ export async function POST(request: Request) {
         }
       });
     }
+
+    validateKeyRoleRules(scheduleData, keyRoles);
 
     // Save to DB
     const { data: inserted, error: insertError } = await supabase.from("weekly_schedules").insert({
