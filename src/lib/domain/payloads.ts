@@ -37,6 +37,10 @@ export interface WasteRecordCreateData {
     lote: string;
     proveedor: string;
     cantidades: string;
+    fecha_vencimiento?: string;
+    lote_texto?: string;
+    proveedor_texto?: string;
+    novedad_texto?: string;
   } | null;
 }
 
@@ -75,6 +79,10 @@ export interface WasteRecordInsertPayload {
     lote: string;
     proveedor: string;
     cantidades: string;
+    fecha_vencimiento?: string;
+    lote_texto?: string;
+    proveedor_texto?: string;
+    novedad_texto?: string;
   } | null;
   created_by: string;
 }

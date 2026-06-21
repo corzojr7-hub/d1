@@ -142,6 +142,12 @@ export default function NewWastePage() {
     }
   }
 
+  const isTransportReason = reason === "averia_transporte";
+  const isQualityReason =
+    reason === "reporte_calidad" ||
+    reason === "calidad_nacional" ||
+    reason === "fecha_corta_cedi";
+
   const REQUIRED_PHOTOS_TRANSPORTE = [
     { id: 'evidence_detra', label: 'Foto de DETRA (Llegada)', optional: false },
     { id: 'evidence_rotulo', label: 'Foto de Rótulo (Conductor, Placa, Fecha)', optional: false },
@@ -156,9 +162,9 @@ export default function NewWastePage() {
     { id: 'evidence_unidades', label: 'Foto de Unidades afectadas', optional: false }
   ];
 
-  const photoRequirements = reason === "averia_transporte" 
+  const photoRequirements = isTransportReason
     ? REQUIRED_PHOTOS_TRANSPORTE 
-    : reason === "reporte_calidad" 
+    : isQualityReason
     ? REQUIRED_PHOTOS_CALIDAD 
     : [{ id: 'evidence', label: 'Foto de evidencia (Opcional)', optional: true }];
 
@@ -306,7 +312,7 @@ export default function NewWastePage() {
               }
             }
 
-            if (reason === "averia_transporte") {
+            if (isTransportReason) {
               const driver = formData.get("transport_driver");
               const plate = formData.get("transport_plate");
               if (typeof driver !== "string" || !driver.trim()) {
@@ -315,6 +321,30 @@ export default function NewWastePage() {
               }
               if (typeof plate !== "string" || !plate.trim()) {
                 toast.error("Ingresa la placa del conductor.");
+                return;
+              }
+            }
+
+            if (isQualityReason) {
+              const expirationDate = formData.get("quality_expiration_date");
+              const lot = formData.get("quality_lot");
+              const supplier = formData.get("quality_supplier");
+              const comment = formData.get("transport_comment");
+
+              if (typeof expirationDate !== "string" || !expirationDate.trim()) {
+                toast.error("Ingresa la fecha de vencimiento.");
+                return;
+              }
+              if (typeof lot !== "string" || !lot.trim()) {
+                toast.error("Ingresa el lote.");
+                return;
+              }
+              if (typeof supplier !== "string" || !supplier.trim()) {
+                toast.error("Ingresa el proveedor.");
+                return;
+              }
+              if (typeof comment !== "string" || !comment.trim()) {
+                toast.error("Describe la novedad.");
                 return;
               }
             }
@@ -477,7 +507,7 @@ export default function NewWastePage() {
               />
             </label>
 
-            {reason === "averia_transporte" && (
+            {isTransportReason && (
               <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
                   Datos del transporte
@@ -520,6 +550,68 @@ export default function NewWastePage() {
                     rows={3}
                     className={`${inputBase} resize-none`}
                     placeholder="Describe brevemente el dano o la novedad detectada."
+                  />
+                </label>
+              </div>
+            )}
+
+            {isQualityReason && (
+              <div className="space-y-5 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-700">
+                  Datos obligatorios de calidad
+                </p>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">
+                      Fecha de vencimiento
+                    </span>
+                    <input
+                      name="quality_expiration_date"
+                      type="text"
+                      required
+                      className={inputBase}
+                      placeholder="Ej. 30/06/2026"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span className="mb-2 block text-sm font-semibold text-slate-700">
+                      Lote
+                    </span>
+                    <input
+                      name="quality_lot"
+                      type="text"
+                      required
+                      className={inputBase}
+                      placeholder="Ej. LT-001"
+                    />
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                    Proveedor
+                  </span>
+                  <input
+                    name="quality_supplier"
+                    type="text"
+                    required
+                    className={inputBase}
+                    placeholder="Ej. Proveedor Nacional SAS"
+                  />
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                    Descripcion de la novedad
+                  </span>
+                  <textarea
+                    name="transport_comment"
+                    rows={3}
+                    required
+                    className={`${inputBase} resize-none`}
+                    placeholder="Describe brevemente la novedad detectada."
                   />
                 </label>
               </div>

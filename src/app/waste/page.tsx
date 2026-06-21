@@ -16,6 +16,8 @@ export default async function WasteIndex({
 }: {
   searchParams: SearchParams;
 }) {
+  const evidenceImageKeys = new Set(["novedad", "lote", "proveedor", "cantidades"]);
+
   async function signEvidencePath(path: string | null) {
     if (!path) return path;
     const { data } = await adminClient.storage
@@ -69,10 +71,13 @@ export default async function WasteIndex({
       let transportEvidence = record.transport_evidence;
       if (transportEvidence && typeof transportEvidence === "object") {
         const signedEntries = await Promise.all(
-          Object.entries(transportEvidence).map(async ([key, path]) => [
-            key,
-            await signEvidencePath(path as string | null),
-          ])
+          Object.entries(transportEvidence).map(async ([key, path]) => {
+            if (!evidenceImageKeys.has(key)) {
+              return [key, path] as const;
+            }
+
+            return [key, await signEvidencePath(path as string | null)] as const;
+          })
         );
         transportEvidence = Object.fromEntries(signedEntries);
       }

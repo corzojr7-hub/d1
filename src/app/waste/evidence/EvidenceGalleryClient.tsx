@@ -9,8 +9,19 @@ import { toast } from "sonner";
 
 type EvidenceRecord = {
   id: string;
+  reason: string;
   image_url: string | null;
   transport_evidence: Record<string, string> | null;
+  created_at: string;
+  qty: number;
+  unit: string;
+  area: string | null;
+  observation: string | null;
+  transport_driver: string | null;
+  transport_plate: string | null;
+  transport_comment: string | null;
+  deposited_by: string | null;
+  store_code: string | null;
   products: { name: string } | { name: string }[] | null;
 };
 
@@ -55,17 +66,60 @@ export default function EvidenceGalleryClient() {
       };
 
       const tasks: DownloadTask[] = [];
+      const evidenceImageKeys = new Set(["novedad", "lote", "proveedor", "cantidades"]);
 
       for (const record of records as EvidenceRecord[]) {
         const productData = Array.isArray(record.products) ? record.products[0] : record.products;
         const productName = productData?.name?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
-        const folderName = `${productName}`;
+        const folderName = `${productName}/${record.id.substring(0, 8)}`;
+        const folder = zip.folder(folderName);
+
+        if (
+          record.reason === "averia_transporte" ||
+          record.reason === "reporte_calidad" ||
+          record.reason === "calidad_nacional" ||
+          record.reason === "fecha_corta_cedi"
+        ) {
+          const evidences = (record.transport_evidence || {}) as Record<string, string>;
+          const txtLines = [
+            `Tipo de registro: ${record.reason}`,
+            `Producto: ${productData?.name || "Producto no identificado"}`,
+            `Cantidad: ${record.qty} ${record.unit}`,
+            `Fecha y hora: ${new Date(record.created_at).toLocaleString("es-CO")}`,
+            `Reportado por: ${record.deposited_by || "N/A"}`,
+            `Codigo tienda: ${record.store_code || "N/A"}`,
+            `Area: ${record.area || "N/A"}`,
+          ];
+
+          if (record.reason === "averia_transporte") {
+            txtLines.push(
+              `Conductor: ${record.transport_driver || "N/A"}`,
+              `Placa: ${record.transport_plate || "N/A"}`,
+            );
+          }
+
+          if (evidences.proveedor_texto) {
+            txtLines.push(`Proveedor: ${evidences.proveedor_texto}`);
+          }
+          if (evidences.lote_texto) {
+            txtLines.push(`Lote: ${evidences.lote_texto}`);
+          }
+          if (evidences.fecha_vencimiento) {
+            txtLines.push(`Fecha de vencimiento: ${evidences.fecha_vencimiento}`);
+          }
+
+          txtLines.push(
+            `Descripcion de la novedad: ${record.transport_comment || evidences.novedad_texto || record.observation || "Sin descripcion"}`
+          );
+
+          folder?.file("DETALLE.txt", txtLines.join("\r\n"));
+        }
 
         if (record.transport_evidence) {
           // Multiple evidences (transport/quality)
           const evidences = record.transport_evidence as Record<string, string>;
           for (const [type, url] of Object.entries(evidences)) {
-            if (url) {
+            if (evidenceImageKeys.has(type) && url) {
               tasks.push({
                 folder: folderName,
                 fileName: `${type.toUpperCase()}.jpg`,

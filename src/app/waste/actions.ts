@@ -57,6 +57,11 @@ function parseTransportEvidence(value: FormDataEntryValue | null) {
   }
 }
 
+function hasUploadedFile(formData: FormData, key: string): boolean {
+  const value = formData.get(key);
+  return value instanceof File && value.size > 0;
+}
+
 const submitWasteSchema = z.object({
   barcodeId: z.string().min(1, "El código de barras es obligatorio."),
   productId: z.string().optional(),
@@ -69,6 +74,9 @@ const submitWasteSchema = z.object({
   transportDriver: z.string().optional(),
   transportPlate: z.string().optional(),
   transportComment: z.string().optional(),
+  qualityExpirationDate: z.string().optional(),
+  qualityLot: z.string().optional(),
+  qualitySupplier: z.string().optional(),
   transportEvidence: z.any().optional()
 });
 
@@ -91,6 +99,9 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     transportDriver: getString(formData, "transport_driver") || undefined,
     transportPlate: getString(formData, "transport_plate") || undefined,
     transportComment: getString(formData, "transport_comment") || undefined,
+    qualityExpirationDate: getString(formData, "quality_expiration_date") || undefined,
+    qualityLot: getString(formData, "quality_lot") || undefined,
+    qualitySupplier: getString(formData, "quality_supplier") || undefined,
     transportEvidence: parseTransportEvidence(formData.get("transport_evidence")),
   };
 
@@ -123,10 +134,63 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     if (!validatedData.transportPlate) {
       return { error: "La placa del conductor es obligatoria para averia de transporte." };
     }
+    if (!hasUploadedFile(formData, "evidence_detra")) {
+      return { error: "La foto de DETRA es obligatoria para averia de transporte." };
+    }
+    if (!hasUploadedFile(formData, "evidence_rotulo")) {
+      return { error: "La foto de rotulo es obligatoria para averia de transporte." };
+    }
+    if (!hasUploadedFile(formData, "evidence_novedad")) {
+      return { error: "La foto de la novedad es obligatoria para averia de transporte." };
+    }
+    if (!hasUploadedFile(formData, "evidence_unidades")) {
+      return { error: "La foto de unidades afectadas es obligatoria para averia de transporte." };
+    }
+  }
+
+  const requiresQualityMetadata =
+    reason === "reporte_calidad" ||
+    reason === "calidad_nacional" ||
+    reason === "fecha_corta_cedi";
+
+  if (requiresQualityMetadata) {
+    if (!validatedData.qualityExpirationDate) {
+      return { error: "La fecha de vencimiento es obligatoria para esta merma." };
+    }
+    if (!validatedData.qualityLot) {
+      return { error: "El lote es obligatorio para esta merma." };
+    }
+    if (!validatedData.qualitySupplier) {
+      return { error: "El proveedor es obligatorio para esta merma." };
+    }
+    if (!validatedData.transportComment) {
+      return { error: "La descripcion de la novedad es obligatoria para esta merma." };
+    }
+    if (!hasUploadedFile(formData, "evidence_proveedor")) {
+      return { error: "La foto del proveedor es obligatoria para esta merma." };
+    }
+    if (!hasUploadedFile(formData, "evidence_lote")) {
+      return { error: "La foto de lote y vencimiento es obligatoria para esta merma." };
+    }
+    if (!hasUploadedFile(formData, "evidence_novedad")) {
+      return { error: "La foto de la novedad es obligatoria para esta merma." };
+    }
+    if (!hasUploadedFile(formData, "evidence_unidades")) {
+      return { error: "La foto de unidades afectadas es obligatoria para esta merma." };
+    }
   }
 
   let imageUrl: string | null = null;
-  let transportEvidenceUrls: { novedad: string; lote: string; proveedor: string; cantidades: string } | null = null;
+  let transportEvidenceUrls: {
+    novedad: string;
+    lote: string;
+    proveedor: string;
+    cantidades: string;
+    fecha_vencimiento?: string;
+    lote_texto?: string;
+    proveedor_texto?: string;
+    novedad_texto?: string;
+  } | null = null;
 
   async function processAndUploadImage(file: FormDataEntryValue | null, label: string): Promise<string | null> {
     if (!(file instanceof File) || file.size === 0) return null;
@@ -155,8 +219,22 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
 
   try {
 
-  if (reason === "averia_transporte" || reason === "reporte_calidad") {
-    const urls: { novedad: string; lote: string; proveedor: string; cantidades: string } = {
+  if (
+    reason === "averia_transporte" ||
+    reason === "reporte_calidad" ||
+    reason === "calidad_nacional" ||
+    reason === "fecha_corta_cedi"
+  ) {
+    const urls: {
+      novedad: string;
+      lote: string;
+      proveedor: string;
+      cantidades: string;
+      fecha_vencimiento?: string;
+      lote_texto?: string;
+      proveedor_texto?: string;
+      novedad_texto?: string;
+    } = {
       novedad: "", lote: "", proveedor: "", cantidades: ""
     };
 
@@ -170,6 +248,10 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
       urls.lote = await processAndUploadImage(formData.get("evidence_lote"), "LOTE_VENCIMIENTO") || "";
       urls.novedad = await processAndUploadImage(formData.get("evidence_novedad"), "NOVEDAD") || "";
       urls.cantidades = await processAndUploadImage(formData.get("evidence_unidades"), "UNIDADES") || "";
+      urls.fecha_vencimiento = validatedData.qualityExpirationDate || "";
+      urls.lote_texto = validatedData.qualityLot || "";
+      urls.proveedor_texto = validatedData.qualitySupplier || "";
+      urls.novedad_texto = validatedData.transportComment || "";
     }
     
     // We check if at least one photo was uploaded successfully before storing JSON

@@ -294,6 +294,10 @@ export interface Database {
             lote: string;
             proveedor: string;
             cantidades: string;
+            fecha_vencimiento?: string;
+            lote_texto?: string;
+            proveedor_texto?: string;
+            novedad_texto?: string;
           } | null;
         };
         Insert: {
@@ -321,6 +325,10 @@ export interface Database {
             lote: string;
             proveedor: string;
             cantidades: string;
+            fecha_vencimiento?: string;
+            lote_texto?: string;
+            proveedor_texto?: string;
+            novedad_texto?: string;
           } | null;
         };
         Update: {
@@ -347,6 +355,10 @@ export interface Database {
             lote: string;
             proveedor: string;
             cantidades: string;
+            fecha_vencimiento?: string;
+            lote_texto?: string;
+            proveedor_texto?: string;
+            novedad_texto?: string;
           } | null;
         };
       };

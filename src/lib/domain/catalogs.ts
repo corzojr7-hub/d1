@@ -48,6 +48,7 @@ export const INSTRUCTION_STATUSES: CatalogItem<InstructionStatus>[] = [
 export const WASTE_REASONS: CatalogItem<WasteReason>[] = [
   { value: "vencido", label: "Vencido" },
   { value: "averia_transporte", label: "Averia de transporte" },
+  { value: "fecha_corta_cedi", label: "Fecha corta CEDI" },
   { value: "dano_manipulacion", label: "Daño por manipulacion" },
   { value: "dano_cliente", label: "Daño por cliente" },
   { value: "dano_temperatura", label: "Daño por temperatura" },
@@ -58,7 +59,8 @@ export const WASTE_REASONS: CatalogItem<WasteReason>[] = [
     value: "recuperable_mal_descartado",
     label: "Producto recuperable mal descartado",
   },
-  { value: "reporte_calidad", label: "Reporte de Calidad" },
+  { value: "reporte_calidad", label: "Calidad" },
+  { value: "calidad_nacional", label: "Calidad nacional" },
   { value: "otro", label: "Otro" },
 ];
 

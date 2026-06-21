@@ -50,6 +50,7 @@ export type InstructionStatus =
 export type WasteReason =
   | "vencido"
   | "averia_transporte"
+  | "fecha_corta_cedi"
   | "dano_manipulacion"
   | "dano_cliente"
   | "dano_temperatura"
@@ -58,6 +59,7 @@ export type WasteReason =
   | "producto_contaminado"
   | "recuperable_mal_descartado"
   | "reporte_calidad"
+  | "calidad_nacional"
   | "otro";
 
 export type WasteReviewStatus =

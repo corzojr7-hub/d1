@@ -65,6 +65,7 @@ const reasonColors: Record<string, string> = {
 };
 
 export default function WasteCard({ record, userRole }: { record: WasteRecord, userRole?: string }) {
+  const evidenceImageKeys = new Set(["novedad", "lote", "proveedor", "cantidades"]);
   const [pending, startTransition] = useTransition();
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -215,7 +216,9 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
 
         {record.observation &&
         record.reason !== "averia_transporte" &&
-        record.reason !== "reporte_calidad" ? (
+        record.reason !== "reporte_calidad" &&
+        record.reason !== "calidad_nacional" &&
+        record.reason !== "fecha_corta_cedi" ? (
           <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-[12px] text-slate-600">
             <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
               Observación
@@ -227,7 +230,9 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         ) : null}
 
         {record.reason === "averia_transporte" ||
-        record.reason === "reporte_calidad" ? (
+        record.reason === "reporte_calidad" ||
+        record.reason === "calidad_nacional" ||
+        record.reason === "fecha_corta_cedi" ? (
           <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-3 text-[12px] text-amber-900">
             {record.reason === "averia_transporte" && (
               <div className="mb-2 grid grid-cols-2 gap-2">
@@ -338,10 +343,14 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           </button>
 
           {(record.reason === "averia_transporte" ||
-            record.reason === "reporte_calidad") &&
+            record.reason === "reporte_calidad" ||
+            record.reason === "calidad_nacional" ||
+            record.reason === "fecha_corta_cedi") &&
           record.transport_evidence ? (
             <div className="grid max-h-[85vh] w-full max-w-4xl grid-cols-1 gap-4 overflow-y-auto pr-2 sm:grid-cols-2">
-              {Object.entries(record.transport_evidence).map(([type, url]) => (
+              {Object.entries(record.transport_evidence)
+                .filter(([type, url]) => evidenceImageKeys.has(type) && typeof url === "string" && !!url)
+                .map(([type, url]) => (
                 <div key={type} className="flex flex-col gap-2">
                   <span className="text-sm font-semibold capitalize text-white/80">
                     {type}

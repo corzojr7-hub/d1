@@ -153,7 +153,12 @@ export function validateWasteRecordInput(
     }
   }
 
-  if (input.reason === "averia_transporte" || input.reason === "reporte_calidad") {
+  if (
+    input.reason === "averia_transporte" ||
+    input.reason === "reporte_calidad" ||
+    input.reason === "calidad_nacional" ||
+    input.reason === "fecha_corta_cedi"
+  ) {
     if (!isNonEmptyText(input.transport_comment)) {
       issues.push(issue("transport_comment", "Debe especificar la novedad (comentario)"));
     }
