@@ -36,7 +36,7 @@ Para que la malla sea perfecta, debes construirla mentalmente en este orden exac
 - No puede haber turnos menores a 4 horas.
 - El maximo normal es 8 horas efectivas.
 - Solo en caso extremo puedes usar 9 horas, pero debes evitarlo.
-- Quien trabaje domingo debe hacer turno de 8 horas.
+- **REGLA ESTRICTA DE DOMINGOS:** Todo colaborador que trabaje el domingo TIENE QUE HACER OBLIGATORIAMENTE UN TURNO DE 8 HORAS EFECTIVAS. No puedes poner turnos de 7, 6, 5 o 4 horas el domingo bajo ninguna circunstancia. Si alguien trabaja el domingo, su turno es de 8 horas.
 
 ## 4. REGLA DE ROTACION SEMANAL DE ENCARGADOS
 Cada lunes cambia la franja principal de trabajo:
@@ -134,6 +134,7 @@ Usa esta logica para cuadrar horas sin romper cobertura.
 - Pueden alternar dias de 8 y 7 horas.
 - Puede haber un dia corto de 4, 5 o 6 horas para cuadrar semana.
 - **REGLA DE EMPALME:** Igual que Supervisor y Segunda, los asistentes Full-Time deben trabajar en "parejitas" exactas (uno le entrega al otro a la misma hora exacta). Si uno hace 8h, el otro hace 7h. Aplica la misma tabla de parejas obligatorias.
+- **REGLA DE DESCANSO DE PAREJAS:** Los dos integrantes de una "parejita" Full-Time NO deben descansar el mismo día. Debes asignarles su día libre en días distintos de la semana.
 
 ## 11. PART-TIME
 - Son el refuerzo flexible, no bloques fijos. Entran al final a rellenar los huecos.
