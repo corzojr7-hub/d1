@@ -239,10 +239,6 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
         return sum + Number(cell.hours || 0);
       }, 0);
     }
-    
-    if (normalizedRow.total_hours > 42) {
-      throw new Error(`La IA falló en la matemática y le asignó ${normalizedRow.total_hours}h a ${normalizedRow.assistant} (Máximo 42h). Por favor vuelve a generar la malla para que la IA lo intente de nuevo.`);
-    }
 
     return normalizedRow;
   });
@@ -381,9 +377,10 @@ export async function POST(request: Request) {
     3. MINIMO 2 APERTURAS A LAS 06:00: Todos los días DEBE haber mínimo 2 personas entrando a las 06:00.
 
     REGLA MATEMÁTICA DE 42 HORAS (DE VIDA O MUERTE):
-    ¡Nadie puede superar las 42 horas en total! Suma las horas de cada fila: L + M + M + J + V + S + D = MAX 42.
-    - Si alguien suma 43, 45, 50 o más: ¡ES UN ERROR GRAVE! Debes darle más Descansos o cambiar turnos de 8h por turnos de 4h/5h hasta que su suma de EXACTAMENTE 42 o menos.
-    - PREFERIMOS DAR 2 DESCANSOS A LA SEMANA a pasarnos de 42 horas.
+    ¡Nadie puede superar las 42 horas semanales en total!
+    PASO OBLIGATORIO: En tu proceso de razonamiento, ANTES de emitir el JSON, tienes que escribir la suma diaria de cada persona.
+    Ejemplo: "Dairo: 8 (L) + 8 (M) + 0 (X) + 8 (J) + 8 (V) + 5 (S) + 5 (D) = 42. OK."
+    Si la suma te da 43, 44, 45 o 50, ES UN ERROR FATAL. Debes corregir el horario inmediatamente cambiando un turno de 8h por uno de 4h, o agregando un día de Descanso extra, hasta que la suma de EXACTAMENTE 42 o menos. No toleramos ni 1 hora extra.
 
     Devuelve solo el JSON de schedule. No devuelvas explicaciones fuera del JSON.
 
