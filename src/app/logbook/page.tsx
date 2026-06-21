@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import ClientLogbook from "./ClientLogbook";
+import { TRUCK_REPORT_PREFIX } from "@/lib/truck-report";
 
 export const metadata = {
   title: "Bitácora Diaria — SCO",
@@ -21,5 +22,9 @@ export default async function LogbookPage() {
     .gte("created_at", startOfDay.toISOString())
     .order("created_at", { ascending: false });
 
-  return <ClientLogbook entries={entries || []} />;
+  const visibleEntries = (entries || []).filter(
+    (entry) => !entry.content.startsWith(TRUCK_REPORT_PREFIX),
+  );
+
+  return <ClientLogbook entries={visibleEntries} />;
 }

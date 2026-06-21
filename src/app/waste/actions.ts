@@ -57,6 +57,14 @@ function parseTransportEvidence(value: FormDataEntryValue | null) {
   }
 }
 
+function getTransportEvidenceMeta(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  return value as Record<string, unknown>;
+}
+
 function hasUploadedFile(formData: FormData, key: string): boolean {
   const value = formData.get(key);
   return value instanceof File && value.size > 0;
@@ -322,6 +330,46 @@ export async function updateWasteStatus(id: string, newStatus: string) {
   if (error) throw new Error(error.message);
 
   revalidatePath("/waste");
+  revalidatePath("/");
+}
+
+export async function markWasteReportSent(id: string) {
+  const { profile } = await requireAuth();
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data, error } = await adminClient
+    .from("waste_records")
+    .select("id, transport_evidence")
+    .eq("id", id)
+    .eq("store_code", profile.store_code)
+    .single();
+
+  if (error || !data) {
+    throw new Error("No se encontró la merma.");
+  }
+
+  const currentEvidence = getTransportEvidenceMeta(data.transport_evidence);
+  const updatedEvidence = {
+    ...currentEvidence,
+    whatsapp_sent_at: new Date().toISOString(),
+    whatsapp_sent_by: profile.display_name,
+  };
+
+  const { error: updateError } = await adminClient
+    .from("waste_records")
+    .update({ transport_evidence: updatedEvidence })
+    .eq("id", id)
+    .eq("store_code", profile.store_code);
+
+  if (updateError) {
+    throw new Error("No se pudo marcar la merma como enviada.");
+  }
+
+  revalidatePath("/waste");
+  revalidatePath("/history");
   revalidatePath("/");
 }
 

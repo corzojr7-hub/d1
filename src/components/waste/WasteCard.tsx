@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Camera, CameraOff, X, Pencil, Trash2, Copy } from "lucide-react";
-import { updateWasteStatus, deleteWasteRecord } from "@/app/waste/actions";
+import { Camera, CameraOff, X, Pencil, Trash2, Copy, CheckCircle2 } from "lucide-react";
+import { updateWasteStatus, deleteWasteRecord, markWasteReportSent } from "@/app/waste/actions";
 import EditWasteModal from "./EditWasteModal";
 import { WASTE_REASONS, getLabel } from "@/lib/domain/catalogs";
 import type { WasteReason } from "@/lib/domain/types";
@@ -65,7 +66,9 @@ const reasonColors: Record<string, string> = {
 };
 
 export default function WasteCard({ record, userRole }: { record: WasteRecord, userRole?: string }) {
+  const router = useRouter();
   const evidenceImageKeys = new Set(["novedad", "lote", "proveedor", "cantidades"]);
+  const evidenceMeta = (record.transport_evidence || {}) as Record<string, string>;
   const [pending, startTransition] = useTransition();
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
@@ -114,18 +117,53 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     );
   }
 
-  const transportReportText = [
-    "REPORTE DE NOVEDAD DE TRANSPORTE",
+  const reportTitle =
+    record.reason === "averia_transporte"
+      ? "REPORTE DE NOVEDAD DE TRANSPORTE"
+      : record.reason === "fecha_corta_cedi"
+        ? "REPORTE DE FECHA CORTA CEDI"
+        : record.reason === "calidad_nacional"
+          ? "REPORTE DE CALIDAD NACIONAL"
+          : "REPORTE DE CALIDAD";
+
+  const reportLines = [
+    reportTitle,
     `Tienda: *${record.store_name || "Sin tienda"}*`,
     `Código tienda: _${record.store_code || "Sin código"}_`,
     `Fecha y hora en que se encontró la novedad: ${formattedDateTime}.`,
-    `Conductor: ${record.transport_driver || "N/A"}`,
-    `Placa: ${record.transport_plate || "N/A"}`,
     `Producto afectado: ${productName}`,
     `Unidades afectadas: ${record.qty} ${record.unit}`,
-    `Descripción de la novedad: ${record.transport_comment || record.observation || "Sin descripción"}`,
+    `Descripción de la novedad: ${record.transport_comment || evidenceMeta.novedad_texto || record.observation || "Sin descripción"}`,
     `Reportado por: ${record.deposited_by || record.author || "Sin responsable"}`,
-  ].join("\n");
+  ];
+
+  if (record.reason === "averia_transporte") {
+    reportLines.splice(
+      4,
+      0,
+      `Conductor: ${record.transport_driver || "N/A"}`,
+      `Placa: ${record.transport_plate || "N/A"}`,
+    );
+  }
+
+  if (evidenceMeta.proveedor_texto) {
+    reportLines.splice(reportLines.length - 1, 0, `Proveedor: ${evidenceMeta.proveedor_texto}`);
+  }
+  if (evidenceMeta.lote_texto) {
+    reportLines.splice(reportLines.length - 1, 0, `Lote: ${evidenceMeta.lote_texto}`);
+  }
+  if (evidenceMeta.fecha_vencimiento) {
+    reportLines.splice(reportLines.length - 1, 0, `Fecha de vencimiento: ${evidenceMeta.fecha_vencimiento}`);
+  }
+
+  const transportReportText = reportLines.join("\n");
+  const reportSentAt = evidenceMeta.whatsapp_sent_at;
+  const reportSentBy = evidenceMeta.whatsapp_sent_by;
+  const hasWhatsappReport =
+    record.reason === "averia_transporte" ||
+    record.reason === "reporte_calidad" ||
+    record.reason === "calidad_nacional" ||
+    record.reason === "fecha_corta_cedi";
 
   async function handleCopyTransportReport() {
     try {
@@ -134,6 +172,18 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     } catch {
       toast.error("No se pudo copiar el reporte");
     }
+  }
+
+  function handleMarkReportSent() {
+    startTransition(async () => {
+      try {
+        await markWasteReportSent(record.id);
+        toast.success("Merma marcada como enviada al grupo.");
+        router.refresh();
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "No se pudo marcar como enviada.");
+      }
+    });
   }
 
   return (
@@ -261,7 +311,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           </div>
         ) : null}
 
-        {record.reason === "averia_transporte" && showReportPreview ? (
+        {hasWhatsappReport && showReportPreview ? (
           <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-3 text-[12px] text-blue-950">
             <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700">
               Vista previa del reporte
@@ -293,7 +343,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                 </span>
               </div>
             )}
-            {record.reason === "averia_transporte" && (
+            {hasWhatsappReport && (
               <button
                 type="button"
                 onClick={() => setShowReportPreview((current) => !current)}
@@ -302,7 +352,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                 {showReportPreview ? "Ocultar reporte" : "Ver reporte"}
               </button>
             )}
-            {record.reason === "averia_transporte" && (
+            {hasWhatsappReport && (
               <button
                 type="button"
                 onClick={handleCopyTransportReport}
@@ -314,6 +364,23 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                 </span>
               </button>
             )}
+            {hasWhatsappReport && (
+              <button
+                type="button"
+                onClick={handleMarkReportSent}
+                className="flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1.5 transition-colors hover:bg-emerald-100 active:scale-95"
+              >
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-[11px] font-bold text-emerald-700">
+                  {reportSentAt ? "Marcar reenviado" : "Marcar enviado"}
+                </span>
+              </button>
+            )}
+            {hasWhatsappReport && reportSentAt ? (
+              <span className="text-[11px] font-medium text-emerald-700">
+                Enviado por {reportSentBy || "equipo"}
+              </span>
+            ) : null}
           </div>
 
           <select

@@ -10,6 +10,7 @@ import StoreTeamSummary from "@/components/StoreTeamSummary";
 import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
 import TruckArrivalReportCard from "@/components/dashboard/TruckArrivalReportCard";
 import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
+import { parseTruckReportContent, TRUCK_REPORT_PREFIX } from "@/lib/truck-report";
 
 export const metadata: Metadata = {
   title: "Inicio - Sistema de Control Operativo de Tienda",
@@ -82,6 +83,7 @@ export default async function Home() {
     { data: preShiftData },
     { data: fefoRecords },
     { data: storeAdminProfile },
+    { data: truckReportEntries },
   ] = await Promise.all([
     adminClient
       .from("instructions")
@@ -135,6 +137,14 @@ export default async function Home() {
       .in("role", ["supervisor", "admin"])
       .limit(1)
       .single(),
+    adminClient
+      .from("daily_logbook")
+      .select("id, author, content, created_at")
+      .eq("store_code", storeCode)
+      .gte("created_at", bogotaMidnight.toISOString())
+      .like("content", `${TRUCK_REPORT_PREFIX}%`)
+      .order("created_at", { ascending: false })
+      .limit(6),
   ]);
 
   const monthlyBudget = currentBudgetRow?.budget_amount || 0;
@@ -218,6 +228,31 @@ export default async function Home() {
       );
     }
   }
+
+  const todayTruckReports = (truckReportEntries || [])
+    .map((entry) => {
+      const payload = parseTruckReportContent(entry.content);
+      if (!payload) return null;
+
+      return {
+        id: entry.id,
+        author: entry.author,
+        created_at: entry.created_at,
+        payload,
+      };
+    })
+    .filter(
+      (
+        entry,
+      ): entry is {
+        id: string;
+        author: string;
+        created_at: string;
+        payload: ReturnType<typeof parseTruckReportContent> extends infer T
+          ? Exclude<T, null>
+          : never;
+      } => entry !== null,
+    );
 
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-24 lg:max-w-6xl xl:max-w-7xl">
@@ -370,7 +405,10 @@ export default async function Home() {
         </div>
       </section>
 
-      <TruckArrivalReportCard storeName={profile.store_name} />
+      <TruckArrivalReportCard
+        storeName={profile.store_name}
+        initialReports={todayTruckReports}
+      />
 
       <div className="mx-4 mt-6 rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="mb-3 flex items-center justify-between">
