@@ -7,11 +7,7 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 
-// Initialize Gemini
-const openai = new OpenAI({
-  baseURL: 'https://api.deepseek.com',
-  apiKey: process.env.DEEPSEEK_API_KEY || "",
-});
+
 
 type TeamMemberPayload = {
   nombre: string;
@@ -278,6 +274,11 @@ function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleA
 }
 
 export async function POST(request: Request) {
+  const openai = new OpenAI({
+    baseURL: 'https://api.deepseek.com',
+    apiKey: process.env.DEEPSEEK_API_KEY || "",
+  });
+
   try {
     const { profile, supabase } = await requireSupervisor();
 

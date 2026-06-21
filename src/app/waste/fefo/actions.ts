@@ -105,3 +105,45 @@ export async function subtractFefoQty(id: string) {
   revalidatePath("/waste/fefo");
   return { success: true };
 }
+
+export async function deleteFefoRecord(id: string) {
+  const { profile } = await requireAuth();
+  if (profile.role !== "supervisor" && profile.role !== "admin") {
+    return { error: "No tienes permisos para borrar" };
+  }
+
+  const adminClient = getAdminClient();
+  const { error } = await adminClient
+    .from("fefo_records")
+    .delete()
+    .eq("id", id)
+    .eq("store_code", profile.store_code);
+
+  if (error) {
+    return { error: "Error al borrar" };
+  }
+
+  revalidatePath("/waste/fefo");
+  return { success: true };
+}
+
+export async function editFefoRecord(id: string, updates: { quantity: number; expiration_date: string }) {
+  const { profile } = await requireAuth();
+  if (profile.role !== "supervisor" && profile.role !== "admin") {
+    return { error: "No tienes permisos para editar" };
+  }
+
+  const adminClient = getAdminClient();
+  const { error } = await adminClient
+    .from("fefo_records")
+    .update(updates)
+    .eq("id", id)
+    .eq("store_code", profile.store_code);
+
+  if (error) {
+    return { error: "Error al editar" };
+  }
+
+  revalidatePath("/waste/fefo");
+  return { success: true };
+}

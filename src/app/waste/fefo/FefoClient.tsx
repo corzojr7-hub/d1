@@ -4,9 +4,9 @@ import { useState, useTransition, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Radar, Plus, AlertTriangle, Clock, Target, CheckCircle2, PackageX } from "lucide-react";
 import { toast } from "sonner";
-import { addFefoRecord, updateFefoStatus, subtractFefoQty } from "./actions";
+import { addFefoRecord, updateFefoStatus, subtractFefoQty, deleteFefoRecord, editFefoRecord } from "./actions";
 import { searchProducts } from "@/app/products/actions";
-import { Search, X, Minus } from "lucide-react";
+import { Search, X, Minus, Trash2, Edit2, Check } from "lucide-react";
 import { get, set } from "idb-keyval";
 import { useProfile } from '@/components/ui/ProfileContext';
 import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
@@ -35,6 +35,12 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
   const [selectedCategory, setSelectedCategory] = useState("otro");
   const [sortBy, setSortBy] = useState<"criticidad" | "cantidad" | "fecha">("criticidad");
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQty, setEditQty] = useState("");
+  const [editDate, setEditDate] = useState("");
+
+  const isSupervisor = profile?.role === "supervisor" || profile?.role === "admin";
 
   const [isMounted, setIsMounted] = useState(false);
   useEffect(() => {
@@ -180,9 +186,31 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
     });
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("¿Seguro que deseas eliminar este registro del radar?")) return;
+    startTransition(async () => {
+      const res = await deleteFefoRecord(id);
+      if (res.success) toast.success("Registro eliminado");
+      else toast.error("Error al eliminar");
+    });
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    if (!editQty || !editDate) return;
+    startTransition(async () => {
+      const res = await editFefoRecord(id, { quantity: Number(editQty), expiration_date: editDate });
+      if (res.success) {
+        toast.success("Registro actualizado");
+        setEditingId(null);
+      } else {
+        toast.error("Error al actualizar");
+      }
+    });
+  };
+
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28">
-      <div className="mb-2 mt-6 px-4">
+    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl px-4 sm:px-6">
+      <div className="mb-2 mt-6">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <Link
@@ -315,9 +343,9 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
           </form>
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 md:space-y-0">
           {records.length > 0 && !isAdding && (
-            <div className="flex items-center justify-between px-2 mb-4">
+            <div className="flex items-center justify-between px-2 mb-4 col-span-full">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {records.length} {records.length === 1 ? 'producto' : 'productos'} en radar
               </span>
@@ -334,7 +362,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
           )}
 
           {records.length === 0 && !isAdding && (
-            <div className="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-3xl">
+            <div className="col-span-full text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-3xl">
               <Radar className="h-10 w-10 text-slate-300 mx-auto mb-3" />
               <p className="text-sm text-slate-500 font-medium">El radar está limpio. No hay productos próximos a vencer.</p>
             </div>
@@ -366,27 +394,55 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
             const delta = daysLeft - threshold;
             
             return (
-              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass}`}>
-                <div className="flex justify-between items-start mb-2">
-                  <div className="flex gap-2 items-center">
-                    {getAlertIcon(delta)}
-                    <div className="flex flex-col">
-                      <h3 className="font-bold text-sm leading-tight">{rawName}</h3>
-                      <span className="text-[10px] uppercase tracking-wide opacity-70 mt-0.5">{catInfo?.label}</span>
+              <div key={rec.id} className={`p-4 rounded-2xl border ${colorClass} flex flex-col justify-between`}>
+                <div>
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex gap-2 items-center">
+                      {getAlertIcon(delta)}
+                      <div className="flex flex-col pr-2">
+                        <h3 className="font-bold text-sm leading-tight">{rawName}</h3>
+                        <span className="text-[10px] uppercase tracking-wide opacity-70 mt-0.5">{catInfo?.label}</span>
+                      </div>
                     </div>
+                    {isSupervisor && (
+                      <div className="flex gap-1 shrink-0 ml-1">
+                        <button onClick={() => {
+                          if (editingId === rec.id) setEditingId(null);
+                          else { setEditingId(rec.id); setEditQty(rec.quantity.toString()); setEditDate(rec.expiration_date.split('T')[0]); }
+                        }} className="p-1.5 hover:bg-slate-200 rounded-lg text-slate-500 transition-colors">
+                          <Edit2 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(rec.id)} className="p-1.5 hover:bg-red-200 rounded-lg text-red-500 transition-colors">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <span className="text-xs font-black bg-white/50 px-2 py-1 rounded-lg shrink-0">
-                    {rec.quantity} uds
-                  </span>
-                </div>
-                
-                <div className="text-xs font-semibold opacity-80 mb-4 pl-7">
-                  {daysLeft < 0 ? `¡Venció hace ${Math.abs(daysLeft)} días!` : 
-                   daysLeft === 0 ? "¡Vence HOY!" : 
-                   `Vence en ${daysLeft} días (${new Date(rec.expiration_date).toLocaleDateString("es-CO")})`}
+                  
+                  {editingId === rec.id ? (
+                    <div className="pl-7 mb-4 flex gap-2 items-center">
+                      <input type="number" value={editQty} onChange={(e) => setEditQty(e.target.value)} className="w-16 text-xs px-2 py-1 rounded border border-slate-300" />
+                      <span className="text-xs">uds</span>
+                      <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="w-28 text-xs px-2 py-1 rounded border border-slate-300" />
+                      <button onClick={() => handleSaveEdit(rec.id)} className="p-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200"><Check className="h-4 w-4"/></button>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex items-center gap-2 pl-7 mb-2">
+                        <span className="text-xs font-black bg-white/50 px-2 py-1 rounded-lg shrink-0">
+                          {rec.quantity} uds
+                        </span>
+                        <div className="text-xs font-semibold opacity-80">
+                          {daysLeft < 0 ? `¡Venció hace ${Math.abs(daysLeft)} días!` : 
+                           daysLeft === 0 ? "¡Vence HOY!" : 
+                           `Vence en ${daysLeft} días (${new Date(rec.expiration_date).toLocaleDateString("es-CO")})`}
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div className="flex gap-2 pl-7">
+                <div className="flex gap-2 pl-7 mt-2">
                   {confirmingId === rec.id ? (
                     <>
                       <button 
