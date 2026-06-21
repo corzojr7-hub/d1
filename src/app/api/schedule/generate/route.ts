@@ -35,7 +35,6 @@ type ScheduleRow = {
 };
 
 type ScheduleResponse = {
-  reasoning?: string;
   schedule?: ScheduleRow[];
 };
 
@@ -437,6 +436,7 @@ export async function POST(request: Request) {
     - Si descansa la Segunda, el Supervisor debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
     - En esos dias, el Partido debe ser exactamente 06:00-10:00 / 18:00-22:00.
     - En esos dias, la Tercera debe cubrir exactamente 10:00-18:30 para no dejar la tienda sin encargado mientras regresa el Partido.
+    - Devuelve solo el JSON de schedule. No devuelvas reasoning, explicaciones, resumen ni texto adicional.
 
     Genera el JSON AHORA. No incluyas markdown, solo el JSON raw.
     `;
@@ -444,7 +444,6 @@ export async function POST(request: Request) {
     const responseSchema = {
       type: SchemaType.OBJECT,
       properties: {
-        reasoning: { type: SchemaType.STRING, description: "Cálculo matemático paso a paso antes de llenar el schedule." },
         schedule: {
           type: SchemaType.ARRAY,
           items: {
@@ -528,3 +527,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

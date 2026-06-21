@@ -142,10 +142,10 @@ Orden de prioridad:
 
 ## 13. FORMATO DE SALIDA
 Debes devolver UNICAMENTE un JSON valido, sin markdown ni texto extra.
+No expliques reglas, no repitas el contexto y no escribas razonamientos.
 
 Estructura:
 {
-  "reasoning": "Explica breve y claramente como distribuiste descansos, aperturas, cierres, reducciones de horas, coberturas y total semanal por persona.",
   "schedule": [
     {
       "assistant": "Nombre del colaborador",
