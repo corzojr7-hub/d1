@@ -22,7 +22,11 @@ import {
   type ActaTemplateKey,
 } from "../actaTemplates";
 
-type FeedbackType = "retroalimentacion" | "llamado_atencion" | "acta_compromiso";
+type FeedbackType =
+  | "mensaje_normal"
+  | "retroalimentacion"
+  | "llamado_atencion"
+  | "acta_compromiso";
 type StoredFeedbackType = "retroalimentacion" | "llamado_atencion";
 type AssistantTone = "suave" | "directo" | "formal";
 type AssistantDraft = {
@@ -74,7 +78,11 @@ export default function NewFeedbackPage() {
     startTransition(async () => {
       try {
         const storedType: StoredFeedbackType =
-          isActaType ? "llamado_atencion" : (formData.type as StoredFeedbackType);
+          isActaType || formData.type === "mensaje_normal"
+            ? formData.type === "mensaje_normal"
+              ? "retroalimentacion"
+              : "llamado_atencion"
+            : (formData.type as StoredFeedbackType);
         const actaReason = isActaType
           ? buildActaReason(formData.acta_template as ActaTemplateKey)
           : formData.reason;
@@ -109,7 +117,10 @@ export default function NewFeedbackPage() {
       try {
         const result = await rewriteFeedbackWhatsappMessage({
           directedTo: formData.directed_to,
-          type: formData.type === "acta_compromiso" ? "llamado_atencion" : formData.type,
+          type:
+            formData.type === "acta_compromiso"
+              ? "llamado_atencion"
+              : formData.type,
           rawMessage,
           tone: assistantTone,
         });
@@ -175,7 +186,7 @@ export default function NewFeedbackPage() {
       </h1>
       <p className="mt-1 text-sm text-slate-500">
         {isWhatsappMode
-          ? "Redacta un mensaje claro para WhatsApp y usa la misma IA para estructurar el registro."
+          ? "Escribe la idea como salga y la IA la baja a un mensaje corto, natural y listo para WhatsApp."
           : "Documenta retroalimentaciones, llamados de atencion o actas de compromiso"}
       </p>
 
@@ -220,6 +231,7 @@ export default function NewFeedbackPage() {
                 : "bg-amber-50 font-bold text-amber-700 ring-amber-200"
             }`}
           >
+            {isWhatsappMode && <option value="mensaje_normal">Mensaje normal</option>}
             <option value="retroalimentacion">Retroalimentacion</option>
             <option value="llamado_atencion">Llamado de atencion</option>
             <option value="acta_compromiso">Acta de compromiso</option>
@@ -257,12 +269,12 @@ export default function NewFeedbackPage() {
               </p>
               <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
                 {isWhatsappMode
-                  ? "Convierte una idea en un mensaje claro"
+                  ? "Convierte una idea en un mensaje natural"
                   : "Mejora el contenido del registro"}
               </h2>
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 {isWhatsappMode
-                  ? "Escribe la situacion como salga y la IA devuelve un mensaje humano, firme y listo para WhatsApp."
+                  ? "Escribe la situacion como salga y la IA devuelve un mensaje directo, operativo y facil de enviar."
                   : "Escribe el contexto y la IA completa motivo, descripcion detallada y compromiso."}
               </p>
             </div>

@@ -15,7 +15,7 @@ const genAI = new GoogleGenerativeAI(apiKey);
 
 const whatsappRewriteSchema = z.object({
   directedTo: z.string().min(1, "Selecciona para quien es el mensaje."),
-  type: z.enum(["retroalimentacion", "llamado_atencion"]),
+  type: z.enum(["mensaje_normal", "retroalimentacion", "llamado_atencion"]),
   rawMessage: z.string().min(8, "Escribe mas contexto para mejorar el mensaje."),
   tone: z.enum(["suave", "directo", "formal"]),
 });
@@ -69,7 +69,7 @@ export async function createFeedback(data: Omit<FeedbackInsert, "store_code" | "
 
 export async function rewriteFeedbackWhatsappMessage(input: {
   directedTo: string;
-  type: "retroalimentacion" | "llamado_atencion";
+  type: "mensaje_normal" | "retroalimentacion" | "llamado_atencion";
   rawMessage: string;
   tone: "suave" | "directo" | "formal";
 }) {
@@ -85,15 +85,16 @@ export async function rewriteFeedbackWhatsappMessage(input: {
   const isWholeTeam = validated.directedTo.trim().toUpperCase() === "TODO EL EQUIPO";
 
   const toneGuide = {
-    suave: "cercano, respetuoso y calmado",
-    directo: "claro, firme y humano",
-    formal: "profesional, sobrio y respetuoso",
+    suave: "cercano, respetuoso y tranquilo",
+    directo: "claro, operativo, humano y al punto",
+    formal: "respetuoso y ordenado, sin sonar acartonado",
   }[validated.tone];
 
-  const kindGuide =
-    validated.type === "llamado_atencion"
-      ? "un llamado de atencion firme pero respetuoso"
-      : "una retroalimentacion constructiva y profesional";
+  const kindGuide = {
+    mensaje_normal: "un mensaje operativo normal para WhatsApp, corto y natural",
+    retroalimentacion: "una retroalimentacion clara, humana y facil de entender",
+    llamado_atencion: "un llamado de atencion firme pero respetuoso, sin sonar legalista",
+  }[validated.type];
 
   const prompt = `
 Convierte el siguiente mensaje informal en un mensaje listo para enviar por WhatsApp.
@@ -106,7 +107,7 @@ Contexto:
 - Saludo obligatorio de apertura: ${greeting}.
 
 Reglas obligatorias:
-- El mensaje final debe sonar humano, claro, profesional y realista.
+- El mensaje final debe sonar humano, natural, operativo y realista.
 - Debe servir para operacion retail diaria.
 - No uses groserias.
 - No inventes hechos que no esten en el mensaje original.
@@ -117,8 +118,13 @@ Reglas obligatorias:
 - ${isWholeTeam ? 'El mensaje va para todo el equipo, asi que hablales al grupo completo y no a una sola persona.' : "El mensaje va para una sola persona, pero siempre sin tutear."}
 - No uses titulos como "Motivo", "Descripcion" o "Compromiso" dentro del mensaje.
 - El mensaje debe quedar listo para copiar y enviar por WhatsApp.
+- Menos es mas: usa solo la informacion necesaria.
+- Evita frases demasiado elegantes, rebuscadas, frias o corporativas.
+- Evita expresiones como "se requiere de su valioso apoyo", "agradezco su compromiso", "de gran importancia", "cordialmente" o similares.
+- Debe leerse como un mensaje real de supervisor, no como una carta ni un memorando.
 - Puede tener uno o dos parrafos cortos, pero no listas.
-- Cierra con una expectativa clara o una invitacion a corregir.
+- Si el tipo es "mensaje_normal", prioriza brevedad, claridad y tono conversacional de trabajo.
+- Cierra con una confirmacion, instruccion o expectativa clara, sin relleno.
 
 Ademas del mensaje final, genera tres campos internos para guardar el registro:
 - reason: resumen corto del tema principal.
