@@ -7,7 +7,7 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 function getAdminClient() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 }
 
@@ -33,7 +33,7 @@ export async function assignQuadrant(formData: FormData) {
   }
 
   if ((existingAssignments || []).some((item) => item.quadrant_name === quadrant_name)) {
-    throw new Error("Ese cuadrante ya está asignado.");
+    throw new Error("Ese cuadrante ya esta asignado.");
   }
 
   const { error } = await adminClient.from("quadrant_assignments").insert({
@@ -42,7 +42,7 @@ export async function assignQuadrant(formData: FormData) {
     assigned_to,
     quadrant_name,
     notes,
-    status: "asignado"
+    status: "asignado",
   });
 
   if (error) {
@@ -55,10 +55,8 @@ export async function assignQuadrant(formData: FormData) {
 
 export async function acceptQuadrant(assignmentId: string) {
   const { profile } = await requireAuth();
-
   const adminClient = getAdminClient();
-  
-  // Verify assignment belongs to this store
+
   const { data: assignment } = await adminClient
     .from("quadrant_assignments")
     .select("store_code")
@@ -73,7 +71,7 @@ export async function acceptQuadrant(assignmentId: string) {
     .from("quadrant_assignments")
     .update({
       status: "aceptado",
-      accepted_at: new Date().toISOString()
+      accepted_at: new Date().toISOString(),
     })
     .eq("id", assignmentId);
 
@@ -110,7 +108,7 @@ export async function updateQuadrantAssignment(formData: FormData) {
   const adminClient = getAdminClient();
   const { data: assignment } = await adminClient
     .from("quadrant_assignments")
-    .select("store_code")
+    .select("id, store_code, assigned_to, quadrant_name")
     .eq("id", id)
     .single();
 
@@ -123,34 +121,54 @@ export async function updateQuadrantAssignment(formData: FormData) {
     .select("id, assigned_to, quadrant_name")
     .eq("store_code", profile.store_code);
 
-  if (
-    (existingAssignments || []).some(
-      (item) => item.id !== id && item.assigned_to === assigned_to.trim(),
-    )
-  ) {
-    throw new Error("Esa persona ya tiene un cuadrante asignado.");
+  const nextAssistant = assigned_to.trim();
+  const nextQuadrant = quadrant_name.trim();
+  const currentAssistant = assignment.assigned_to;
+  const currentQuadrant = assignment.quadrant_name;
+  const allAssignments = existingAssignments || [];
+
+  const assistantOwner = allAssignments.find(
+    (item) => item.id !== id && item.assigned_to === nextAssistant,
+  );
+  const quadrantOwner = allAssignments.find(
+    (item) => item.id !== id && item.quadrant_name === nextQuadrant,
+  );
+
+  const updates = new Map<string, { assigned_to?: string; quadrant_name?: string }>();
+  const mergeUpdate = (
+    assignmentId: string,
+    patch: { assigned_to?: string; quadrant_name?: string },
+  ) => {
+    updates.set(assignmentId, { ...(updates.get(assignmentId) || {}), ...patch });
+  };
+
+  mergeUpdate(id, {
+    assigned_to: nextAssistant,
+    quadrant_name: nextQuadrant,
+  });
+
+  if (assistantOwner) {
+    mergeUpdate(assistantOwner.id, { assigned_to: currentAssistant });
   }
 
-  if (
-    (existingAssignments || []).some(
-      (item) => item.id !== id && item.quadrant_name === quadrant_name.trim(),
-    )
-  ) {
-    throw new Error("Ese cuadrante ya está asignado.");
+  if (quadrantOwner) {
+    mergeUpdate(quadrantOwner.id, { quadrant_name: currentQuadrant });
   }
 
-  const { error } = await adminClient
-    .from("quadrant_assignments")
-    .update({
-      assigned_to: assigned_to.trim(),
-      quadrant_name: quadrant_name.trim(),
-      assigned_by: profile.display_name,
-    })
-    .eq("id", id);
+  // ponytail: this is a small in-store swap, so sequential updates are enough; move to a DB transaction only if partial failures become a real issue.
+  for (const [assignmentId, patch] of updates.entries()) {
+    const { error } = await adminClient
+      .from("quadrant_assignments")
+      .update({
+        ...patch,
+        assigned_by: profile.display_name,
+      })
+      .eq("id", assignmentId);
 
-  if (error) {
-    console.error("Error actualizando cuadrante", error);
-    throw new Error("Error al actualizar el cuadrante.");
+    if (error) {
+      console.error("Error actualizando cuadrante", error);
+      throw new Error("Error al actualizar el cuadrante.");
+    }
   }
 
   revalidatePath("/quadrants");

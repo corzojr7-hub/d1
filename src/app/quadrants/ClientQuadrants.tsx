@@ -425,21 +425,11 @@ export default function ClientQuadrants({
                         defaultValue={assignment.assigned_to}
                         className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        {assistants
-                          .filter(
-                            (assistant) =>
-                              assistant.name === assignment.assigned_to ||
-                              !assignments.some(
-                                (item) =>
-                                  item.id !== assignment.id &&
-                                  item.assigned_to === assistant.name,
-                              ),
-                          )
-                          .map((assistant) => (
-                            <option key={assistant.name} value={assistant.name}>
-                              {assistant.name}
-                            </option>
-                          ))}
+                        {assistants.map((assistant) => (
+                          <option key={assistant.name} value={assistant.name}>
+                            {assistant.name}
+                          </option>
+                        ))}
                       </select>
                     </label>
                     <label className="block">
@@ -451,21 +441,11 @@ export default function ClientQuadrants({
                         defaultValue={assignment.quadrant_name}
                         className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       >
-                        {areas
-                          .filter(
-                            (area) =>
-                              area === assignment.quadrant_name ||
-                              !assignments.some(
-                                (item) =>
-                                  item.id !== assignment.id &&
-                                  item.quadrant_name === area,
-                              ),
-                          )
-                          .map((area) => (
-                            <option key={area} value={area}>
-                              {area}
-                            </option>
-                          ))}
+                        {areas.map((area) => (
+                          <option key={area} value={area}>
+                            {area}
+                          </option>
+                        ))}
                       </select>
                     </label>
                     <div className="flex gap-2">
