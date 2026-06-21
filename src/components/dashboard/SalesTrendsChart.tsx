@@ -211,8 +211,8 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
 
       <div className="mt-4 h-64 w-full">
         {mounted ? (
-          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-            <BarChart data={chartData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1} className="focus:outline-none" style={{ outline: "none" }}>
+            <BarChart data={chartData} margin={{ top: 8, right: 4, left: -20, bottom: 0 }} className="focus:outline-none" style={{ outline: "none" }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
               <XAxis
                 dataKey="label"
@@ -227,11 +227,12 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
                 tickFormatter={(value) => compactNumber.format(Number(value))}
               />
               <Tooltip
-                cursor={{ fill: "#fff1f2" }}
+                cursor={{ fill: "#fff1f2", stroke: "transparent", strokeWidth: 0 }}
                 contentStyle={{
                   borderRadius: "12px",
                   border: "none",
                   boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.12)",
+                  outline: "none"
                 }}
                 formatter={(value, name) => [currency.format(Number(value)), name]}
               />
