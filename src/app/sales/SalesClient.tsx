@@ -15,9 +15,10 @@ import {
   subMonths,
 } from "date-fns";
 import { es } from "date-fns/locale";
-import { setMonthlyBudget, setDailySale, setWeeklyWaste } from "./actions";
+import { setMonthlyBudget, setDailySale, setWeeklyWaste, setBulkDailySales } from "./actions";
+import * as XLSX from "xlsx";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
-import { TrendingUp, Target, Save, Calendar, AlertCircle } from "lucide-react";
+import { TrendingUp, Target, Save, Calendar, AlertCircle, Upload, Loader2 } from "lucide-react";
 import { useProfile } from "@/components/ui/ProfileContext";
 import { toast } from "sonner";
 
@@ -65,6 +66,7 @@ export default function SalesClient({
   const [wasteAmount, setWasteAmount] = useState("");
   const [wasteWeek, setWasteWeek] = useState("");
   const [isSavingWaste, setIsSavingWaste] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
 
   const currentMonthYear = format(currentDate, "yyyy-MM");
   const previousMonthDate = useMemo(() => subMonths(currentDate, 1), [currentDate]);
@@ -222,18 +224,92 @@ export default function SalesClient({
   }
 
   async function handleSaveSale() {
-    if (!saleDate || !saleAmount) return;
+    if (!saleAmount) return;
+    const digits = parseMoneyInput(saleAmount);
+    if (!digits) return;
+    
     startTransition(async () => {
       try {
-        const res = await setDailySale(saleDate, Number(parseMoneyInput(saleAmount)));
-        if (!res.success) throw new Error(res.error);
+        const res = await setDailySale(saleDate, Number(digits));
+        if (!res.success) {
+          throw new Error(res.error);
+        }
+        
+        toast.success(
+          res.mode === "updated" ? "Venta diaria actualizada" : "Venta diaria guardada"
+        );
         setSaleAmount("");
-        toast.success(res.mode === "updated" ? "Venta diaria actualizada" : "Venta diaria guardada");
       } catch (error: unknown) {
-        toast.error(error instanceof Error ? error.message : "Error al guardar venta");
+        toast.error(error instanceof Error ? error.message : "Error al guardar la venta");
       }
     });
   }
+
+  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    try {
+      const data = await file.arrayBuffer();
+      const workbook = XLSX.read(data, { type: "array" });
+      const firstSheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[firstSheetName];
+      const json = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+      
+      const targetYear = format(currentDate, "yyyy");
+      const targetMonthName = format(currentDate, "MMM", { locale: es }).toLowerCase();
+      const targetMonthNum = format(currentDate, "MM");
+      
+      const monthRow = json[1] || [];
+      let colIndex = -1;
+      for (let i = 0; i < monthRow.length; i++) {
+        if (typeof monthRow[i] === 'string' && monthRow[i].toLowerCase().startsWith(targetMonthName)) {
+          colIndex = i;
+          break;
+        }
+      }
+      
+      if (colIndex === -1) {
+        throw new Error(`No se encontró la columna para el mes de ${targetMonthName}`);
+      }
+      
+      const salesToImport: { date: string; amount: number }[] = [];
+      
+      for (let r = 3; r < json.length; r++) {
+        const row = json[r];
+        if (!row || row.length === 0) continue;
+        
+        const day = Number(row[0]);
+        if (!isNaN(day) && day >= 1 && day <= 31) {
+          let amount = row[colIndex];
+          if (typeof amount === 'string') {
+            amount = amount.replace(/[^\d]/g, "");
+          }
+          amount = Number(amount);
+          
+          if (!isNaN(amount) && amount > 0) {
+            const dateStr = `${targetYear}-${targetMonthNum}-${day.toString().padStart(2, "0")}`;
+            salesToImport.push({ date: dateStr, amount });
+          }
+        }
+      }
+      
+      if (salesToImport.length === 0) {
+        throw new Error("No se encontraron ventas válidas en la columna del mes.");
+      }
+      
+      const res = await setBulkDailySales(salesToImport);
+      if (!res.success) throw new Error(res.error);
+      
+      toast.success(`Se importaron ${res.count} ventas correctamente.`);
+    } catch (err: any) {
+      toast.error(err.message || "Error al leer el archivo Excel");
+    } finally {
+      setIsImporting(false);
+      e.target.value = '';
+    }
+  };
 
   async function handleSaveWaste(weekStart: string, weekEndIso: string, amountStr: string) {
     if (!amountStr) return;
@@ -497,8 +573,17 @@ export default function SalesClient({
       </section>
 
       <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <Calendar className="h-4 w-4" /> Venta Diaria
+        <h2 className="mb-4 flex items-center justify-between text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
+          <div className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" /> Venta Diaria
+          </div>
+          {isSupervisor && (
+            <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition-colors hover:bg-slate-200">
+              {isImporting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
+              {isImporting ? "Importando..." : "Importar PowerBI"}
+              <input type="file" accept=".xlsx,.csv" className="hidden" onChange={handleImportExcel} disabled={isImporting} />
+            </label>
+          )}
         </h2>
         {canCreateSale ? (
           <div className="flex gap-3">

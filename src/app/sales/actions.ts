@@ -33,6 +33,8 @@ const setDailySaleSchema = z.object({
   amount: z.number().min(0, "El monto no puede ser negativo")
 });
 
+const setBulkDailySalesSchema = z.array(setDailySaleSchema);
+
 const setWeeklyWasteSchema = z.object({
   weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato inválido (YYYY-MM-DD)"),
   weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato inválido (YYYY-MM-DD)"),
@@ -115,6 +117,54 @@ export async function setDailySale(date: string, amount: number) {
     return {
       success: false,
       error: error instanceof Error ? error.message : "Error al guardar venta",
+    };
+  }
+}
+
+export async function setBulkDailySales(sales: { date: string, amount: number }[]) {
+  try {
+    const { profile, user } = await requireAuth();
+    if (!(await checkRateLimit(profile.id, 50, 60000))) throw new Error("Rate limit exceeded");
+
+    if (!SALE_EDIT_ROLES.includes(profile.role as ProfileRole)) {
+      throw new Error("Solo los supervisores pueden hacer cargas masivas de ventas.");
+    }
+
+    const validated = setBulkDailySalesSchema.parse(sales);
+    if (validated.length === 0) return { success: true, count: 0 };
+
+    const dates = validated.map((s) => s.date);
+    const adminClient = getAdminClient();
+    
+    // Get existing to preserve created_by
+    const { data: existingSales } = await adminClient
+      .from("daily_sales")
+      .select("date, created_by")
+      .eq("store_code", profile.store_code)
+      .in("date", dates);
+      
+    const existingMap = new Map(existingSales?.map((s) => [s.date, s.created_by]));
+
+    const upsertPayload = validated.map((s) => ({
+      store_code: profile.store_code,
+      date: s.date,
+      amount: s.amount,
+      created_by: existingMap.get(s.date) || user.id,
+    }));
+
+    const { error } = await adminClient
+      .from("daily_sales")
+      .upsert(upsertPayload, { onConflict: "store_code, date" });
+
+    if (error) throw error;
+
+    revalidatePath("/sales");
+    return { success: true, count: validated.length };
+  } catch (error: unknown) {
+    console.error("setBulkDailySales error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Error al importar ventas masivas",
     };
   }
 }
