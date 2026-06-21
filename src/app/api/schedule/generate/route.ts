@@ -5,6 +5,7 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { z } from "zod";
 import path from "path";
+import fs from "fs";
 
 export const maxDuration = 60;
 

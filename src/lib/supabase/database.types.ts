@@ -425,6 +425,73 @@ export interface Database {
           created_at?: string;
         };
       };
+      dispatch_differences: {
+        Row: {
+          id: string;
+          store_code: string;
+          created_by: string;
+          driver_name: string;
+          truck_plate: string;
+          dispatch_date: string;
+          category: string;
+          description: string;
+          initial_evidence_url: string | null;
+          status: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          store_code: string;
+          created_by: string;
+          driver_name: string;
+          truck_plate: string;
+          dispatch_date: string;
+          category: string;
+          description: string;
+          initial_evidence_url?: string | null;
+          status?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          store_code?: string;
+          created_by?: string;
+          driver_name?: string;
+          truck_plate?: string;
+          dispatch_date?: string;
+          category?: string;
+          description?: string;
+          initial_evidence_url?: string | null;
+          status?: string;
+          created_at?: string;
+        };
+      };
+      dispatch_evidences: {
+        Row: {
+          id: string;
+          difference_id: string;
+          evidence_url: string;
+          notes: string | null;
+          created_by: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          difference_id: string;
+          evidence_url: string;
+          notes?: string | null;
+          created_by: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          difference_id?: string;
+          evidence_url?: string;
+          notes?: string | null;
+          created_by?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
