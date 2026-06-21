@@ -8,6 +8,7 @@ import { toast } from "sonner";
 type ShiftData = {
   type?: string;
   shift?: string;
+  hours?: number;
 };
 
 type ScheduleRow = {
@@ -399,6 +400,9 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                                 {shiftData.shift !== "Descanso" && (
                                   <span className="mt-0.5 text-[11px] font-medium opacity-90">{shiftData.shift}</span>
                                 )}
+                                {shiftData.shift !== "Descanso" && shiftData.hours && (
+                                  <span className="mt-0.5 text-[10px] font-bold opacity-75">{shiftData.hours}h</span>
+                                )}
                               </div>
                             </td>
                           );
@@ -409,6 +413,27 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                       </tr>
                     ))}
                   </tbody>
+                  <tfoot>
+                    <tr className="border-t-2 border-slate-200 bg-slate-100/80">
+                      <td className="sticky left-0 z-20 border-r border-slate-200/80 bg-slate-100/90 px-4 py-3 font-black text-slate-700 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
+                        TOTAL HRS / DÍA
+                      </td>
+                      {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                        const totalDayHours = selectedScheduleRows.reduce((sum, row) => {
+                          const shiftData = row[day] as ShiftData | undefined;
+                          return sum + (Number(shiftData?.hours) || 0);
+                        }, 0);
+                        return (
+                          <td key={day} className="border-r border-slate-200/80 px-4 py-3 text-center text-[13px] font-black text-slate-800">
+                            {totalDayHours}h
+                          </td>
+                        );
+                      })}
+                      <td className="bg-slate-200/60 px-4 py-3 text-center text-[13px] font-black text-slate-800">
+                        {selectedScheduleRows.reduce((sum, row) => sum + Number(row.total_hours || 0), 0)}h
+                      </td>
+                    </tr>
+                  </tfoot>
                 </table>
                 {selectedScheduleRows.length === 0 && (
                   <div className="border-t border-slate-200/80 bg-slate-50/80 p-6 text-center text-slate-500">
