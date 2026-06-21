@@ -9,8 +9,6 @@ import fs from "fs";
 
 export const maxDuration = 60;
 
-
-
 type TeamMemberPayload = {
   nombre: string;
   rol: string;
@@ -42,6 +40,12 @@ type KeyRoleAliases = {
   supervisor: string;
   second?: string;
   third?: string;
+};
+
+type ProviderUsage = {
+  prompt_tokens?: number | null;
+  completion_tokens?: number | null;
+  total_tokens?: number | null;
 };
 
 type ShiftCell = {
@@ -85,6 +89,25 @@ const canonicalShifts: ShiftCell[] = [
   { shift: "06:00-10:00 / 18:00-22:00", hours: 8, type: "Partido" },
   { shift: "Descanso", hours: 0, type: "Descanso" },
 ];
+
+function extractFirstJsonObject(text: string) {
+  const trimmed = text
+    .trim()
+    .replace(/^```json\s*/i, "")
+    .replace(/^```\s*/i, "")
+    .replace(/\s*```$/, "");
+  const firstBrace = trimmed.indexOf("{");
+  const lastBrace = trimmed.lastIndexOf("}");
+  if (firstBrace === -1 || lastBrace === -1 || lastBrace <= firstBrace) return null;
+  return trimmed.slice(firstBrace, lastBrace + 1);
+}
+
+function selfCheckExtractFirstJsonObject() {
+  console.assert(extractFirstJsonObject('{"ok":true}') === '{"ok":true}');
+  console.assert(extractFirstJsonObject('```json\n{"ok":true}\n```') === '{"ok":true}');
+}
+
+selfCheckExtractFirstJsonObject();
 
 function normalizeText(value: unknown) {
   return String(value ?? "")
@@ -190,7 +213,6 @@ function normalizeShiftCell(value: unknown) {
       option.hours === inferredHours &&
       option.shift !== "Descanso",
   );
-
   if (normalizedByTypeAndHours) return normalizedByTypeAndHours;
 
   const normalizedByShift = canonicalShifts.find((option) => option.shift === extractedShift);
@@ -247,9 +269,8 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
   } satisfies ScheduleResponse;
 }
 
-function enforceKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
+function enforceKeyRoleRules(scheduleData: ScheduleResponse) {
   const schedule = scheduleData.schedule ?? [];
-  // Calculate total hours exactly as they are
   for (const row of schedule) {
     row.total_hours = scheduleDays.reduce(
       (sum, day) => sum + Number((row[day] as ShiftCell).hours || 0),
@@ -275,9 +296,41 @@ function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleA
   }
 }
 
+async function requestScheduleCompletion(openai: OpenAI, prompt: string) {
+  let lastText = "";
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const completion = await openai.chat.completions.create({
+      model: "deepseek-v4-pro",
+      response_format: { type: "json_object" },
+      messages: [
+        {
+          role: "system",
+          content:
+            attempt === 0
+              ? "Devuelve solo un objeto JSON valido, sin markdown ni texto extra."
+              : "Tu respuesta anterior no fue JSON valido. Devuelve solo un objeto JSON valido con la clave schedule.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const content = completion.choices[0].message.content;
+    lastText = typeof content === "string" ? content : JSON.stringify(content ?? "");
+
+    if (extractFirstJsonObject(lastText)) {
+      return { completion, responseText: lastText };
+    }
+  }
+
+  throw new Error(
+    `La IA no devolvio JSON valido. Respuesta recibida: ${lastText.slice(0, 180) || "vacia"}`,
+  );
+}
+
 export async function POST(request: Request) {
   const openai = new OpenAI({
-    baseURL: 'https://api.deepseek.com',
+    baseURL: "https://api.deepseek.com",
     apiKey: process.env.DEEPSEEK_API_KEY || "",
   });
 
@@ -289,12 +342,11 @@ export async function POST(request: Request) {
     }
 
     const payload = await request.json();
-    
-    // Zod Validation
+
     const schema = z.object({
-      weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato inválido (YYYY-MM-DD)"),
-      weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato inválido (YYYY-MM-DD)"),
-      holidays: z.array(z.string().regex(/^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s-]+$/))
+      weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato invalido (YYYY-MM-DD)"),
+      weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato invalido (YYYY-MM-DD)"),
+      holidays: z.array(z.string().regex(/^[a-zA-Z0-9\s\-_,]+$/)),
     });
 
     const { weekStart, weekEnd, holidays } = schema.parse(payload);
@@ -303,7 +355,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "API Key de DeepSeek no configurada." }, { status: 500 });
     }
 
-    // Build the payload team
     const realNames: Record<string, string> = {};
     const team: TeamMemberPayload[] = [];
     const seenMembers = new Set<string>();
@@ -312,7 +363,7 @@ export async function POST(request: Request) {
       second: profile.second_in_charge || undefined,
       third: profile.third_in_charge || undefined,
     };
-    
+
     let operatorIndex = 1;
     const addMember = (realName: string, role: string, contract: string) => {
       const normalizedName = normalizeText(realName);
@@ -326,7 +377,7 @@ export async function POST(request: Request) {
     addMember(profile.display_name, "Supervisor", "Full-Time");
     if (profile.second_in_charge) addMember(profile.second_in_charge, "Segunda", "Full-Time");
     if (profile.third_in_charge) addMember(profile.third_in_charge, "Tercero", "Full-Time");
-    
+
     (profile.assistants as AssistantProfile[] | null | undefined || []).forEach((assistant) => {
       addMember(
         assistant.name || "Sin nombre",
@@ -335,25 +386,23 @@ export async function POST(request: Request) {
       );
     });
 
-    // Read the master prompt
     const promptPath = path.join(process.cwd(), "src", "lib", "prompts", "ai_scheduler_prompt.md");
     let masterPrompt = "";
     try {
       masterPrompt = fs.readFileSync(promptPath, "utf8");
     } catch {
-      // Fallback if the path is wrong
       masterPrompt = `
-      Eres un experto Planner de recursos humanos.
+      Eres un experto planner de recursos humanos.
       Reglas:
       1. Apertura 06:00, Cierre 22:00.
-      2. Descansos obligatorios según festivos.
-      3. Genera un JSON con el horario para cada asistente de Lunes a Domingo.
+      2. Descansos obligatorios segun festivos.
+      3. Genera un JSON con el horario para cada asistente de lunes a domingo.
       `;
     }
 
     const finalPrompt = `
     ${masterPrompt}
-    
+
     ESTA SEMANA:
     Inicio: ${weekStart}
     Fin: ${weekEnd}
@@ -373,19 +422,16 @@ export async function POST(request: Request) {
     - Si descansa la Segunda, el Supervisor debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
     - En esos dias, el Partido debe ser exactamente 06:00-10:00 / 18:00-22:00.
     - En esos dias, la Tercera debe cubrir exactamente 10:00-18:30 para no dejar la tienda sin encargado mientras regresa el Partido.
+    - Devuelve exclusivamente un objeto JSON valido. No escribas introducciones, disculpas, advertencias ni texto fuera del JSON.
 
     REGLAS DE COBERTURA ESTRICTA PARA ESTA TIENDA:
-    1. LA TIENDA NUNCA PUEDE QUEDAR SOLA: Si pones Aperturas que salen a las 11:00, DEBE haber un Intermedio o Cierre que entre ANTES de las 11:00. Nunca puede quedar 1 sola persona en la tienda, mínimo 2 físicamente en cualquier hora.
-    2. MINIMO 3 CIERRES DIARIOS: Todos los días (Lunes a Domingo), DEBE haber como mínimo 3 personas cuyo turno termine a las 22:00. No importa si es Partido o Cierre normal, a las 22:00 debe haber mínimo 3 personas en la tienda.
-    3. MINIMO 2 APERTURAS A LAS 06:00: Todos los días DEBE haber mínimo 2 personas entrando a las 06:00.
+    1. LA TIENDA NUNCA PUEDE QUEDAR SOLA: Si pones Aperturas que salen a las 11:00, DEBE haber un Intermedio o Cierre que entre ANTES de las 11:00. Nunca puede quedar 1 sola persona en la tienda, minimo 2 fisicamente en cualquier hora.
+    2. MINIMO 3 CIERRES DIARIOS: Todos los dias (Lunes a Domingo), DEBE haber como minimo 3 personas cuyo turno termine a las 22:00. No importa si es Partido o Cierre normal, a las 22:00 debe haber minimo 3 personas en la tienda.
+    3. MINIMO 2 APERTURAS A LAS 06:00: Todos los dias DEBE haber minimo 2 personas entrando a las 06:00.
 
-    REGLA MATEMÁTICA DE 42 HORAS (DE VIDA O MUERTE):
-    ¡Nadie puede superar las 42 horas semanales en total!
-    PASO OBLIGATORIO: En tu proceso de razonamiento, ANTES de emitir el JSON, tienes que escribir la suma diaria de cada persona.
-    Ejemplo: "Dairo: 8 (L) + 8 (M) + 0 (X) + 8 (J) + 8 (V) + 5 (S) + 5 (D) = 42. OK."
-    Si la suma te da 43, 44, 45 o 50, ES UN ERROR FATAL. Debes corregir el horario inmediatamente cambiando un turno de 8h por uno de 4h, o agregando un día de Descanso extra, hasta que la suma de EXACTAMENTE 42 o menos. No toleramos ni 1 hora extra.
-
-    Devuelve solo el JSON de schedule. No devuelvas explicaciones fuera del JSON.
+    REGLA MATEMATICA DE 42 HORAS:
+    - Nadie puede superar las 42 horas semanales en total.
+    - Si la suma da mas de 42, corrige antes de responder.
 
     ESTRUCTURA EXACTA DEL JSON ESPERADO:
     {
@@ -403,37 +449,33 @@ export async function POST(request: Request) {
         }
       ]
     }
-
-    Genera el JSON AHORA. No incluyas markdown, solo el JSON raw.
     `;
 
-    const completion = await openai.chat.completions.create({
-      model: "deepseek-v4-pro",
-      messages: [
-        { role: "system", content: "Devuelve solo JSON raw, sin formato markdown." },
-        { role: "user", content: finalPrompt }
-      ],
-    });
-    
-    const responseText = completion.choices[0].message.content || "";
+    const { completion, responseText } = await requestScheduleCompletion(openai, finalPrompt);
+
+    const usage = (completion.usage ?? null) as ProviderUsage | null;
 
     await logAiUsage({
       adminId: profile.id,
       storeCode: profile.store_code,
       actionType: AI_ACTIONS.schedule,
       model: "deepseek-v4-pro",
-      usage: completion.usage as any,
+      usage: usage
+        ? {
+            promptTokenCount: usage.prompt_tokens ?? 0,
+            candidatesTokenCount: usage.completion_tokens ?? 0,
+            totalTokenCount: usage.total_tokens ?? 0,
+          }
+        : null,
     });
 
-    // Parse JSON
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("El modelo no devolvió un JSON válido.");
+    const jsonText = extractFirstJsonObject(responseText);
+    if (!jsonText) {
+      throw new Error("La IA no devolvio un JSON valido.");
     }
 
-    const scheduleData = normalizeScheduleData(JSON.parse(jsonMatch[0]) as ScheduleResponse);
+    const scheduleData = normalizeScheduleData(JSON.parse(jsonText) as ScheduleResponse);
 
-    // Remapear nombres reales
     if (scheduleData.schedule) {
       scheduleData.schedule.forEach((row) => {
         if (realNames[row.assistant]) {
@@ -442,25 +484,27 @@ export async function POST(request: Request) {
       });
     }
 
-    enforceKeyRoleRules(scheduleData, keyRoles);
+    enforceKeyRoleRules(scheduleData);
     validateKeyRoleRules(scheduleData, keyRoles);
 
-    // Save to DB
-    const { data: inserted, error: insertError } = await supabase.from("weekly_schedules").insert({
-      profile_id: profile.id,
-      week_start: weekStart,
-      week_end: weekEnd,
-      schedule_data: scheduleData,
-      status: "borrador",
-      created_by: profile.user_id
-    }).select().single();
+    const { data: inserted, error: insertError } = await supabase
+      .from("weekly_schedules")
+      .insert({
+        profile_id: profile.id,
+        week_start: weekStart,
+        week_end: weekEnd,
+        schedule_data: scheduleData,
+        status: "borrador",
+        created_by: profile.user_id,
+      })
+      .select()
+      .single();
 
     if (insertError) {
       throw new Error("Error guardando el horario en la base de datos.");
     }
 
     return NextResponse.json({ success: true, schedule: inserted });
-
   } catch (error: unknown) {
     console.error("Schedule Generate Error:", error);
     return NextResponse.json(
@@ -469,4 +513,3 @@ export async function POST(request: Request) {
     );
   }
 }
-

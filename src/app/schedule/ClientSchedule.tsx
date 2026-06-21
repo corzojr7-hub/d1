@@ -183,7 +183,12 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     }
   }
 
-  useEffect(() => subscribeGenerationSnapshot(setTaskSnapshot), []);
+  useEffect(() => {
+    const unsubscribe = subscribeGenerationSnapshot(setTaskSnapshot);
+    return () => {
+      unsubscribe();
+    };
+  }, []);
 
   async function handleDelete(id: string) {
     if (!confirm("¿Seguro que deseas eliminar esta malla?")) return;

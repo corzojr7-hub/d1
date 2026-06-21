@@ -112,6 +112,10 @@ export async function updateQuadrantAssignment(formData: FormData) {
     .eq("id", id)
     .single();
 
+  if (!assignment) {
+    throw new Error("No se encontro la asignacion a editar.");
+  }
+
   if (assignment?.store_code !== profile.store_code) {
     throw new Error("No tienes permiso.");
   }
