@@ -1,8 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, Sparkles, Calendar as CalendarIcon, ChevronRight, Trash2 } from "lucide-react";
+import {
+  ArrowLeft,
+  Sparkles,
+  Calendar as CalendarIcon,
+  ChevronRight,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import { toast } from "sonner";
 
 type ShiftData = {
@@ -27,16 +34,109 @@ type ScheduleItem = {
   schedule_data?: ScheduleData;
 };
 
+type GenerationSnapshot = {
+  status: "idle" | "running" | "done" | "error";
+  requestKey: string | null;
+  weekStart?: string;
+  schedule?: ScheduleItem;
+  error?: string;
+};
+
+const idleGenerationSnapshot: GenerationSnapshot = {
+  status: "idle",
+  requestKey: null,
+};
+
+let generationSnapshot: GenerationSnapshot = idleGenerationSnapshot;
+let generationPromise: Promise<void> | null = null;
+const generationListeners = new Set<(snapshot: GenerationSnapshot) => void>();
+
+function publishGenerationSnapshot(snapshot: GenerationSnapshot) {
+  generationSnapshot = snapshot;
+  generationListeners.forEach((listener) => listener(snapshot));
+}
+
+function subscribeGenerationSnapshot(listener: (snapshot: GenerationSnapshot) => void) {
+  generationListeners.add(listener);
+  listener(generationSnapshot);
+  return () => generationListeners.delete(listener);
+}
+
+function notifyGenerationResult(title: string, body: string) {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (window.Notification.permission === "granted") {
+    new window.Notification(title, { body });
+  }
+}
+
+function requestGenerationNotifications() {
+  if (typeof window === "undefined" || !("Notification" in window)) return;
+  if (window.Notification.permission === "default") {
+    void window.Notification.requestPermission();
+  }
+}
+
+function startScheduleGenerationTask(input: {
+  weekStart: string;
+  weekEnd: string;
+  holidays: string[];
+}) {
+  if (generationPromise) return false;
+
+  const requestKey = `${input.weekStart}:${input.holidays.join(",")}`;
+  publishGenerationSnapshot({
+    status: "running",
+    requestKey,
+    weekStart: input.weekStart,
+  });
+
+  // ponytail: browser-singleton is enough while navigating inside the app; add real jobs only if this must survive tab closes.
+  generationPromise = (async () => {
+    try {
+      const res = await fetch("/api/schedule/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+        keepalive: true,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error al generar malla.");
+
+      publishGenerationSnapshot({
+        status: "done",
+        requestKey,
+        weekStart: input.weekStart,
+        schedule: data.schedule,
+      });
+      notifyGenerationResult("Malla lista", `La semana ${input.weekStart} ya quedo generada.`);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Error al generar malla.";
+      publishGenerationSnapshot({
+        status: "error",
+        requestKey,
+        weekStart: input.weekStart,
+        error: message,
+      });
+      notifyGenerationResult("Error al generar malla", message);
+    } finally {
+      generationPromise = null;
+    }
+  })();
+
+  return true;
+}
+
 export default function ClientSchedule({ initialSchedules }: { initialSchedules: ScheduleItem[] }) {
   const [schedules, setSchedules] = useState<ScheduleItem[]>(initialSchedules);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [generationError, setGenerationError] = useState("");
   const [weekStart, setWeekStart] = useState("");
   const [holidays, setHolidays] = useState("");
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
+  const [taskSnapshot, setTaskSnapshot] = useState<GenerationSnapshot>(generationSnapshot);
+  const isGenerating = taskSnapshot.status === "running";
 
-  // Helper to colorize shifts
   const getShiftColor = (type: string) => {
     if (!type) return "bg-slate-100 text-slate-600";
     const t = type.toLowerCase();
@@ -56,39 +156,34 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     }
 
     setGenerationError("");
-    setIsGenerating(true);
     const dateStart = new Date(weekStart);
     const dateEnd = new Date(dateStart);
-    dateEnd.setDate(dateEnd.getDate() + 6); // Lunes a Domingo
+    dateEnd.setDate(dateEnd.getDate() + 6);
 
-    const holidaysArr = holidays.split(",").map(s => s.trim()).filter(Boolean);
+    const holidaysArr = holidays.split(",").map((s) => s.trim()).filter(Boolean);
 
     try {
-      const res = await fetch("/api/schedule/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          weekStart: dateStart.toISOString().split("T")[0],
-          weekEnd: dateEnd.toISOString().split("T")[0],
-          holidays: holidaysArr
-        })
+      requestGenerationNotifications();
+      const started = startScheduleGenerationTask({
+        weekStart: dateStart.toISOString().split("T")[0],
+        weekEnd: dateEnd.toISOString().split("T")[0],
+        holidays: holidaysArr,
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al generar malla.");
+      if (!started) {
+        throw new Error("Ya hay una malla generandose en segundo plano.");
+      }
 
-      setSchedules([data.schedule, ...schedules]);
-      setGenerationError("");
-      toast.success("Malla generada con éxito.");
       setShowModal(false);
+      toast.success("La malla sigue generandose en segundo plano.");
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al generar malla.";
       setGenerationError(message);
       toast.error(message);
-    } finally {
-      setIsGenerating(false);
     }
   }
+
+  useEffect(() => subscribeGenerationSnapshot(setTaskSnapshot), []);
 
   async function handleDelete(id: string) {
     if (!confirm("¿Seguro que deseas eliminar esta malla?")) return;
@@ -96,13 +191,13 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       const res = await fetch("/api/schedule/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id })
+        body: JSON.stringify({ id }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error || "Error al eliminar");
       }
-      setSchedules(schedules.filter(s => s.id !== id));
+      setSchedules(schedules.filter((s) => s.id !== id));
       toast.success("Malla eliminada");
       if (selectedSchedule?.id === id) setSelectedSchedule(null);
     } catch (err: unknown) {
@@ -116,6 +211,13 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       : selectedSchedule.schedule_data?.schedule ?? []
     : [];
 
+  const visibleSchedules =
+    taskSnapshot.status === "done" &&
+    taskSnapshot.schedule &&
+    !schedules.some((item) => item.id === taskSnapshot.schedule?.id)
+      ? [taskSnapshot.schedule, ...schedules]
+      : schedules;
+
   return (
     <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] md:px-6 lg:px-8">
@@ -128,7 +230,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           </Link>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Planificación operativa
+              Planificacion operativa
             </p>
             <h1 className="mt-1 text-lg font-black leading-tight text-white">
               Malla de Horarios
@@ -138,12 +240,42 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             </p>
           </div>
           <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/90">
-            {schedules.length} mallas
+            {visibleSchedules.length} mallas
           </span>
         </div>
       </header>
 
       <div className="space-y-4 px-4 pt-4 md:px-6 lg:px-8">
+        {taskSnapshot.status === "running" && (
+          <div className="rounded-[24px] border border-blue-200 bg-blue-50 p-4 text-blue-800 shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/80 text-blue-600 ring-1 ring-blue-100">
+                <Loader2 className="h-5 w-5 animate-spin" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
+                  Generacion en segundo plano
+                </p>
+                <p className="mt-1 text-sm font-bold">
+                  La malla de la semana {taskSnapshot.weekStart} sigue corriendo aunque cambies de panel.
+                </p>
+                <p className="mt-1 text-[12px] leading-relaxed text-blue-700/90">
+                  Cuando termine te avisamos y quedara listada aqui.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {taskSnapshot.status === "error" && taskSnapshot.error && (
+          <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-rose-700 shadow-sm">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
+              Ultimo error de generacion
+            </p>
+            <p className="mt-1 whitespace-pre-wrap text-sm leading-6">{taskSnapshot.error}</p>
+          </div>
+        )}
+
         <button
           onClick={() => {
             setGenerationError("");
@@ -160,13 +292,13 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/72">
-                Generación asistida
+                Generacion asistida
               </p>
               <h2 className="mt-1 text-[18px] font-black leading-tight">
                 Generar Malla con IA
               </h2>
               <p className="mt-1 max-w-[220px] text-[12px] leading-relaxed text-white/84">
-                Arma automáticamente los turnos de la semana sin pelearte con la planilla.
+                Arma automaticamente los turnos de la semana sin pelearte con la planilla.
               </p>
             </div>
           </div>
@@ -180,17 +312,17 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             Horarios generados
           </h3>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
-            {schedules.length} recientes
+            {visibleSchedules.length} recientes
           </span>
         </div>
 
-        {schedules.length === 0 ? (
+        {visibleSchedules.length === 0 ? (
           <div className="rounded-[28px] border border-dashed border-slate-200 bg-white p-8 text-center text-slate-500 shadow-sm">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 ring-1 ring-slate-100">
               <CalendarIcon className="h-7 w-7" />
             </div>
             <p className="text-sm font-bold text-slate-700">
-              Aún no has generado ninguna malla.
+              Aun no has generado ninguna malla.
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
               Crea la primera semana desde el generador IA para empezar.
@@ -198,7 +330,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           </div>
         ) : (
           <div className="space-y-3 pb-1">
-            {schedules.map(sch => (
+            {visibleSchedules.map((sch) => (
               <div key={sch.id} className="rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-slate-100">
                 <div className="flex items-start justify-between gap-4">
                   <div className="min-w-0">
@@ -221,7 +353,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
                   <p className="text-[12px] font-medium text-slate-500">
-                    Toca el chevrón para ver la malla completa.
+                    Toca el chevron para ver la malla completa.
                   </p>
                   <div className="flex items-center gap-2">
                     <button
@@ -248,13 +380,13 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-4 md:items-center">
           <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-10 md:max-w-xl lg:max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-              Configuración
+              Configuracion
             </p>
             <h2 className="mt-1 text-[18px] font-black text-slate-900">
               Nueva Malla Semanal
             </h2>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              La IA tomará las reglas de tu tienda y las aplicará a esta semana.
+              La IA tomara las reglas de tu tienda y las aplicara a esta semana.
             </p>
 
             {generationError && (
@@ -277,23 +409,23 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 <input
                   type="date"
                   value={weekStart}
-                  onChange={e => setWeekStart(e.target.value)}
+                  onChange={(e) => setWeekStart(e.target.value)}
                   className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
                 />
               </div>
               <div>
                 <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Días festivos (opcional)
+                  Dias festivos (opcional)
                 </label>
                 <input
                   type="text"
                   placeholder="Ej. lunes, jueves..."
                   value={holidays}
-                  onChange={e => setHolidays(e.target.value)}
+                  onChange={(e) => setHolidays(e.target.value)}
                   className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
                 />
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Separados por comas si hay más de uno.
+                  Separados por comas si hay mas de uno.
                 </p>
               </div>
             </div>
@@ -304,7 +436,8 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                   setGenerationError("");
                   setShowModal(false);
                 }}
-                className="flex-1 rounded-full bg-slate-100 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
+                disabled={isGenerating}
+                className="flex-1 rounded-full bg-slate-100 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200 disabled:opacity-70"
               >
                 Cancelar
               </button>
@@ -342,8 +475,14 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 </p>
               </div>
             </div>
-            <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${selectedSchedule.status === 'publicado' ? 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100' : 'bg-amber-100 text-amber-700 ring-1 ring-amber-100'}`}>
-              {selectedSchedule.status === 'publicado' ? 'Publicado' : 'Borrador'}
+            <span
+              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
+                selectedSchedule.status === "publicado"
+                  ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100"
+                  : "bg-amber-100 text-amber-700 ring-1 ring-amber-100"
+              }`}
+            >
+              {selectedSchedule.status === "publicado" ? "Publicado" : "Borrador"}
             </span>
           </header>
 
@@ -363,7 +502,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                         Martes
                       </th>
                       <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
-                        Miércoles
+                        Miercoles
                       </th>
                       <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
                         Jueves
@@ -372,7 +511,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                         Viernes
                       </th>
                       <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
-                        Sábado
+                        Sabado
                       </th>
                       <th className="min-w-[90px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.18em] text-slate-500">
                         Domingo
@@ -388,7 +527,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                         <td className="sticky left-0 z-20 border-r border-slate-200/80 bg-white px-4 py-3 font-bold text-slate-900 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
                           {row.assistant}
                         </td>
-                        {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                        {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
                           const shiftData = row[day] as ShiftData | undefined;
                           if (!shiftData) {
                             return <td key={day} className="border-r border-slate-200/80 bg-slate-50/40 p-2"></td>;
@@ -416,9 +555,9 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                   <tfoot>
                     <tr className="border-t-2 border-slate-200 bg-slate-100/80">
                       <td className="sticky left-0 z-20 border-r border-slate-200/80 bg-slate-100/90 px-4 py-3 font-black text-slate-700 shadow-[8px_0_16px_-12px_rgba(15,23,42,0.35)]">
-                        TOTAL HRS / DÍA
+                        TOTAL HRS / DIA
                       </td>
-                      {['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].map(day => {
+                      {["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"].map((day) => {
                         const totalDayHours = selectedScheduleRows.reduce((sum, row) => {
                           const shiftData = row[day] as ShiftData | undefined;
                           return sum + (Number(shiftData?.hours) || 0);
@@ -438,10 +577,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 {selectedScheduleRows.length === 0 && (
                   <div className="border-t border-slate-200/80 bg-slate-50/80 p-6 text-center text-slate-500">
                     <p className="mb-2 text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-                      Estado técnico
+                      Estado tecnico
                     </p>
                     <p className="mb-4 text-sm text-rose-500">
-                      El formato devuelto por la IA no fue el esperado. Aquí tienes los datos en crudo para que puedas ver el horario:
+                      El formato devuelto por la IA no fue el esperado. Aqui tienes los datos en crudo para que puedas ver el horario:
                     </p>
                     <div className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-left text-[10px] font-mono whitespace-pre-wrap text-emerald-400 ring-1 ring-slate-800/60">
                       {JSON.stringify(selectedSchedule.schedule_data, null, 2)}
