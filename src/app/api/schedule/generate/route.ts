@@ -503,6 +503,10 @@ export async function POST(request: Request) {
     const responseSchema = {
       type: SchemaType.OBJECT,
       properties: {
+        reasoning: {
+          type: SchemaType.STRING,
+          description: "Pensamiento paso a paso para armar la malla sin cometer errores matemáticos ni lógicos.",
+        },
         schedule: {
           type: SchemaType.ARRAY,
           items: {
@@ -522,7 +526,7 @@ export async function POST(request: Request) {
           }
         }
       },
-      required: ["schedule"]
+      required: ["reasoning", "schedule"]
     };
 
     const model = genAI.getGenerativeModel({ 

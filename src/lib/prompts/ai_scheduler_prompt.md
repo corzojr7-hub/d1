@@ -158,17 +158,17 @@ Orden de prioridad:
 7. Evitar horas extra.
 
 ## 14. FORMATO DE SALIDA
-Debes devolver UNICAMENTE un JSON valido, sin markdown ni texto extra.
-No expliques reglas, no repitas el contexto y no escribas razonamientos.
+Debes devolver UNICAMENTE un JSON valido. Tu razonamiento paso a paso, aplicando la metodología y calculando los empalmes, DEBE ir dentro de la propiedad "reasoning".
 
 Estructura:
 {
+  "reasoning": "1. Primero pongo a Dairo (Supervisor)... 2. Luego a Karen con parejas exactas... 3. Reviso que no queden huecos...",
   "schedule": [
     {
       "assistant": "Nombre del colaborador",
       "monday": { "shift": "06:00-14:30", "hours": 8, "type": "Apertura" },
       "tuesday": { "shift": "Descanso", "hours": 0, "type": "Descanso" },
-      "wednesday": { "shift": "15:30-22:00", "hours": 6, "type": "Cierre" },
+      "wednesday": { "shift": "14:30-22:00", "hours": 7, "type": "Cierre" },
       "thursday": { "shift": "11:00-16:00", "hours": 5, "type": "Intermedio" },
       "friday": { "shift": "13:30-22:00", "hours": 8, "type": "Cierre" },
       "saturday": { "shift": "06:00-13:30", "hours": 7, "type": "Apertura" },
