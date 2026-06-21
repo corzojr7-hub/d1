@@ -68,6 +68,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   const [pending, startTransition] = useTransition();
   const [showImage, setShowImage] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showReportPreview, setShowReportPreview] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const formattedDate = new Intl.DateTimeFormat("es-CO", {
     day: "numeric",
@@ -112,22 +113,23 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     );
   }
 
-  async function handleCopyTransportReport() {
-    const report = [
-      "Reporte de novedad de transporte",
-      `Tienda: ${record.store_name || "Sin tienda"}`,
-      `Codigo tienda: ${record.store_code || "Sin codigo"}`,
-      `Fecha y hora: ${formattedDateTime}`,
-      `Conductor: ${record.transport_driver || "N/A"}`,
-      `Placa: ${record.transport_plate || "N/A"}`,
-      `Producto afectado: ${productName}`,
-      `Unidades afectadas: ${record.qty} ${record.unit}`,
-      `Motivo: ${getLabel(WASTE_REASONS, record.reason as WasteReason)}`,
-      `Descripcion: ${record.transport_comment || record.observation || "Sin descripcion"}`,
-    ].join("\n");
+  const transportReportText = [
+    "REPORTE DE NOVEDAD DE TRANSPORTE",
+    `Tienda: *${record.store_name || "Sin tienda"}*`,
+    `Codigo tienda: _${record.store_code || "Sin codigo"}_`,
+    `Fecha y hora en que se encontro la novedad: ${formattedDateTime}`,
+    `Conductor: ${record.transport_driver || "N/A"}`,
+    `Placa: ${record.transport_plate || "N/A"}`,
+    `Producto afectado: ${productName}`,
+    `Unidades afectadas: ${record.qty} ${record.unit}`,
+    `Descripcion de la novedad: ${record.transport_comment || record.observation || "Sin descripcion"}`,
+    `Reportado por: ${record.deposited_by || record.author || "Sin responsable"}`,
+    `Area o pasillo: ${record.area || "Sin area"}`,
+  ].join("\n");
 
+  async function handleCopyTransportReport() {
     try {
-      await navigator.clipboard.writeText(report);
+      await navigator.clipboard.writeText(transportReportText);
       toast.success("Reporte copiado para WhatsApp");
     } catch {
       toast.error("No se pudo copiar el reporte");
@@ -255,6 +257,17 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           </div>
         ) : null}
 
+        {record.reason === "averia_transporte" && showReportPreview ? (
+          <div className="mt-3 rounded-2xl border border-blue-100 bg-blue-50/70 p-3 text-[12px] text-blue-950">
+            <span className="block text-[10px] font-bold uppercase tracking-[0.14em] text-blue-700">
+              Vista previa del reporte
+            </span>
+            <pre className="mt-2 whitespace-pre-wrap font-sans leading-relaxed text-blue-900">
+              {transportReportText}
+            </pre>
+          </div>
+        ) : null}
+
         <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {record.image_url || record.transport_evidence ? (
@@ -275,6 +288,15 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                   Sin evidencia
                 </span>
               </div>
+            )}
+            {record.reason === "averia_transporte" && (
+              <button
+                type="button"
+                onClick={() => setShowReportPreview((current) => !current)}
+                className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-600 ring-1 ring-slate-200 transition-colors hover:bg-slate-50 active:scale-95"
+              >
+                {showReportPreview ? "Ocultar reporte" : "Ver reporte"}
+              </button>
             )}
             {record.reason === "averia_transporte" && (
               <button
