@@ -24,11 +24,155 @@ type AssistantProfile = {
 
 type ScheduleRow = {
   assistant: string;
+  total_hours?: number;
+  monday?: unknown;
+  tuesday?: unknown;
+  wednesday?: unknown;
+  thursday?: unknown;
+  friday?: unknown;
+  saturday?: unknown;
+  sunday?: unknown;
 };
 
 type ScheduleResponse = {
+  reasoning?: string;
   schedule?: ScheduleRow[];
 };
+
+type ShiftCell = {
+  shift: string;
+  hours: number;
+  type: string;
+};
+
+const scheduleDays = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+const canonicalShifts: ShiftCell[] = [
+  { shift: "06:00-14:30", hours: 8, type: "Apertura" },
+  { shift: "06:00-13:30", hours: 7, type: "Apertura" },
+  { shift: "06:00-11:30", hours: 5, type: "Apertura" },
+  { shift: "06:00-10:30", hours: 4, type: "Apertura" },
+  { shift: "13:30-22:00", hours: 8, type: "Cierre" },
+  { shift: "14:30-22:00", hours: 7, type: "Cierre" },
+  { shift: "15:30-22:00", hours: 6, type: "Cierre" },
+  { shift: "17:00-22:00", hours: 5, type: "Cierre" },
+  { shift: "18:00-22:00", hours: 4, type: "Cierre" },
+  { shift: "09:00-15:30", hours: 6, type: "Intermedio" },
+  { shift: "09:00-16:30", hours: 7, type: "Intermedio" },
+  { shift: "09:00-17:30", hours: 8, type: "Intermedio" },
+  { shift: "10:00-18:30", hours: 8, type: "Intermedio" },
+  { shift: "11:00-16:00", hours: 5, type: "Intermedio" },
+  { shift: "06:00-10:00 / 18:00-22:00", hours: 8, type: "Partido" },
+  { shift: "Descanso", hours: 0, type: "Descanso" },
+];
+
+function normalizeText(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function inferShiftType(text: string) {
+  if (text.includes("descanso") || text.includes("compen")) return "Descanso";
+  if (text.includes("partido")) return "Partido";
+  if (text.includes("intermedio")) return "Intermedio";
+  if (text.includes("cierre") || text.includes("pm")) return "Cierre";
+  if (text.includes("apertura") || text.includes("am")) return "Apertura";
+  return "";
+}
+
+function inferHours(cell: Record<string, unknown>, combinedText: string) {
+  const directHours = Number(cell.hours);
+  if (Number.isFinite(directHours)) return directHours;
+
+  const hourMatch = combinedText.match(/(?:^|[^0-9])(4|5|6|7|8|9)h(?:[^a-z]|$)/);
+  return hourMatch ? Number(hourMatch[1]) : NaN;
+}
+
+function normalizeShiftCell(value: unknown) {
+  if (!value || typeof value !== "object") return null;
+
+  const cell = value as Record<string, unknown>;
+  const rawShift = String(cell.shift ?? "").trim();
+  const rawType = String(cell.type ?? "").trim();
+  const combinedText = normalizeText(`${rawType} ${rawShift}`);
+
+  if (!combinedText) return null;
+
+  const inferredType = rawType || inferShiftType(combinedText);
+  const inferredHours = inferHours(cell, combinedText);
+
+  if (combinedText.includes("descanso")) {
+    return { shift: "Descanso", hours: 0, type: "Descanso" } satisfies ShiftCell;
+  }
+
+  const directMatch = canonicalShifts.find((option) => option.shift === rawShift && option.type === rawType);
+  if (directMatch) return directMatch;
+
+  const normalizedByTypeAndHours = canonicalShifts.find(
+    (option) =>
+      option.type === inferredType &&
+      option.hours === inferredHours &&
+      option.shift !== "Descanso",
+  );
+
+  if (normalizedByTypeAndHours) return normalizedByTypeAndHours;
+
+  const normalizedByShift = canonicalShifts.find((option) => option.shift === rawShift);
+  if (normalizedByShift) return normalizedByShift;
+
+  return null;
+}
+
+function normalizeScheduleData(scheduleData: ScheduleResponse) {
+  const schedule = scheduleData.schedule;
+  if (!Array.isArray(schedule) || schedule.length === 0) {
+    throw new Error("La IA no devolvio una malla valida.");
+  }
+
+  const normalizedSchedule = schedule.map((row) => {
+    const normalizedRow: ScheduleRow = {
+      assistant: String(row.assistant ?? "").trim(),
+      total_hours: Number(row.total_hours ?? 0),
+    };
+
+    if (!normalizedRow.assistant) {
+      throw new Error("La IA devolvio un colaborador sin nombre.");
+    }
+
+    for (const day of scheduleDays) {
+      const normalizedCell = normalizeShiftCell(row[day]);
+      if (!normalizedCell) {
+        throw new Error(`La IA devolvio un turno invalido para ${normalizedRow.assistant} en ${day}.`);
+      }
+      normalizedRow[day] = normalizedCell;
+    }
+
+    if (!Number.isFinite(Number(normalizedRow.total_hours))) {
+      normalizedRow.total_hours = scheduleDays.reduce((sum, day) => {
+        const cell = normalizedRow[day] as ShiftCell;
+        return sum + Number(cell.hours || 0);
+      }, 0);
+    }
+
+    return normalizedRow;
+  });
+
+  return {
+    ...scheduleData,
+    schedule: normalizedSchedule,
+  } satisfies ScheduleResponse;
+}
 
 export async function POST(request: Request) {
   try {
@@ -156,7 +300,7 @@ export async function POST(request: Request) {
       throw new Error("El modelo no devolvió un JSON válido.");
     }
 
-    const scheduleData = JSON.parse(jsonMatch[0]) as ScheduleResponse;
+    const scheduleData = normalizeScheduleData(JSON.parse(jsonMatch[0]) as ScheduleResponse);
 
     // Remapear nombres reales
     if (scheduleData.schedule) {
