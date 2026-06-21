@@ -530,7 +530,7 @@ export async function POST(request: Request) {
     };
 
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-pro",
       generationConfig: {
         responseMimeType: "application/json",
         responseSchema: responseSchema as never,
@@ -543,7 +543,7 @@ export async function POST(request: Request) {
       adminId: profile.id,
       storeCode: profile.store_code,
       actionType: AI_ACTIONS.schedule,
-      model: "gemini-3.5-flash",
+      model: "gemini-1.5-pro",
       usage: result.response.usageMetadata,
     });
 
