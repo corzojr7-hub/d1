@@ -93,7 +93,7 @@ Estas "parejitas" garantizan que no haya solapamiento ni huecos. DEBES usarlas n
 **Descanso**
 - `shift: "Descanso"`, `hours: 0`, `type: "Descanso"`
 
-No inventes formatos distintos. Si necesitas una variante, usa solo rangos compatibles con estas reglas de horas, break y empalme.
+No inventes formatos distintos ni horas de entrada/salida que no estén en esta lista exacta. **TIENES ESTRICTAMENTE PROHIBIDO INVENTAR TURNOS**. Solo puedes usar los turnos literales que aparecen arriba, porque ya tienen los 30 minutos de break matemáticamente descontados para que den números enteros (8, 7, 6, 5, 4 horas). Por ejemplo, un cierre de 7 horas siempre es 14:30-22:00. No pongas 15:00-22:00 ni 14:00-22:00.
 
 ## 8. LOGICA REAL DE LOS ENCARGADOS
 La Tercera(o) no es un cierre fijo semanal. Su funcion principal es:

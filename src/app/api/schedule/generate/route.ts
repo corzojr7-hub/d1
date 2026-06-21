@@ -270,7 +270,10 @@ function enforceKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAl
       const current = row[day] as ShiftCell;
       if (current.type !== "Apertura" && current.type !== "Cierre") continue;
       const options = canonicalShifts.filter((shift) => shift.type === type);
-      row[day] = options.find((shift) => shift.hours === current.hours) ?? options[0];
+      const option = options.find((shift) => shift.hours === current.hours);
+      if (option) {
+        row[day] = option;
+      }
     }
   };
 
