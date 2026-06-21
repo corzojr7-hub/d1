@@ -4,8 +4,9 @@ import { requireSupervisor } from "@/lib/supabase/require-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { z } from "zod";
-import fs from "fs";
 import path from "path";
+
+export const maxDuration = 60;
 
 
 
