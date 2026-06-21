@@ -189,6 +189,14 @@ function normalizeShiftCell(value: unknown) {
   const normalizedByShift = canonicalShifts.find((option) => option.shift === extractedShift);
   if (normalizedByShift) return normalizedByShift;
 
+  if (extractedShift && inferredType && Number.isFinite(inferredHours)) {
+    return {
+      shift: extractedShift,
+      hours: inferredHours,
+      type: inferredType,
+    } satisfies ShiftCell;
+  }
+
   return null;
 }
 
