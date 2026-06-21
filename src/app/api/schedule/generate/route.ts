@@ -64,7 +64,7 @@ const canonicalShifts: ShiftCell[] = [
   { shift: "06:00-14:30", hours: 8, type: "Apertura" },
   { shift: "06:00-13:30", hours: 7, type: "Apertura" },
   { shift: "06:00-11:30", hours: 5, type: "Apertura" },
-  { shift: "06:00-10:30", hours: 4, type: "Apertura" },
+  { shift: "06:00-10:00", hours: 4, type: "Apertura" },
   { shift: "13:30-22:00", hours: 8, type: "Cierre" },
   { shift: "14:30-22:00", hours: 7, type: "Cierre" },
   { shift: "15:30-22:00", hours: 6, type: "Cierre" },
@@ -124,7 +124,7 @@ function extractShiftFromText(rawShift: string, combinedText: string) {
     return "Descanso";
   }
 
-  const times = `${rawShift} ${combinedText}`.match(/\b\d{2}:\d{2}\b/g) ?? [];
+  const times = combinedText.match(/\b\d{2}:\d{2}\b/g) ?? [];
   if (times.length === 2) {
     return `${times[0]}-${times[1]}`;
   }

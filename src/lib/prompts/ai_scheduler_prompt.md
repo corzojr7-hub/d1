@@ -65,7 +65,7 @@ Puedes usar bloques como estos, siempre respetando las horas efectivas:
 - 06:00-14:30 = 8 horas efectivas (Sale a las 14:30)
 - 06:00-13:30 = 7 horas efectivas (Sale a las 13:30)
 - 06:00-11:30 = 5 horas efectivas (Sale a las 11:30)
-- 06:00-10:30 = 4 horas efectivas (Sale a las 10:30)
+- 06:00-10:00 = 4 horas efectivas (Sale a las 10:00)
 
 **Cierres**
 - 13:30-22:00 = 8 horas efectivas (Entra a las 13:30)
