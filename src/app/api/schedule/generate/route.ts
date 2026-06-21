@@ -97,18 +97,69 @@ function inferShiftType(text: string) {
   return "";
 }
 
+function parseTimeToMinutes(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  return hours * 60 + minutes;
+}
+
+function inferHoursFromTimes(times: string[]) {
+  if (times.length === 2) {
+    const elapsed = parseTimeToMinutes(times[1]) - parseTimeToMinutes(times[0]);
+    if (elapsed <= 0) return NaN;
+    const hours = elapsed / 60;
+    return hours > 5 ? hours - 0.5 : hours;
+  }
+
+  if (times.length === 4) {
+    const firstBlock = parseTimeToMinutes(times[1]) - parseTimeToMinutes(times[0]);
+    const secondBlock = parseTimeToMinutes(times[3]) - parseTimeToMinutes(times[2]);
+    if (firstBlock <= 0 || secondBlock <= 0) return NaN;
+    return (firstBlock + secondBlock) / 60;
+  }
+
+  return NaN;
+}
+
+function extractShiftFromText(rawShift: string, combinedText: string) {
+  if (combinedText.includes("descanso") || combinedText.includes("compen")) {
+    return "Descanso";
+  }
+
+  const times = `${rawShift} ${combinedText}`.match(/\b\d{2}:\d{2}\b/g) ?? [];
+  if (times.length === 2) {
+    return `${times[0]}-${times[1]}`;
+  }
+
+  if (times.length === 4) {
+    return `${times[0]}-${times[1]} / ${times[2]}-${times[3]}`;
+  }
+
+  return rawShift;
+}
+
 function inferHours(cell: Record<string, unknown> | null, combinedText: string) {
   const directHours = Number(cell?.hours);
   if (Number.isFinite(directHours)) return directHours;
 
-  const hourMatch = combinedText.match(/(?:^|[^0-9])(4|5|6|7|8|9)h(?:[^a-z]|$)/);
+  const hourMatch = combinedText.match(/(?:^|[^0-9])(4|5|6|7|8|9)(?:\s*h|\s*horas?)(?:[^a-z]|$)/);
+  if (hourMatch) return Number(hourMatch[1]);
+
+  const times = combinedText.match(/\b\d{2}:\d{2}\b/g) ?? [];
+  const timeHours = inferHoursFromTimes(times);
+  if (Number.isFinite(timeHours)) return timeHours;
+
+  const compactHourMatch = combinedText.match(/(?:^|[^0-9])(4|5|6|7|8|9)(?:[^0-9]|$)/);
+  if (compactHourMatch && combinedText.includes("hora")) {
+    return Number(compactHourMatch[1]);
+  }
+
   return hourMatch ? Number(hourMatch[1]) : NaN;
 }
 
 function normalizeShiftCell(value: unknown) {
   const cell = value && typeof value === "object" ? (value as Record<string, unknown>) : null;
   const rawValue = typeof value === "string" ? value.trim() : "";
-  const rawShift = String(cell?.shift ?? rawValue).trim();
+  const rawShift = String(cell?.shift ?? cell?.label ?? cell?.value ?? rawValue).trim();
   const rawType = String(cell?.type ?? "").trim();
   const combinedText = normalizeText(`${rawType} ${rawShift}`);
 
@@ -116,12 +167,15 @@ function normalizeShiftCell(value: unknown) {
 
   const inferredType = inferShiftType(combinedText);
   const inferredHours = inferHours(cell, combinedText);
+  const extractedShift = extractShiftFromText(rawShift, combinedText);
 
   if (combinedText.includes("descanso")) {
     return { shift: "Descanso", hours: 0, type: "Descanso" } satisfies ShiftCell;
   }
 
-  const directMatch = canonicalShifts.find((option) => option.shift === rawShift && option.type === rawType);
+  const directMatch = canonicalShifts.find(
+    (option) => option.shift === extractedShift && option.type === inferredType,
+  );
   if (directMatch) return directMatch;
 
   const normalizedByTypeAndHours = canonicalShifts.find(
@@ -133,7 +187,7 @@ function normalizeShiftCell(value: unknown) {
 
   if (normalizedByTypeAndHours) return normalizedByTypeAndHours;
 
-  const normalizedByShift = canonicalShifts.find((option) => option.shift === rawShift);
+  const normalizedByShift = canonicalShifts.find((option) => option.shift === extractedShift);
   if (normalizedByShift) return normalizedByShift;
 
   return null;
