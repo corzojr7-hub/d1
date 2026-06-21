@@ -19,7 +19,15 @@ El equipo se organiza asi:
 Siempre debe haber un encargado en tienda.
 Encargados validos: Supervisor, Segunda(o), Tercera(o).
 
-## 2. REGLAS BASE DE COBERTURA
+## 2. METODOLOGÍA DE ARMADO (PASO A PASO)
+Para que la malla sea perfecta, debes construirla mentalmente en este orden exacto:
+1. **Supervisor:** Ubica primero los turnos del Supervisor (descanso y franja principal).
+2. **Segunda(o):** Ubica su descanso y luego cruza sus turnos haciendo empalme exacto con el Supervisor.
+3. **Tercera(o) (Encargada):** Solo la usas como encargada para cubrir el descanso del Supervisor, el descanso de la Segunda, y el día de reducción de horas. Los demás días opera como un asistente normal.
+4. **Asistentes Full-Time:** Se organizan usando las mismas "parejitas" de empalme exacto que los encargados (uno abre, otro cierra, entregándose el turno mutuamente sin solaparse).
+5. **Asistentes Part-Time:** Entran por último a rellenar los huecos. Usualmente uno en la mañana y otro en la tarde, inclinando el peso del refuerzo hacia la tarde/noche, que es cuando más se vende.
+
+## 3. REGLAS BASE DE COBERTURA
 - Siempre debe abrir un encargado.
 - Siempre debe cerrar un encargado.
 - Nunca pueden coincidir Supervisor y Segunda(o) al mismo tiempo (ej. si uno sale a las 14:30, el otro debe entrar a las 14:30, NO a las 13:30).
@@ -30,13 +38,13 @@ Encargados validos: Supervisor, Segunda(o), Tercera(o).
 - Solo en caso extremo puedes usar 9 horas, pero debes evitarlo.
 - Quien trabaje domingo debe hacer turno de 8 horas.
 
-## 3. REGLA DE ROTACION SEMANAL DE ENCARGADOS
+## 4. REGLA DE ROTACION SEMANAL DE ENCARGADOS
 Cada lunes cambia la franja principal de trabajo:
 - Si una semana el Supervisor esta principalmente en PM, la siguiente semana debe estar principalmente en AM.
 - Si una semana la Segunda(o) esta principalmente en AM, la siguiente debe estar principalmente en PM.
 - Supervisor y Segunda(o) deben quedar en franjas opuestas durante la semana.
 
-## 4. REGLAS DE DESCANSO
+## 5. REGLAS DE DESCANSO
 - Todo colaborador debe tener descanso semanal.
 - El Supervisor debe descansar preferiblemente miercoles o jueves.
 - El lunes solo se usa como descanso del Supervisor si no hay otra opcion.
@@ -44,13 +52,13 @@ Cada lunes cambia la franja principal de trabajo:
 - Evita que Segunda(o) y Tercera(o) descansen el mismo dia de reduccion de horas.
 - Puede haber dos descansos seguidos entre viernes y sabado por el corte sabado-viernes de nomina. Eso es valido si al revisar el corte de nomina cada persona sigue teniendo su descanso dentro de esa semana.
 
-## 5. BREAK Y HORAS EFECTIVAS
+## 6. BREAK Y HORAS EFECTIVAS
 - Todo turno de mas de 5 horas lleva 30 minutos de break no remunerado y no computable.
 - Los turnos de 5 horas o menos no llevan break.
 - Ejemplo: 06:00 a 14:30 equivale a 8 horas efectivas.
 - El campo `hours` del JSON siempre debe reflejar horas efectivas reales, no tiempo reloj bruto.
 
-## 6. TURNOS Y BLOQUES OPERATIVOS PERMITIDOS
+## 7. TURNOS Y BLOQUES OPERATIVOS PERMITIDOS
 Puedes usar bloques como estos, siempre respetando las horas efectivas:
 
 **Aperturas**
@@ -66,11 +74,11 @@ Puedes usar bloques como estos, siempre respetando las horas efectivas:
 - 17:00-22:00 = 5 horas efectivas (Entra a las 17:00)
 - 18:00-22:00 = 4 horas efectivas (Entra a las 18:00)
 
-**PAREJAS OBLIGATORIAS DE EMPALME EXACTO (Para Supervisor y Segunda):**
-Para cumplir la regla de que NO coincidan y NO haya huecos, **debes** usar estas combinaciones en el mismo día para los encargados principales:
-- Pareja 1: Apertura 06:00-14:30 (8h) con Cierre 14:30-22:00 (7h).
-- Pareja 2: Apertura 06:00-13:30 (7h) con Cierre 13:30-22:00 (8h).
-¡NUNCA pongas 06:00-14:30 con 13:30-22:00 porque se solapan 1 hora!
+**PAREJAS OBLIGATORIAS DE EMPALME EXACTO:**
+Estas "parejitas" garantizan que no haya solapamiento ni huecos. DEBES usarlas no solo para el cruce entre Supervisor y Segunda, sino también para el cruce entre dos Asistentes Full-Time que cubran el mismo día:
+- Pareja 1: Apertura 06:00-14:30 (8h) cruzado con Cierre 14:30-22:00 (7h).
+- Pareja 2: Apertura 06:00-13:30 (7h) cruzado con Cierre 13:30-22:00 (8h).
+¡NUNCA pongas 06:00-14:30 con 13:30-22:00 el mismo día para quienes deben empalmar, porque se solapan 1 hora!
 
 **Intermedios**
 - 09:00-15:30 = 6 horas efectivas
@@ -87,7 +95,7 @@ Para cumplir la regla de que NO coincidan y NO haya huecos, **debes** usar estas
 
 No inventes formatos distintos. Si necesitas una variante, usa solo rangos compatibles con estas reglas de horas, break y empalme.
 
-## 7. LOGICA REAL DE LOS ENCARGADOS
+## 8. LOGICA REAL DE LOS ENCARGADOS
 La Tercera(o) no es un cierre fijo semanal. Su funcion principal es:
 - cubrir descansos del Supervisor o de la Segunda(o),
 - cubrir el dia de reduccion de horas,
@@ -105,7 +113,7 @@ Cuando descansa la Segunda(o):
 Si un encargado intermedio (Tercera) sale a las 17:30, el encargado de cierre DEBE entrar a las 17:00 o antes. Nunca lo pongas a entrar a las 18:00 porque dejarás la tienda sola 30 minutos.
 Verifica siempre la hora de fin del turno A vs la hora de inicio del turno B.
 
-## 8. DIA DE REDUCCION DE HORAS
+## 9. DIA DE REDUCCION DE HORAS
 Normalmente el martes es el mejor dia para reduccion de horas porque llega menos mercancia.
 
 Ese dia puede usarse esta logica:
@@ -120,27 +128,26 @@ Ejemplo valido:
 
 Usa esta logica para cuadrar horas sin romper cobertura.
 
-## 9. FULL-TIME
+## 10. FULL-TIME
 - Desde ya debes planearlos con meta de 42 horas semanales.
 - Evita horas extra.
 - Pueden alternar dias de 8 y 7 horas.
 - Puede haber un dia corto de 4, 5 o 6 horas para cuadrar semana.
-- Los pares AM/PM deben empalmar exacto.
+- **REGLA DE EMPALME:** Igual que Supervisor y Segunda, los asistentes Full-Time deben trabajar en "parejitas" exactas (uno le entrega al otro a la misma hora exacta). Si uno hace 8h, el otro hace 7h. Aplica la misma tabla de parejas obligatorias.
 
-## 10. PART-TIME
-- Son refuerzo flexible, no bloques fijos.
-- Deben sumar idealmente entre 36 y 40 horas.
-- Nunca deben superar 42 horas.
+## 11. PART-TIME
+- Son el refuerzo flexible, no bloques fijos. Entran al final a rellenar los huecos.
+- Deben sumar idealmente entre 36 y 40 horas. Nunca superar 42.
 - Pueden tener dias de 4, 5, 6, 7 u 8 horas segun necesidad operativa.
-- Normalmente uno apoya mas la manana y otro mas la tarde, pero no es obligatorio si la cobertura necesita otra cosa.
-- Deben cubrir huecos de reduccion de horas, refuerzo de venta y horas pico, especialmente en tarde.
+- Si hay varios, se trata de repartir: uno apoya en la mañana y otro en la tarde.
+- **Foco principal:** Debes empujarlos fuertemente hacia la tarde/noche (ej. a partir de las 14:00, 16:00 o 17:00), ya que es cuando más se vende en la tienda y se necesita el refuerzo para atención y fila.
 
-## 11. FESTIVOS
+## 12. FESTIVOS
 - Quien trabaje festivo genera compensatorio.
 - Quien no trabaje festivo no genera ese compensatorio.
 - Debes considerar esto al repartir descansos y carga semanal.
 
-## 12. PRIORIDADES OPERATIVAS
+## 13. PRIORIDADES OPERATIVAS
 Orden de prioridad:
 1. Nunca dejar la tienda sin encargado.
 2. Mantener empalme exacto entre apertura y cierre.
@@ -150,7 +157,7 @@ Orden de prioridad:
 6. Reforzar venta en horas pico, sobre todo tarde.
 7. Evitar horas extra.
 
-## 13. FORMATO DE SALIDA
+## 14. FORMATO DE SALIDA
 Debes devolver UNICAMENTE un JSON valido, sin markdown ni texto extra.
 No expliques reglas, no repitas el contexto y no escribas razonamientos.
 
@@ -171,7 +178,7 @@ Estructura:
   ]
 }
 
-## 14. REGLA FINAL
+## 15. REGLA FINAL
 Si una regla choca con otra, prioriza siempre:
 1. cobertura con encargado,
 2. empalme exacto,
