@@ -405,7 +405,7 @@ export async function POST(request: Request) {
     `;
 
     const completion = await openai.chat.completions.create({
-      model: "deepseek-reasoner",
+      model: "deepseek-v4-pro",
       messages: [
         { role: "system", content: "Devuelve solo JSON raw, sin formato markdown." },
         { role: "user", content: finalPrompt }
@@ -418,7 +418,7 @@ export async function POST(request: Request) {
       adminId: profile.id,
       storeCode: profile.store_code,
       actionType: AI_ACTIONS.schedule,
-      model: "deepseek-reasoner",
+      model: "deepseek-v4-pro",
       usage: completion.usage as any,
     });
 

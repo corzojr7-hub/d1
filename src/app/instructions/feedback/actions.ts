@@ -145,7 +145,7 @@ Devuelve solo JSON valido con esta forma:
 `.trim();
 
   const completion = await openai.chat.completions.create({
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
     messages: [
       { role: "system", content: "Devuelve solo JSON raw." },
       { role: "user", content: prompt }
@@ -158,7 +158,7 @@ Devuelve solo JSON valido con esta forma:
     adminId: profile.id,
     storeCode: profile.store_code,
     actionType: AI_ACTIONS.feedback,
-    model: "deepseek-chat",
+    model: "deepseek-v4-flash",
     usage: completion.usage as any,
   });
 
