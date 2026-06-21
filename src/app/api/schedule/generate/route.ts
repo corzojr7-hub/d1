@@ -266,23 +266,78 @@ function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleA
 
   if (!secondRow || !thirdRow) return;
 
+  const getStableBaseType = (row: ScheduleRow, label: string) => {
+    const baseTypes = scheduleDays
+      .map((day) => row[day] as ShiftCell)
+      .filter((shift) => shift.type === "Apertura" || shift.type === "Cierre")
+      .map((shift) => shift.type);
+
+    if (baseTypes.length === 0) {
+      throw new Error(`La IA no definio una franja base para ${label}.`);
+    }
+
+    const uniqueBaseTypes = new Set(baseTypes);
+    if (uniqueBaseTypes.size > 1) {
+      throw new Error(`${label} no mantuvo la misma franja semanal de apertura o cierre.`);
+    }
+
+    return baseTypes[0];
+  };
+
+  const supervisorBaseType = getStableBaseType(supervisorRow, "el supervisor");
+  const secondBaseType = getStableBaseType(secondRow, "la segunda encargada");
+
+  if (supervisorBaseType === secondBaseType) {
+    throw new Error("Supervisor y segunda deben quedar en franjas opuestas durante la semana.");
+  }
+
   for (const day of scheduleDays) {
     const supervisorShift = supervisorRow[day] as ShiftCell;
     const secondShift = secondRow[day] as ShiftCell;
     const thirdShift = thirdRow[day] as ShiftCell;
 
+    if (!["Apertura", "Cierre", "Descanso", "Partido"].includes(supervisorShift.type)) {
+      throw new Error(`El supervisor no puede quedar en ${supervisorShift.type} (${day}).`);
+    }
+
+    if (!["Apertura", "Cierre", "Descanso", "Partido"].includes(secondShift.type)) {
+      throw new Error(`La segunda no puede quedar en ${secondShift.type} (${day}).`);
+    }
+
+    if (supervisorShift.type === "Apertura" || supervisorShift.type === "Cierre") {
+      if (supervisorShift.type !== supervisorBaseType) {
+        throw new Error(`El supervisor cambio de ${supervisorBaseType} a ${supervisorShift.type} (${day}).`);
+      }
+    }
+
+    if (secondShift.type === "Apertura" || secondShift.type === "Cierre") {
+      if (secondShift.type !== secondBaseType) {
+        throw new Error(`La segunda cambio de ${secondBaseType} a ${secondShift.type} (${day}).`);
+      }
+    }
+
     if (supervisorShift.type === "Descanso") {
-      if (secondShift.type !== "Partido" || thirdShift.type !== "Intermedio") {
+      if (
+        secondShift.type !== "Partido" ||
+        secondShift.shift !== "06:00-10:00 / 18:00-22:00" ||
+        thirdShift.type !== "Intermedio" ||
+        thirdShift.shift !== "10:00-18:30"
+      ) {
         throw new Error(
-          `Si descansa el supervisor, la segunda debe quedar en Partido y la tercera en Intermedio (${day}).`,
+          `Si descansa el supervisor, la segunda debe quedar en Partido 06:00-10:00 / 18:00-22:00 y la tercera en Intermedio 10:00-18:30 (${day}).`,
         );
       }
     }
 
     if (secondShift.type === "Descanso") {
-      if (supervisorShift.type !== "Partido" || thirdShift.type !== "Intermedio") {
+      if (
+        supervisorShift.type !== "Partido" ||
+        supervisorShift.shift !== "06:00-10:00 / 18:00-22:00" ||
+        thirdShift.type !== "Intermedio" ||
+        thirdShift.shift !== "10:00-18:30"
+      ) {
         throw new Error(
-          `Si descansa la segunda, el supervisor debe quedar en Partido y la tercera en Intermedio (${day}).`,
+          `Si descansa la segunda, el supervisor debe quedar en Partido 06:00-10:00 / 18:00-22:00 y la tercera en Intermedio 10:00-18:30 (${day}).`,
         );
       }
     }
@@ -375,8 +430,13 @@ export async function POST(request: Request) {
     - Debes usar exactamente ${team.length} filas en schedule, una por cada persona del EQUIPO.
     - No repitas personas.
     - No conviertas a Segunda o Tercera en asistentes duplicados.
+    - Supervisor y Segunda deben mantener la misma franja toda la semana: o Apertura o Cierre. No pueden abrir un dia y cerrar otro, salvo cuando uno cubra un descanso en turno Partido.
+    - El Supervisor nunca puede quedar en Intermedio.
+    - La Segunda nunca puede quedar en Intermedio.
     - Si descansa el Supervisor, la Segunda debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
     - Si descansa la Segunda, el Supervisor debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
+    - En esos dias, el Partido debe ser exactamente 06:00-10:00 / 18:00-22:00.
+    - En esos dias, la Tercera debe cubrir exactamente 10:00-18:30 para no dejar la tienda sin encargado mientras regresa el Partido.
 
     Genera el JSON AHORA. No incluyas markdown, solo el JSON raw.
     `;
