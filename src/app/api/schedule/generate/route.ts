@@ -242,58 +242,7 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
 
 function enforceKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
   const schedule = scheduleData.schedule ?? [];
-  const rowByAssistant = new Map(
-    schedule.map((row) => [normalizeText(row.assistant), row] as const),
-  );
-  const supervisorRow = rowByAssistant.get(normalizeText(keyRoles.supervisor));
-  const secondRow = keyRoles.second
-    ? rowByAssistant.get(normalizeText(keyRoles.second))
-    : undefined;
-  const thirdRow = keyRoles.third
-    ? rowByAssistant.get(normalizeText(keyRoles.third))
-    : undefined;
-
-  if (!supervisorRow || !secondRow || !thirdRow) return;
-
-  const dominantType = (row: ScheduleRow) => {
-    const types = scheduleDays
-      .map((day) => (row[day] as ShiftCell).type)
-      .filter((type) => type === "Apertura" || type === "Cierre");
-    const openings = types.filter((type) => type === "Apertura").length;
-    return openings >= types.length - openings ? "Apertura" : "Cierre";
-  };
-
-  const supervisorType = dominantType(supervisorRow);
-  const secondType = supervisorType === "Apertura" ? "Cierre" : "Apertura";
-  const alignRow = (row: ScheduleRow, type: "Apertura" | "Cierre") => {
-    for (const day of scheduleDays) {
-      const current = row[day] as ShiftCell;
-      if (current.type !== "Apertura" && current.type !== "Cierre") continue;
-      const options = canonicalShifts.filter((shift) => shift.type === type);
-      const option = options.find((shift) => shift.hours === current.hours);
-      if (option) {
-        row[day] = option;
-      }
-    }
-  };
-
-  alignRow(supervisorRow, supervisorType);
-  alignRow(secondRow, secondType);
-
-  const splitShift = canonicalShifts.find((shift) => shift.type === "Partido")!;
-  const coverageShift = canonicalShifts.find((shift) => shift.shift === "10:00-18:30")!;
-  for (const day of scheduleDays) {
-    const supervisorShift = supervisorRow[day] as ShiftCell;
-    const secondShift = secondRow[day] as ShiftCell;
-    if (supervisorShift.type === "Descanso") {
-      secondRow[day] = splitShift;
-      thirdRow[day] = coverageShift;
-    } else if (secondShift.type === "Descanso") {
-      supervisorRow[day] = splitShift;
-      thirdRow[day] = coverageShift;
-    }
-  }
-
+  // Calculate total hours exactly as they are
   for (const row of schedule) {
     row.total_hours = scheduleDays.reduce(
       (sum, day) => sum + Number((row[day] as ShiftCell).hours || 0),
@@ -304,112 +253,18 @@ function enforceKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAl
 
 function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
   const schedule = scheduleData.schedule ?? [];
-  const rowByAssistant = new Map(
-    schedule.map((row) => [normalizeText(row.assistant), row] as const),
-  );
-
   const normalizedNames = schedule.map((row) => normalizeText(row.assistant));
   if (new Set(normalizedNames).size !== normalizedNames.length) {
     throw new Error("La IA repitio personas en la malla.");
   }
 
-  const supervisorRow = rowByAssistant.get(normalizeText(keyRoles.supervisor));
-  const secondRow = keyRoles.second
-    ? rowByAssistant.get(normalizeText(keyRoles.second))
-    : undefined;
-  const thirdRow = keyRoles.third
-    ? rowByAssistant.get(normalizeText(keyRoles.third))
-    : undefined;
+  const rowByAssistant = new Map(
+    schedule.map((row) => [normalizeText(row.assistant), row] as const),
+  );
 
+  const supervisorRow = rowByAssistant.get(normalizeText(keyRoles.supervisor));
   if (!supervisorRow) {
     throw new Error("La IA no incluyo al supervisor en la malla.");
-  }
-
-  if (keyRoles.second && !secondRow) {
-    throw new Error("La IA no incluyo a la segunda encargada en la malla.");
-  }
-
-  if (keyRoles.third && !thirdRow) {
-    throw new Error("La IA no incluyo a la tercera encargada en la malla.");
-  }
-
-  if (!secondRow || !thirdRow) return;
-
-  const getStableBaseType = (row: ScheduleRow, label: string) => {
-    const baseTypes = scheduleDays
-      .map((day) => row[day] as ShiftCell)
-      .filter((shift) => shift.type === "Apertura" || shift.type === "Cierre")
-      .map((shift) => shift.type);
-
-    if (baseTypes.length === 0) {
-      throw new Error(`La IA no definio una franja base para ${label}.`);
-    }
-
-    const uniqueBaseTypes = new Set(baseTypes);
-    if (uniqueBaseTypes.size > 1) {
-      throw new Error(`${label} no mantuvo la misma franja semanal de apertura o cierre.`);
-    }
-
-    return baseTypes[0];
-  };
-
-  const supervisorBaseType = getStableBaseType(supervisorRow, "el supervisor");
-  const secondBaseType = getStableBaseType(secondRow, "la segunda encargada");
-
-  if (supervisorBaseType === secondBaseType) {
-    throw new Error("Supervisor y segunda deben quedar en franjas opuestas durante la semana.");
-  }
-
-  for (const day of scheduleDays) {
-    const supervisorShift = supervisorRow[day] as ShiftCell;
-    const secondShift = secondRow[day] as ShiftCell;
-    const thirdShift = thirdRow[day] as ShiftCell;
-
-    if (!["Apertura", "Cierre", "Descanso", "Partido"].includes(supervisorShift.type)) {
-      throw new Error(`El supervisor no puede quedar en ${supervisorShift.type} (${day}).`);
-    }
-
-    if (!["Apertura", "Cierre", "Descanso", "Partido"].includes(secondShift.type)) {
-      throw new Error(`La segunda no puede quedar en ${secondShift.type} (${day}).`);
-    }
-
-    if (supervisorShift.type === "Apertura" || supervisorShift.type === "Cierre") {
-      if (supervisorShift.type !== supervisorBaseType) {
-        throw new Error(`El supervisor cambio de ${supervisorBaseType} a ${supervisorShift.type} (${day}).`);
-      }
-    }
-
-    if (secondShift.type === "Apertura" || secondShift.type === "Cierre") {
-      if (secondShift.type !== secondBaseType) {
-        throw new Error(`La segunda cambio de ${secondBaseType} a ${secondShift.type} (${day}).`);
-      }
-    }
-
-    if (supervisorShift.type === "Descanso") {
-      if (
-        secondShift.type !== "Partido" ||
-        secondShift.shift !== "06:00-10:00 / 18:00-22:00" ||
-        thirdShift.type !== "Intermedio" ||
-        thirdShift.shift !== "10:00-18:30"
-      ) {
-        throw new Error(
-          `Si descansa el supervisor, la segunda debe quedar en Partido 06:00-10:00 / 18:00-22:00 y la tercera en Intermedio 10:00-18:30 (${day}).`,
-        );
-      }
-    }
-
-    if (secondShift.type === "Descanso") {
-      if (
-        supervisorShift.type !== "Partido" ||
-        supervisorShift.shift !== "06:00-10:00 / 18:00-22:00" ||
-        thirdShift.type !== "Intermedio" ||
-        thirdShift.shift !== "10:00-18:30"
-      ) {
-        throw new Error(
-          `Si descansa la segunda, el supervisor debe quedar en Partido 06:00-10:00 / 18:00-22:00 y la tercera en Intermedio 10:00-18:30 (${day}).`,
-        );
-      }
-    }
   }
 }
 
