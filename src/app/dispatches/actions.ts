@@ -8,7 +8,7 @@ import { z } from "zod";
 function getAdminClient() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 }
 
@@ -16,15 +16,26 @@ const createDispatchSchema = z.object({
   driver_name: z.string().min(1, "Nombre de conductor es requerido"),
   truck_plate: z.string().min(1, "Placa es requerida"),
   dispatch_date: z.string().min(1, "Fecha es requerida"),
-  category: z.string().min(1, "Categoría es requerida"),
-  description: z.string().min(1, "Descripción es requerida"),
+  category: z.string().min(1, "Categoria es requerida"),
+  description: z.string().min(1, "Descripcion es requerida"),
   initial_evidence_url: z.string().optional(),
+  transfer_number: z.string().optional(),
+  material_code: z.string().optional(),
+  material_description: z.string().optional(),
+  difference_type: z.string().optional(),
+  product_value: z.string().optional(),
+  units_per_ump: z.string().optional(),
+  difference_ump: z.string().optional(),
+  difference_units: z.string().optional(),
+  total_units: z.string().optional(),
+  received_total_value: z.string().optional(),
+  observations: z.string().optional(),
 });
 
 export async function createDispatchDifference(formData: FormData) {
   try {
     const { profile } = await requireAuth();
-    
+
     const parsed = createDispatchSchema.parse({
       driver_name: formData.get("driver_name"),
       truck_plate: formData.get("truck_plate"),
@@ -32,21 +43,50 @@ export async function createDispatchDifference(formData: FormData) {
       category: formData.get("category"),
       description: formData.get("description"),
       initial_evidence_url: formData.get("initial_evidence_url") || undefined,
+      transfer_number: formData.get("transfer_number") || undefined,
+      material_code: formData.get("material_code") || undefined,
+      material_description: formData.get("material_description") || undefined,
+      difference_type: formData.get("difference_type") || undefined,
+      product_value: formData.get("product_value") || undefined,
+      units_per_ump: formData.get("units_per_ump") || undefined,
+      difference_ump: formData.get("difference_ump") || undefined,
+      difference_units: formData.get("difference_units") || undefined,
+      total_units: formData.get("total_units") || undefined,
+      received_total_value: formData.get("received_total_value") || undefined,
+      observations: formData.get("observations") || undefined,
     });
 
     const adminClient = getAdminClient();
-    
-    const { data, error } = await adminClient.from("dispatch_differences").insert({
-      store_code: profile.store_code,
-      created_by: profile.id,
-      driver_name: parsed.driver_name,
-      truck_plate: parsed.truck_plate,
-      dispatch_date: parsed.dispatch_date,
-      category: parsed.category,
-      description: parsed.description,
-      initial_evidence_url: parsed.initial_evidence_url || null,
-      status: "pendiente"
-    }).select().single();
+    const descriptionLines = [
+      parsed.description.trim(),
+      parsed.transfer_number ? `Numero de tra: ${parsed.transfer_number}` : "",
+      parsed.material_code ? `Codigo material: ${parsed.material_code}` : "",
+      parsed.material_description ? `Descripcion material: ${parsed.material_description}` : "",
+      parsed.difference_type ? `Diferencia: ${parsed.difference_type}` : "",
+      parsed.product_value ? `Valor producto: ${parsed.product_value}` : "",
+      parsed.units_per_ump ? `Unidad por UMP: ${parsed.units_per_ump}` : "",
+      parsed.difference_ump ? `Diferencia UMP: ${parsed.difference_ump}` : "",
+      parsed.difference_units ? `Diferencia unidad: ${parsed.difference_units}` : "",
+      parsed.total_units ? `Total unidades: ${parsed.total_units}` : "",
+      parsed.received_total_value ? `Valor total recibido: ${parsed.received_total_value}` : "",
+      parsed.observations ? `Observaciones: ${parsed.observations}` : "",
+    ].filter(Boolean);
+
+    const { data, error } = await adminClient
+      .from("dispatch_differences")
+      .insert({
+        store_code: profile.store_code,
+        created_by: profile.id,
+        driver_name: parsed.driver_name,
+        truck_plate: parsed.truck_plate,
+        dispatch_date: parsed.dispatch_date,
+        category: parsed.category,
+        description: descriptionLines.join("\n"),
+        initial_evidence_url: parsed.initial_evidence_url || null,
+        status: "pendiente",
+      })
+      .select()
+      .single();
 
     if (error) {
       console.error(error);
@@ -56,12 +96,16 @@ export async function createDispatchDifference(formData: FormData) {
     revalidatePath("/dispatches");
     revalidatePath("/");
     return { success: true, id: data.id };
-  } catch (error: any) {
-    return { error: error.message || "Error desconocido" };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Error desconocido" };
   }
 }
 
-export async function addDispatchEvidence(differenceId: string, evidenceUrl: string, notes: string = "") {
+export async function addDispatchEvidence(
+  differenceId: string,
+  evidenceUrl: string,
+  notes: string = "",
+) {
   try {
     const { profile } = await requireAuth();
     const adminClient = getAdminClient();
@@ -69,8 +113,8 @@ export async function addDispatchEvidence(differenceId: string, evidenceUrl: str
     const { error } = await adminClient.from("dispatch_evidences").insert({
       difference_id: differenceId,
       evidence_url: evidenceUrl,
-      notes: notes,
-      created_by: profile.id
+      notes,
+      created_by: profile.id,
     });
 
     if (error) {
@@ -81,17 +125,21 @@ export async function addDispatchEvidence(differenceId: string, evidenceUrl: str
     revalidatePath(`/dispatches/${differenceId}`);
     revalidatePath("/dispatches");
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Error desconocido" };
   }
 }
 
-export async function closeDispatchDifference(differenceId: string, finalStatus: "aplicado" | "rechazado" | "anulado") {
+export async function closeDispatchDifference(
+  differenceId: string,
+  finalStatus: "aplicado" | "rechazado" | "anulado",
+) {
   try {
     const { profile } = await requireAuth();
     const adminClient = getAdminClient();
 
-    const { error } = await adminClient.from("dispatch_differences")
+    const { error } = await adminClient
+      .from("dispatch_differences")
       .update({ status: finalStatus })
       .eq("id", differenceId)
       .eq("store_code", profile.store_code);
@@ -104,7 +152,7 @@ export async function closeDispatchDifference(differenceId: string, finalStatus:
     revalidatePath(`/dispatches/${differenceId}`);
     revalidatePath("/dispatches");
     return { success: true };
-  } catch (error: any) {
-    return { error: error.message };
+  } catch (error: unknown) {
+    return { error: error instanceof Error ? error.message : "Error desconocido" };
   }
 }
