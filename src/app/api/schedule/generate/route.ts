@@ -239,6 +239,10 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
         return sum + Number(cell.hours || 0);
       }, 0);
     }
+    
+    if (normalizedRow.total_hours > 42) {
+      throw new Error(`La IA falló en la matemática y le asignó ${normalizedRow.total_hours}h a ${normalizedRow.assistant} (Máximo 42h). Por favor vuelve a generar la malla para que la IA lo intente de nuevo.`);
+    }
 
     return normalizedRow;
   });
@@ -370,7 +374,18 @@ export async function POST(request: Request) {
     - Si descansa la Segunda, el Supervisor debe quedar en turno Partido y la Tercera en Intermedio ese mismo dia.
     - En esos dias, el Partido debe ser exactamente 06:00-10:00 / 18:00-22:00.
     - En esos dias, la Tercera debe cubrir exactamente 10:00-18:30 para no dejar la tienda sin encargado mientras regresa el Partido.
-    - Devuelve solo el JSON de schedule. No devuelvas reasoning, explicaciones, resumen ni texto adicional.
+
+    REGLAS DE COBERTURA ESTRICTA PARA ESTA TIENDA:
+    1. LA TIENDA NUNCA PUEDE QUEDAR SOLA: Si pones Aperturas que salen a las 11:00, DEBE haber un Intermedio o Cierre que entre ANTES de las 11:00. Nunca puede quedar 1 sola persona en la tienda, mínimo 2 físicamente en cualquier hora.
+    2. MINIMO 3 CIERRES DIARIOS: Todos los días (Lunes a Domingo), DEBE haber como mínimo 3 personas cuyo turno termine a las 22:00. No importa si es Partido o Cierre normal, a las 22:00 debe haber mínimo 3 personas en la tienda.
+    3. MINIMO 2 APERTURAS A LAS 06:00: Todos los días DEBE haber mínimo 2 personas entrando a las 06:00.
+
+    REGLA MATEMÁTICA DE 42 HORAS (DE VIDA O MUERTE):
+    ¡Nadie puede superar las 42 horas en total! Suma las horas de cada fila: L + M + M + J + V + S + D = MAX 42.
+    - Si alguien suma 43, 45, 50 o más: ¡ES UN ERROR GRAVE! Debes darle más Descansos o cambiar turnos de 8h por turnos de 4h/5h hasta que su suma de EXACTAMENTE 42 o menos.
+    - PREFERIMOS DAR 2 DESCANSOS A LA SEMANA a pasarnos de 42 horas.
+
+    Devuelve solo el JSON de schedule. No devuelvas explicaciones fuera del JSON.
 
     ESTRUCTURA EXACTA DEL JSON ESPERADO:
     {
