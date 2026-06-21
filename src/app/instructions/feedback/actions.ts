@@ -2,16 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 import { z } from "zod";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import type { Database } from "@/lib/supabase/database.types";
 
 type FeedbackInsert = Database["public"]["Tables"]["feedbacks"]["Insert"];
-
-const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
 
 const whatsappRewriteSchema = z.object({
   directedTo: z.string().min(1, "Selecciona para quien es el mensaje."),
@@ -75,12 +72,16 @@ export async function rewriteFeedbackWhatsappMessage(input: {
 }) {
   const { profile } = await requireAuth();
 
-  if (!apiKey) {
-    throw new Error("La IA no esta configurada en este momento.");
+  if (!process.env.DEEPSEEK_API_KEY) {
+    throw new Error("La API Key de DeepSeek no está configurada en este momento.");
   }
 
+  const openai = new OpenAI({
+    baseURL: 'https://api.deepseek.com',
+    apiKey: process.env.DEEPSEEK_API_KEY || "",
+  });
+
   const validated = whatsappRewriteSchema.parse(input);
-  const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash" });
   const greeting = getBogotaGreeting();
   const isWholeTeam = validated.directedTo.trim().toUpperCase() === "TODO EL EQUIPO";
 
@@ -143,15 +144,22 @@ Devuelve solo JSON valido con esta forma:
 }
 `.trim();
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
+  const completion = await openai.chat.completions.create({
+    model: "deepseek-chat",
+    messages: [
+      { role: "system", content: "Devuelve solo JSON raw." },
+      { role: "user", content: prompt }
+    ],
+  });
+
+  const text = completion.choices[0].message.content || "";
 
   await logAiUsage({
     adminId: profile.id,
     storeCode: profile.store_code,
     actionType: AI_ACTIONS.feedback,
-    model: "gemini-3.5-flash",
-    usage: result.response.usageMetadata,
+    model: "deepseek-chat",
+    usage: completion.usage as any,
   });
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);

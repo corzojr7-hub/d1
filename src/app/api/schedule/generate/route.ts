@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { GoogleGenerativeAI, SchemaType } from "@google/generative-ai";
+import OpenAI from "openai";
 import { requireSupervisor } from "@/lib/supabase/require-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
@@ -8,8 +8,10 @@ import fs from "fs";
 import path from "path";
 
 // Initialize Gemini
-const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
+const openai = new OpenAI({
+  baseURL: 'https://api.deepseek.com',
+  apiKey: process.env.DEEPSEEK_API_KEY || "",
+});
 
 type TeamMemberPayload = {
   nombre: string;
@@ -294,8 +296,8 @@ export async function POST(request: Request) {
 
     const { weekStart, weekEnd, holidays } = schema.parse(payload);
 
-    if (!apiKey) {
-      return NextResponse.json({ error: "API Key de Gemini no configurada." }, { status: 500 });
+    if (!process.env.DEEPSEEK_API_KEY) {
+      return NextResponse.json({ error: "API Key de DeepSeek no configurada." }, { status: 500 });
     }
 
     // Build the payload team
@@ -370,54 +372,42 @@ export async function POST(request: Request) {
     - En esos dias, la Tercera debe cubrir exactamente 10:00-18:30 para no dejar la tienda sin encargado mientras regresa el Partido.
     - Devuelve solo el JSON de schedule. No devuelvas reasoning, explicaciones, resumen ni texto adicional.
 
+    ESTRUCTURA EXACTA DEL JSON ESPERADO:
+    {
+      "schedule": [
+        {
+          "assistant": "Nombre",
+          "monday": { "shift": "06:00-14:30", "hours": 8, "type": "Apertura" },
+          "tuesday": { "shift": "13:30-22:00", "hours": 8, "type": "Cierre" },
+          "wednesday": { "shift": "06:00-10:00 / 18:00-22:00", "hours": 8, "type": "Partido" },
+          "thursday": { "shift": "Descanso", "hours": 0, "type": "Descanso" },
+          "friday": { "shift": "10:00-18:30", "hours": 8, "type": "Intermedio" },
+          "saturday": { "shift": "06:00-11:00", "hours": 5, "type": "Apertura" },
+          "sunday": { "shift": "17:00-22:00", "hours": 5, "type": "Cierre" },
+          "total_hours": 42
+        }
+      ]
+    }
+
     Genera el JSON AHORA. No incluyas markdown, solo el JSON raw.
     `;
 
-    const responseSchema = {
-      type: SchemaType.OBJECT,
-      properties: {
-        reasoning: {
-          type: SchemaType.STRING,
-          description: "Pensamiento paso a paso para armar la malla sin cometer errores matemáticos ni lógicos.",
-        },
-        schedule: {
-          type: SchemaType.ARRAY,
-          items: {
-            type: SchemaType.OBJECT,
-            properties: {
-              assistant: { type: SchemaType.STRING },
-              monday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              tuesday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              wednesday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              thursday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              friday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              saturday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              sunday: { type: SchemaType.OBJECT, properties: { shift: { type: SchemaType.STRING }, hours: { type: SchemaType.NUMBER }, type: { type: SchemaType.STRING } } },
-              total_hours: { type: SchemaType.NUMBER }
-            },
-            required: ["assistant", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "total_hours"]
-          }
-        }
-      },
-      required: ["reasoning", "schedule"]
-    };
-
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-3.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: responseSchema as never,
-      },
+    const completion = await openai.chat.completions.create({
+      model: "deepseek-reasoner",
+      messages: [
+        { role: "system", content: "Devuelve solo JSON raw, sin formato markdown." },
+        { role: "user", content: finalPrompt }
+      ],
     });
-    const result = await model.generateContent(finalPrompt);
-    const responseText = result.response.text();
+    
+    const responseText = completion.choices[0].message.content || "";
 
     await logAiUsage({
       adminId: profile.id,
       storeCode: profile.store_code,
       actionType: AI_ACTIONS.schedule,
-      model: "gemini-3.5-flash",
-      usage: result.response.usageMetadata,
+      model: "deepseek-reasoner",
+      usage: completion.usage as any,
     });
 
     // Parse JSON
