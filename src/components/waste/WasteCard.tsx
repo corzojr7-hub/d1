@@ -116,15 +116,14 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
   const transportReportText = [
     "REPORTE DE NOVEDAD DE TRANSPORTE",
     `Tienda: *${record.store_name || "Sin tienda"}*`,
-    `Codigo tienda: _${record.store_code || "Sin codigo"}_`,
-    `Fecha y hora en que se encontro la novedad: ${formattedDateTime}`,
+    `Código tienda: _${record.store_code || "Sin código"}_`,
+    `Fecha y hora en que se encontró la novedad: ${formattedDateTime}.`,
     `Conductor: ${record.transport_driver || "N/A"}`,
     `Placa: ${record.transport_plate || "N/A"}`,
     `Producto afectado: ${productName}`,
     `Unidades afectadas: ${record.qty} ${record.unit}`,
-    `Descripcion de la novedad: ${record.transport_comment || record.observation || "Sin descripcion"}`,
+    `Descripción de la novedad: ${record.transport_comment || record.observation || "Sin descripción"}`,
     `Reportado por: ${record.deposited_by || record.author || "Sin responsable"}`,
-    `Area o pasillo: ${record.area || "Sin area"}`,
   ].join("\n");
 
   async function handleCopyTransportReport() {
