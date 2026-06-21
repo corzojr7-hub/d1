@@ -30,6 +30,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
   const [schedules, setSchedules] = useState<ScheduleItem[]>(initialSchedules);
   const [isGenerating, setIsGenerating] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [generationError, setGenerationError] = useState("");
   const [weekStart, setWeekStart] = useState("");
   const [holidays, setHolidays] = useState("");
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
@@ -48,10 +49,12 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
   async function handleGenerate() {
     if (!weekStart) {
+      setGenerationError("Selecciona la fecha de inicio de semana.");
       toast.error("Selecciona la fecha de inicio de semana.");
       return;
     }
 
+    setGenerationError("");
     setIsGenerating(true);
     const dateStart = new Date(weekStart);
     const dateEnd = new Date(dateStart);
@@ -74,10 +77,13 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       if (!res.ok) throw new Error(data.error || "Error al generar malla.");
 
       setSchedules([data.schedule, ...schedules]);
+      setGenerationError("");
       toast.success("Malla generada con éxito.");
       setShowModal(false);
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : "Error al generar malla.");
+      const message = err instanceof Error ? err.message : "Error al generar malla.";
+      setGenerationError(message);
+      toast.error(message);
     } finally {
       setIsGenerating(false);
     }
@@ -138,7 +144,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
       <div className="space-y-4 px-4 pt-4 md:px-6 lg:px-8">
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setGenerationError("");
+            setShowModal(true);
+          }}
           className="group relative w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#e51d2e] via-[#f22435] to-[#ff5b6b] p-5 text-left text-white shadow-[0_18px_36px_rgba(229,29,46,0.24)] transition-transform active:scale-[0.99]"
         >
           <div className="absolute -right-6 -top-6 text-white/10">
@@ -247,6 +256,18 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               La IA tomará las reglas de tu tienda y las aplicará a esta semana.
             </p>
 
+            {generationError && (
+              <div className="mt-4 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 shadow-sm" role="alert">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-rose-500">
+                  Error de generacion
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-6">{generationError}</p>
+                <p className="mt-2 text-[11px] text-rose-500">
+                  Este error queda visible hasta cerrar el modal o generar una malla valida.
+                </p>
+              </div>
+            )}
+
             <div className="mb-6 space-y-4 pt-5">
               <div>
                 <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
@@ -278,7 +299,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
             <div className="flex gap-3">
               <button
-                onClick={() => setShowModal(false)}
+                onClick={() => {
+                  setGenerationError("");
+                  setShowModal(false);
+                }}
                 className="flex-1 rounded-full bg-slate-100 py-3 text-sm font-bold text-slate-600 transition-colors hover:bg-slate-200"
               >
                 Cancelar
