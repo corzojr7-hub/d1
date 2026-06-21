@@ -232,6 +232,65 @@ function normalizeScheduleData(scheduleData: ScheduleResponse) {
   } satisfies ScheduleResponse;
 }
 
+function enforceKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
+  const schedule = scheduleData.schedule ?? [];
+  const rowByAssistant = new Map(
+    schedule.map((row) => [normalizeText(row.assistant), row] as const),
+  );
+  const supervisorRow = rowByAssistant.get(normalizeText(keyRoles.supervisor));
+  const secondRow = keyRoles.second
+    ? rowByAssistant.get(normalizeText(keyRoles.second))
+    : undefined;
+  const thirdRow = keyRoles.third
+    ? rowByAssistant.get(normalizeText(keyRoles.third))
+    : undefined;
+
+  if (!supervisorRow || !secondRow || !thirdRow) return;
+
+  const dominantType = (row: ScheduleRow) => {
+    const types = scheduleDays
+      .map((day) => (row[day] as ShiftCell).type)
+      .filter((type) => type === "Apertura" || type === "Cierre");
+    const openings = types.filter((type) => type === "Apertura").length;
+    return openings >= types.length - openings ? "Apertura" : "Cierre";
+  };
+
+  const supervisorType = dominantType(supervisorRow);
+  const secondType = supervisorType === "Apertura" ? "Cierre" : "Apertura";
+  const alignRow = (row: ScheduleRow, type: "Apertura" | "Cierre") => {
+    for (const day of scheduleDays) {
+      const current = row[day] as ShiftCell;
+      if (current.type !== "Apertura" && current.type !== "Cierre") continue;
+      const options = canonicalShifts.filter((shift) => shift.type === type);
+      row[day] = options.find((shift) => shift.hours === current.hours) ?? options[0];
+    }
+  };
+
+  alignRow(supervisorRow, supervisorType);
+  alignRow(secondRow, secondType);
+
+  const splitShift = canonicalShifts.find((shift) => shift.type === "Partido")!;
+  const coverageShift = canonicalShifts.find((shift) => shift.shift === "10:00-18:30")!;
+  for (const day of scheduleDays) {
+    const supervisorShift = supervisorRow[day] as ShiftCell;
+    const secondShift = secondRow[day] as ShiftCell;
+    if (supervisorShift.type === "Descanso") {
+      secondRow[day] = splitShift;
+      thirdRow[day] = coverageShift;
+    } else if (secondShift.type === "Descanso") {
+      supervisorRow[day] = splitShift;
+      thirdRow[day] = coverageShift;
+    }
+  }
+
+  for (const row of schedule) {
+    row.total_hours = scheduleDays.reduce(
+      (sum, day) => sum + Number((row[day] as ShiftCell).hours || 0),
+      0,
+    );
+  }
+}
+
 function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleAliases) {
   const schedule = scheduleData.schedule ?? [];
   const rowByAssistant = new Map(
@@ -501,6 +560,7 @@ export async function POST(request: Request) {
       });
     }
 
+    enforceKeyRoleRules(scheduleData, keyRoles);
     validateKeyRoleRules(scheduleData, keyRoles);
 
     // Save to DB
