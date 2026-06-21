@@ -70,7 +70,7 @@ export default function TeamPage() {
             basic_tasks: data.basic_tasks || [],
           };
           setProfile(profileData as Profile);
-          setLocalMessage("ÉXITO: " + data.store_name);
+          setLocalMessage("Tienda sincronizada: " + data.store_name);
           if (!data.security_pin) {
             setHasPin(false);
             setShowPinModal(true);
@@ -279,7 +279,7 @@ export default function TeamPage() {
           Volver
         </Link>
 
-        <div className="mt-4 rounded-[28px] bg-gradient-to-br from-slate-900 via-slate-800 to-blue-700 px-5 py-5 text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)]">
+        <div className="mt-4 rounded-[28px] bg-gradient-to-br from-[#0a3875] to-[#1e52a8] px-5 py-5 text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)]">
           <div className="flex items-start justify-between gap-4">
             <div className="max-w-[220px]">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/65">
