@@ -28,6 +28,7 @@ type Period = "day" | "week" | "month";
 type ChartPoint = {
   label: string;
   amount: number;
+  amountPrevious: number;
 };
 
 const periodOptions: { value: Period; label: string }[] = [
@@ -83,9 +84,12 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
       const months = Array.from({ length: 6 }, (_, index) => subMonths(today, 5 - index));
       const points: ChartPoint[] = months.map((monthDate) => {
         const key = format(monthDate, "yyyy-MM");
+        const prevMonth = subMonths(monthDate, 1);
+        const prevKey = format(prevMonth, "yyyy-MM");
         return {
           label: format(monthDate, "MMM yy", { locale: es }),
           amount: monthlyTotals.get(key) || 0,
+          amountPrevious: monthlyTotals.get(prevKey) || 0,
         };
       });
 
@@ -103,7 +107,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
     const days = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
     if (period === "week") {
-      const weeks = new Map<string, { label: string; amount: number; order: number }>();
+      const weeks = new Map<string, { label: string; amount: number; amountPrevious: number; order: number }>();
 
       days.forEach((day) => {
         const weekStart = startOfWeek(day, { weekStartsOn: 1 });
@@ -114,17 +118,19 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
           weeks.set(key, {
             label: `${format(weekStart, "dd", { locale: es })} - ${format(weekEnd, "dd MMM", { locale: es })}`,
             amount: 0,
+            amountPrevious: 0,
             order: weekStart.getTime(),
           });
         }
 
         const point = weeks.get(key)!;
         point.amount += dailyTotals.get(format(day, "yyyy-MM-dd")) || 0;
+        point.amountPrevious += dailyTotals.get(format(subMonths(day, 1), "yyyy-MM-dd")) || 0;
       });
 
       const points = Array.from(weeks.values())
         .sort((a, b) => a.order - b.order)
-        .map(({ label, amount }) => ({ label, amount }));
+        .map(({ label, amount, amountPrevious }) => ({ label, amount, amountPrevious }));
       const totalAmount = points.reduce((sum, point) => sum + point.amount, 0);
       return {
         chartData: points,
@@ -137,6 +143,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
     const points: ChartPoint[] = days.map((day) => ({
       label: format(day, "dd", { locale: es }),
       amount: dailyTotals.get(format(day, "yyyy-MM-dd")) || 0,
+      amountPrevious: dailyTotals.get(format(subMonths(day, 1), "yyyy-MM-dd")) || 0,
     }));
     const totalAmount = points.reduce((sum, point) => sum + point.amount, 0);
     return {
@@ -226,9 +233,10 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
                   border: "none",
                   boxShadow: "0 4px 12px -2px rgb(0 0 0 / 0.12)",
                 }}
-                formatter={(value) => [currency.format(Number(value)), "Ventas"]}
+                formatter={(value, name) => [currency.format(Number(value)), name]}
               />
-              <Bar dataKey="amount" fill="#e51d2e" radius={[12, 12, 0, 0]} barSize={22} />
+              <Bar dataKey="amountPrevious" fill="#fecaca" radius={[6, 6, 0, 0]} barSize={14} name="Anterior" />
+              <Bar dataKey="amount" fill="#e51d2e" radius={[6, 6, 0, 0]} barSize={14} name="Actual" />
             </BarChart>
           </ResponsiveContainer>
         ) : (

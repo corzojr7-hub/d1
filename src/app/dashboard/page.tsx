@@ -1,6 +1,7 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { format, subDays, subMonths, subYears } from "date-fns";
+import { es } from "date-fns/locale";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { DailySale } from "@/lib/domain/types";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
@@ -445,7 +446,7 @@ export default async function DashboardPage(props: {
                   Mes actual
                 </p>
                 <p className="mt-1 text-lg font-black text-slate-900">
-                  {format(new Date(`${currentMonthPrefix}-01T12:00:00`), "MMMM yyyy")}
+                  {format(new Date(`${currentMonthPrefix}-01T12:00:00`), "MMMM yyyy", { locale: es })}
                 </p>
               </div>
               <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3">
