@@ -91,8 +91,8 @@ function inferShiftType(text: string) {
   return "";
 }
 
-function inferHours(cell: Record<string, unknown>, combinedText: string) {
-  const directHours = Number(cell.hours);
+function inferHours(cell: Record<string, unknown> | null, combinedText: string) {
+  const directHours = Number(cell?.hours);
   if (Number.isFinite(directHours)) return directHours;
 
   const hourMatch = combinedText.match(/(?:^|[^0-9])(4|5|6|7|8|9)h(?:[^a-z]|$)/);
@@ -100,16 +100,15 @@ function inferHours(cell: Record<string, unknown>, combinedText: string) {
 }
 
 function normalizeShiftCell(value: unknown) {
-  if (!value || typeof value !== "object") return null;
-
-  const cell = value as Record<string, unknown>;
-  const rawShift = String(cell.shift ?? "").trim();
-  const rawType = String(cell.type ?? "").trim();
+  const cell = value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+  const rawValue = typeof value === "string" ? value.trim() : "";
+  const rawShift = String(cell?.shift ?? rawValue).trim();
+  const rawType = String(cell?.type ?? "").trim();
   const combinedText = normalizeText(`${rawType} ${rawShift}`);
 
   if (!combinedText) return null;
 
-  const inferredType = rawType || inferShiftType(combinedText);
+  const inferredType = inferShiftType(combinedText);
   const inferredHours = inferHours(cell, combinedText);
 
   if (combinedText.includes("descanso")) {
