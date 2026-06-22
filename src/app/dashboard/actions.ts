@@ -190,37 +190,54 @@ export async function setBulkPosMetrics(
       (existingRows || []).map((row) => [`${row.date}__${row.assistant}`, row]),
     );
 
-    const upsertPayload = validated.map((item) => {
+    for (const item of validated) {
       const key = `${item.date}__${item.assistant}`;
       const existing = existingMap.get(key);
 
-      return {
-        store_code: profile.store_code,
-        date: item.date,
-        assistant: item.assistant,
-        productivity: item.productivity,
-        scan: item.scan,
-        cancellations: Number(existing?.cancellations || 0),
-        voids: Number(existing?.voids || 0),
-        created_by: existing?.created_by || user.id,
-      };
-    });
+      if (existing) {
+        const { error } = await adminClient
+          .from("pos_metrics")
+          .update({
+            productivity: item.productivity,
+            scan: item.scan,
+            cancellations: Number(existing.cancellations || 0),
+            voids: Number(existing.voids || 0),
+          })
+          .eq("id", existing.id);
 
-    const { error } = await adminClient
-      .from("pos_metrics")
-      .upsert(upsertPayload, { onConflict: "store_code,date,assistant" });
+        if (error) {
+          throw error;
+        }
+      } else {
+        const { error } = await adminClient.from("pos_metrics").insert({
+          profile_id: profile.id,
+          created_by: user.id,
+          store_code: profile.store_code,
+          date: item.date,
+          assistant: item.assistant,
+          productivity: item.productivity,
+          scan: item.scan,
+          cancellations: 0,
+          voids: 0,
+        });
 
-    if (error) {
-      throw error;
+        if (error) {
+          throw error;
+        }
+      }
     }
 
     revalidatePath("/dashboard");
     return { success: true, count: validated.length };
   } catch (error: unknown) {
     console.error("setBulkPosMetrics error:", error);
+    const message =
+      typeof error === "object" && error !== null && "message" in error
+        ? String(error.message)
+        : JSON.stringify(error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : "No se pudo importar la productividad POS.",
+      error: message || "No se pudo importar la productividad POS.",
     };
   }
 }
