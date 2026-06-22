@@ -4,7 +4,7 @@ import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import WasteCard from "@/components/waste/WasteCard";
-import { startWasteWeekCut } from "./actions";
+import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton";
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export const metadata: Metadata = {
@@ -46,7 +46,7 @@ export default async function WasteIndex({
   } = await supabase.auth.getUser();
   const { data: currentUserProfile } = await supabase
     .from("profiles")
-    .select("store_code, store_name, role")
+    .select("store_code, store_name, role, security_pin")
     .eq("user_id", user?.id)
     .single();
 
@@ -134,8 +134,7 @@ export default async function WasteIndex({
   const profileMap = new Map(
     (storeProfiles || []).map((p) => [p.user_id, p.display_name]),
   );
-  const canManageWasteCut =
-    currentUserProfile?.role === "supervisor" || currentUserProfile?.role === "admin";
+  const canManageWasteCut = currentUserProfile?.role === "supervisor";
   const pageHref = (nextPage: number) => {
     const query = new URLSearchParams({ page: String(nextPage) });
     if (selectedCutIsValid) {
@@ -190,11 +189,7 @@ export default async function WasteIndex({
           </div>
 
           {canManageWasteCut && (
-            <form action={startWasteWeekCut}>
-              <button type="submit" className="app-cta-primary px-4 py-2 text-xs font-bold">
-                Iniciar nueva semana
-              </button>
-            </form>
+            <StartWasteWeekCutButton hasPin={Boolean(currentUserProfile?.security_pin)} />
           )}
         </div>
 

@@ -424,8 +424,8 @@ export async function deleteWasteRecord(id: string) {
 export async function startWasteWeekCut() {
   const { profile } = await requireAuth();
 
-  if (profile.role !== "supervisor" && profile.role !== "admin") {
-    throw new Error("Solo supervisor o admin pueden iniciar un nuevo corte de merma.");
+  if (profile.role !== "supervisor") {
+    throw new Error("Solo el supervisor puede iniciar un nuevo corte de merma.");
   }
 
   const adminClient = createSupabaseClient(
