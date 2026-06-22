@@ -629,17 +629,7 @@ export default async function DashboardPage(props: {
               ) : null}
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                    Fecha
-                  </span>
-                  <input
-                    name="date"
-                    type="date"
-                    defaultValue={posDate}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
-                  />
-                </label>
+                <input name="date" type="hidden" value={posDate} />
 
                 <div className="rounded-2xl border border-violet-100 bg-violet-50/80 px-4 py-3">
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-violet-700">
@@ -872,58 +862,6 @@ export default async function DashboardPage(props: {
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-                  Detalle por dia
-                </p>
-                <h3 className="mt-1 text-lg font-black text-slate-900">
-                  {isTeamView ? "Historico general de la tienda" : `Historico diario de ${selectedAssistantLabel}`}
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">
-                  Revision rapida de articulos por minuto, escaneo, cancelaciones y anulaciones.
-                </p>
-              </div>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-600">
-                {posDailyMetrics.length} dias registrados
-              </span>
-            </div>
-
-            <div className="mt-4 overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
-                    <th className="pb-3 pr-4">Fecha</th>
-                    <th className="pb-3 pr-4">Art/min</th>
-                    <th className="pb-3 pr-4">Escaneo</th>
-                    <th className="pb-3 pr-4">Cancelaciones</th>
-                    <th className="pb-3">Anulaciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {posDailyMetrics.length ? (
-                    posDailyMetrics.map((item) => (
-                      <tr key={item.date} className="border-b border-slate-100 last:border-b-0">
-                        <td className="py-3 pr-4 font-semibold text-slate-700">{formatDayLabel(item.date)}</td>
-                        <td className="py-3 pr-4 text-slate-900">{formatMetric(item.productivity)}</td>
-                        <td className="py-3 pr-4 text-slate-900">{formatMetric(item.scan)}</td>
-                        <td className="py-3 pr-4 text-slate-700">{item.cancellations}</td>
-                        <td className="py-3 text-slate-700">{item.voids}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
-                        No hay dias registrados para este filtro.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
             </div>
           </div>
 
