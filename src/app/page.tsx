@@ -536,7 +536,7 @@ export default async function Home() {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-wrap justify-center gap-3">
           <QuickAccessCard
             href="/preshift"
             title="Pre-Turno"
@@ -636,11 +636,11 @@ export default async function Home() {
           </div>
         </div>
         {Object.keys(aseoSchedule).length > 0 && (
-          <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
             {dayNames.map((day) => (
               <div
                 key={day}
-                className="rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm"
+                className="w-[calc(50%-4px)] sm:w-[calc(25%-6px)] rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm"
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
                   {day}
@@ -774,7 +774,7 @@ function QuickAccessCard({
   return (
     <Link
       href={href}
-      className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm transition-transform active:scale-95"
+      className="w-[calc(50%-6px)] rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm transition-transform active:scale-95"
     >
       <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${iconBg} ${iconTone}`}>
         {icon}
