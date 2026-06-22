@@ -4,20 +4,27 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
+import { z } from "zod";
 
 function getAdminClient() {
   return createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 }
-import { z } from "zod";
 
-const instructionStatusSchema = z.enum(["pendiente", "en_progreso", "completado", "anulada"]);
+const instructionStatusSchema = z.enum([
+  "pendiente",
+  "en_proceso",
+  "cumplida",
+  "no_cumplida",
+  "requiere_seguimiento",
+  "anulada",
+]);
 
 export async function fetchInstructions() {
   const { profile, supabase } = await requireAuth();
-  
+
   const { data, error } = await supabase
     .from("instructions")
     .select("*")
@@ -51,7 +58,7 @@ export async function clearInstructions() {
     .from("instructions")
     .delete()
     .eq("store_code", profile.store_code)
-    .eq("status", "completado"); // Usually clear only removes completed
+    .in("status", ["cumplida"]);
 
   if (error) throw new Error(error.message);
   revalidatePath("/instructions");
@@ -75,15 +82,13 @@ export async function createInstruction(_prev: unknown, formData: FormData) {
     return { error: "Prioridad invalida" };
   }
 
-
-
   const { error } = await adminClient.from("instructions").insert({
     responsible,
     content,
     priority: priority.toLowerCase(),
     status: "pendiente",
     store_code: profile.store_code,
-    created_by: profile.id, // Se usa profile.id en vez de user.id
+    created_by: profile.id,
   });
 
   if (error) return { error: error.message };
@@ -92,8 +97,12 @@ export async function createInstruction(_prev: unknown, formData: FormData) {
   redirect("/instructions");
 }
 
-export async function updateInstructionStatus(id: string, newStatus: string, operatorName: string = "") {
-  const { profile, supabase } = await requireAuth();
+export async function updateInstructionStatus(
+  id: string,
+  newStatus: string,
+  operatorName: string = "",
+) {
+  const { profile } = await requireAuth();
 
   validateOperatorName(profile, operatorName);
 
@@ -107,9 +116,13 @@ export async function updateInstructionStatus(id: string, newStatus: string, ope
 
   const { error } = await adminClient
     .from("instructions")
-    .update({ status: validatedStatus, updated_at: new Date().toISOString(), operator_name: operatorName })
+    .update({
+      status: validatedStatus,
+      updated_at: new Date().toISOString(),
+      operator_name: operatorName,
+    })
     .eq("id", id)
-    .eq("store_code", profile.store_code); // Aislamiento por tienda
+    .eq("store_code", profile.store_code);
 
   if (error) throw new Error(error.message);
 
