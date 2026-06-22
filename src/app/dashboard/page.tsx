@@ -7,6 +7,7 @@ import type { DailySale } from "@/lib/domain/types";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
+import PosAssistantFilter from "@/components/dashboard/PosAssistantFilter";
 import PosMetricsImportButton from "@/components/dashboard/PosMetricsImportButton";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
 import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
@@ -48,6 +49,7 @@ type PosMetricRow = {
 
 type TopProduct = { name: string; qty: number };
 type ReasonData = { name: string; value: number };
+const TEAM_OPTION = "__team__";
 
 function getBogotaDateParts(now = new Date()) {
   const parts = new Intl.DateTimeFormat("en-US", {
@@ -267,9 +269,13 @@ export default async function DashboardPage(props: {
     profile.supervisor_name ||
     profile.display_name;
 
-  const selectedAssistantMetrics = posMetrics.filter(
-    (item) => (item.assistant || "").trim() === selectedAssistant,
-  );
+  const isTeamView = selectedAssistant === TEAM_OPTION;
+  const selectedAssistantLabel = isTeamView ? "Equipo general" : selectedAssistant;
+  const selectedAssistantMetrics = isTeamView
+    ? posMetrics
+    : posMetrics.filter((item) => (item.assistant || "").trim() === selectedAssistant);
+  const posFormAssistantDefault =
+    !isTeamView && selectedAssistant ? selectedAssistant : assistantOptions[0] || "";
 
   const posDailyStats = new Map<
     string,
@@ -297,14 +303,16 @@ export default async function DashboardPage(props: {
     posDailyStats.set(item.date, existing);
   });
 
-  const posDailyMetrics = Array.from(posDailyStats.entries()).map(([date, stats]) => ({
-    date,
-    day: Number(date.slice(8, 10)),
-    productivity: stats.count > 0 ? stats.productivitySum / stats.count : 0,
-    scan: stats.count > 0 ? stats.scanSum / stats.count : 0,
-    cancellations: stats.cancellationsSum,
-    voids: stats.voidsSum,
-  }));
+  const posDailyMetrics = Array.from(posDailyStats.entries())
+    .map(([date, stats]) => ({
+      date,
+      day: Number(date.slice(8, 10)),
+      productivity: stats.count > 0 ? stats.productivitySum / stats.count : 0,
+      scan: stats.count > 0 ? stats.scanSum / stats.count : 0,
+      cancellations: stats.cancellationsSum,
+      voids: stats.voidsSum,
+    }))
+    .sort((a, b) => b.date.localeCompare(a.date));
 
   const getDailyPosMetric = (date: string) =>
     posDailyMetrics.find((item) => item.date === date) || {
@@ -567,7 +575,7 @@ export default async function DashboardPage(props: {
             </div>
             <div className="flex flex-wrap gap-2">
               <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-bold text-slate-600">
-                {selectedAssistant}
+                {selectedAssistantLabel}
               </span>
               <span className="rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700">
                 Corte {formatDayLabel(posDate)}
@@ -587,33 +595,15 @@ export default async function DashboardPage(props: {
             </div>
           ) : null}
 
-          <form
-            action="/dashboard"
-            className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm"
-          >
+          <div className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
             <div className="flex flex-col gap-3 md:flex-row md:items-end">
-              <label className="block flex-1">
-                <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                  Ver colaborador
-                </span>
-                <select
-                  name="posAssistant"
-                  defaultValue={selectedAssistant}
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
-                >
-                  {assistantOptions.map((assistant) => (
-                    <option key={assistant} value={assistant}>
-                      {assistant}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <input type="hidden" name="posDate" value={posDate} />
-              <button type="submit" className="app-cta-primary justify-center text-sm font-bold md:min-w-44">
-                Ver historial POS
-              </button>
+              <PosAssistantFilter
+                assistantOptions={assistantOptions}
+                selectedAssistant={selectedAssistant}
+                posDate={posDate}
+              />
             </div>
-          </form>
+          </div>
 
           <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
             <form action={savePosMetric} className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
@@ -665,7 +655,7 @@ export default async function DashboardPage(props: {
                   </span>
                   <select
                     name="assistant"
-                    defaultValue={selectedAssistant}
+                    defaultValue={posFormAssistantDefault}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
                   >
                     {assistantOptions.map((assistant) => (
@@ -882,6 +872,58 @@ export default async function DashboardPage(props: {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                  Detalle por dia
+                </p>
+                <h3 className="mt-1 text-lg font-black text-slate-900">
+                  {isTeamView ? "Historico general de la tienda" : `Historico diario de ${selectedAssistantLabel}`}
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">
+                  Revision rapida de articulos por minuto, escaneo, cancelaciones y anulaciones.
+                </p>
+              </div>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-600">
+                {posDailyMetrics.length} dias registrados
+              </span>
+            </div>
+
+            <div className="mt-4 overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead>
+                  <tr className="border-b border-slate-200 text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
+                    <th className="pb-3 pr-4">Fecha</th>
+                    <th className="pb-3 pr-4">Art/min</th>
+                    <th className="pb-3 pr-4">Escaneo</th>
+                    <th className="pb-3 pr-4">Cancelaciones</th>
+                    <th className="pb-3">Anulaciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {posDailyMetrics.length ? (
+                    posDailyMetrics.map((item) => (
+                      <tr key={item.date} className="border-b border-slate-100 last:border-b-0">
+                        <td className="py-3 pr-4 font-semibold text-slate-700">{formatDayLabel(item.date)}</td>
+                        <td className="py-3 pr-4 text-slate-900">{formatMetric(item.productivity)}</td>
+                        <td className="py-3 pr-4 text-slate-900">{formatMetric(item.scan)}</td>
+                        <td className="py-3 pr-4 text-slate-700">{item.cancellations}</td>
+                        <td className="py-3 text-slate-700">{item.voids}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="py-6 text-center text-sm text-slate-500">
+                        No hay dias registrados para este filtro.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
