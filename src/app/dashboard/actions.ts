@@ -26,6 +26,15 @@ const savePosMetricSchema = z.object({
   voids: z.number().min(0, "Anulaciones no puede ser negativo."),
 });
 
+const setBulkPosMetricsSchema = z.array(
+  savePosMetricSchema.pick({
+    date: true,
+    assistant: true,
+    productivity: true,
+    scan: true,
+  }),
+);
+
 function parseMetric(rawValue: FormDataEntryValue | null) {
   const normalized = String(rawValue ?? "")
     .trim()
@@ -137,5 +146,81 @@ export async function savePosMetric(formData: FormData) {
       assistant,
       error instanceof Error ? error.message : "No se pudo guardar la productividad POS.",
     );
+  }
+}
+
+export async function setBulkPosMetrics(
+  metrics: Array<{
+    date: string;
+    assistant: string;
+    productivity: number;
+    scan: number;
+  }>,
+) {
+  try {
+    const { profile, user } = await requireAuth();
+
+    if (!(await checkRateLimit(profile.id, 25, 60_000))) {
+      throw new Error("Demasiados intentos. Espera un momento.");
+    }
+
+    if (!POS_EDIT_ROLES.includes(profile.role as ProfileRole)) {
+      throw new Error("Solo el supervisor puede importar productividad POS.");
+    }
+
+    const validated = setBulkPosMetricsSchema.parse(metrics);
+    if (validated.length === 0) return { success: true, count: 0 };
+
+    const adminClient = createAdminClient();
+    const dates = Array.from(new Set(validated.map((item) => item.date)));
+    const assistants = Array.from(new Set(validated.map((item) => item.assistant)));
+
+    const { data: existingRows, error: existingError } = await adminClient
+      .from("pos_metrics")
+      .select("id, date, assistant, created_by, cancellations, voids")
+      .eq("store_code", profile.store_code)
+      .in("date", dates)
+      .in("assistant", assistants);
+
+    if (existingError) {
+      throw existingError;
+    }
+
+    const existingMap = new Map(
+      (existingRows || []).map((row) => [`${row.date}__${row.assistant}`, row]),
+    );
+
+    const upsertPayload = validated.map((item) => {
+      const key = `${item.date}__${item.assistant}`;
+      const existing = existingMap.get(key);
+
+      return {
+        store_code: profile.store_code,
+        date: item.date,
+        assistant: item.assistant,
+        productivity: item.productivity,
+        scan: item.scan,
+        cancellations: Number(existing?.cancellations || 0),
+        voids: Number(existing?.voids || 0),
+        created_by: existing?.created_by || user.id,
+      };
+    });
+
+    const { error } = await adminClient
+      .from("pos_metrics")
+      .upsert(upsertPayload, { onConflict: "store_code,date,assistant" });
+
+    if (error) {
+      throw error;
+    }
+
+    revalidatePath("/dashboard");
+    return { success: true, count: validated.length };
+  } catch (error: unknown) {
+    console.error("setBulkPosMetrics error:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "No se pudo importar la productividad POS.",
+    };
   }
 }

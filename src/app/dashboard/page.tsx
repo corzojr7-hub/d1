@@ -7,6 +7,7 @@ import type { DailySale } from "@/lib/domain/types";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
+import PosMetricsImportButton from "@/components/dashboard/PosMetricsImportButton";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
 import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
 import { requireAuth } from "@/lib/supabase/require-auth";
@@ -630,6 +631,12 @@ export default async function DashboardPage(props: {
                   {formatDayLabel(posDate)}
                 </div>
               </div>
+
+              {profile.role === "supervisor" || profile.role === "admin" ? (
+                <div className="mt-4 flex justify-end">
+                  <PosMetricsImportButton date={posDate} assistantOptions={assistantOptions} />
+                </div>
+              ) : null}
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <label className="block">
