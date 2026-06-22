@@ -95,7 +95,7 @@ export default async function WasteIndex({
   );
 
   return (
-    <div className="mx-auto max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+    <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
       <div className="mb-2">
         <Link
           href="/"
@@ -106,7 +106,7 @@ export default async function WasteIndex({
         </Link>
       </div>
 
-      <section className="rounded-[28px] bg-gradient-to-br from-[#0a4aa8] via-[#0a58ca] to-[#3b82f6] px-5 py-5 text-white shadow-[0_18px_36px_rgba(10,88,202,0.16)]">
+      <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0a4aa8] via-[#0a58ca] to-[#3b82f6] px-5 py-5 text-white shadow-[0_18px_36px_rgba(10,88,202,0.16)]">
         <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
           Control de Perdidas
         </p>
