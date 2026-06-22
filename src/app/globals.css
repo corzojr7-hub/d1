@@ -105,6 +105,9 @@ select option {
 }
 
 .app-cta-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 3.5rem;
   border-radius: 9999px;
   background: var(--color-brand);
@@ -132,6 +135,9 @@ select option {
 }
 
 .app-cta-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 3.5rem;
   border-radius: 9999px;
   background: var(--color-surface);
