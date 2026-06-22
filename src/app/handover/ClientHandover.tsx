@@ -6,6 +6,7 @@ import { ArrowLeft, Camera, UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { submitHandover } from "./actions";
 import { useRouter } from "next/navigation";
+import AppSelect from "@/components/dashboard/AppSelect";
 
 export default function ClientHandover({ supervisors }: { supervisors: string[] }) {
   const [isPending, startTransition] = useTransition();
@@ -73,51 +74,55 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
 
       <form onSubmit={handleSubmit} className="p-4 space-y-6">
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 mb-4">¿Quiénes realizan el cambio?</h2>
-          
+          <h2 className="mb-4 text-sm font-bold text-slate-800">¿Quiénes realizan el cambio?</h2>
+
           <div className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Entrega el turno
               </label>
-              <select
+              <AppSelect
+                label="Entrega el turno"
                 name="handed_by"
                 required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Selecciona quién entrega</option>
-                {supervisors.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                options={[
+                  { value: "", label: "Selecciona quién entrega" },
+                  ...supervisors.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Recibe el turno
               </label>
-              <select
+              <AppSelect
+                label="Recibe el turno"
                 name="received_by"
                 required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Selecciona quién recibe</option>
-                {supervisors.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
+                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                options={[
+                  { value: "", label: "Selecciona quién recibe" },
+                  ...supervisors.map((s) => ({ value: s, label: s })),
+                ]}
+              />
             </div>
           </div>
         </div>
 
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm">
-          <h2 className="text-sm font-bold text-slate-800 mb-4">Estado de la Bodega</h2>
-          
-          <div 
+          <h2 className="mb-4 text-sm font-bold text-slate-800">Estado de la Bodega</h2>
+
+          <div
             onClick={() => fileInputRef.current?.click()}
-            className={`relative flex flex-col items-center justify-center w-full h-48 border-2 border-dashed rounded-xl cursor-pointer transition-colors overflow-hidden ${photoPreview ? 'border-emerald-400 bg-emerald-50' : 'border-slate-300 bg-slate-50 hover:bg-slate-100'}`}
+            className={`relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${photoPreview ? "border-emerald-400 bg-emerald-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"}`}
           >
             {photoPreview ? (
-              <img src={photoPreview} alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
+              <img src={photoPreview} alt="Preview" className="absolute inset-0 h-full w-full object-cover" />
             ) : (
               <div className="flex flex-col items-center gap-2 text-slate-500">
-                <Camera className="w-8 h-8" />
+                <Camera className="h-8 w-8" />
                 <span className="text-xs font-semibold">Tomar foto de la bodega</span>
               </div>
             )}
@@ -132,31 +137,31 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
 
           <div className="mt-4">
-            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
               Observaciones (Opcional)
             </label>
             <textarea
               name="observations"
               rows={3}
               placeholder="Ej. Falta organizar pasillo 3, basura sin sacar..."
-              className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
-            ></textarea>
+              className="w-full resize-none rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
           </div>
         </div>
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg active:scale-95 disabled:opacity-70 transition-all flex items-center justify-center gap-2"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-70"
         >
           {isPending ? (
             <>
-              <UploadCloud className="w-5 h-5 animate-pulse" />
+              <UploadCloud className="h-5 w-5 animate-pulse" />
               Subiendo registro...
             </>
           ) : (
             <>
-              <CheckCircle2 className="w-5 h-5" />
+              <CheckCircle2 className="h-5 w-5" />
               Confirmar Entrega
             </>
           )}

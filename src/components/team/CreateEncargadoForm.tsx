@@ -1,29 +1,33 @@
 "use client";
 
-import { useActionState, useEffect, useState, startTransition } from "react";
-import { createEncargado } from "@/app/team/actions";
-import { UserPlus, Loader2 } from "lucide-react";
+import { startTransition, useActionState, useEffect, useState } from "react";
+import { Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
+import { createEncargado } from "@/app/team/actions";
 import SecurityPinModal from "./SecurityPinModal";
 
 export default function CreateEncargadoForm() {
-  const [state, formAction, isPending] = useActionState(async (_prevState: unknown, formData: FormData) => {
-    const res = await createEncargado(formData);
-    if (res.error) {
-      toast.error(res.error);
-      return { error: res.error };
-    }
-    toast.success("Encargado creado correctamente");
-    return { success: true };
-  }, null);
+  const [state, formAction, isPending] = useActionState(
+    async (_prevState: unknown, formData: FormData) => {
+      const res = await createEncargado(formData);
+      if (res.error) {
+        toast.error(res.error);
+        return { error: res.error };
+      }
+      toast.success("Encargado creado correctamente");
+      return { success: true };
+    },
+    null,
+  );
 
   const [showPinModal, setShowPinModal] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<FormData | null>(null);
 
   useEffect(() => {
     if (state?.success) {
-      const form = document.getElementById("create-encargado-form") as HTMLFormElement;
-      if (form) form.reset();
+      const form = document.getElementById("create-encargado-form") as HTMLFormElement | null;
+      form?.reset();
     }
   }, [state]);
 
@@ -43,47 +47,71 @@ export default function CreateEncargadoForm() {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden mb-6">
-      <div className="bg-slate-50 border-b border-zinc-200 px-4 py-3 flex items-center gap-2">
+    <div className="mb-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+      <div className="flex items-center gap-2 border-b border-zinc-200 bg-slate-50 px-4 py-3">
         <UserPlus className="h-5 w-5 text-indigo-600" />
         <h3 className="font-bold text-slate-800">Crear Acceso para Encargado</h3>
       </div>
       <div className="p-4">
-        <p className="text-sm text-slate-600 mb-4">
+        <p className="mb-4 text-sm text-slate-600">
           Crea un usuario (correo y contraseña) para que el Segundo(a) o Tercero(a) pueda iniciar sesión en su turno.
-          Se le pedira que cambie la contrasea al entrar por primera vez.
+          Se le pedirá que cambie la contraseña al entrar por primera vez.
         </p>
 
         <form id="create-encargado-form" onSubmit={handleInitialSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Rol</label>
-          <select name="role" required className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm bg-white">
-                <option value="segundo_al_mando">Segundo(a) Encargado(a)</option>
-                <option value="tercero_al_mando">Tercero(a) Encargado(a)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Nombre Completo</label>
-              <input type="text" name="name" required placeholder="Ej. Karen Palacios" className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm" />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Correo Electronico</label>
-              <input type="email" name="email" required placeholder="Ej. karen@tienda.com" className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm" />
+              <label className="mb-1 block text-xs font-bold text-slate-500">Rol</label>
+              <AppSelect
+                name="role"
+                required
+                options={[
+                  { value: "segundo_al_mando", label: "Segundo(a) Encargado(a)" },
+                  { value: "tercero_al_mando", label: "Tercero(a) Encargado(a)" },
+                ]}
+                buttonClassName="h-10 rounded-lg py-2 text-sm shadow-none"
+              />
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-500 mb-1">Contrasea Inicial</label>
-              <input type="text" name="password" required placeholder="Mnimo 6 caracteres" minLength={6} className="w-full h-10 px-3 rounded-lg border border-zinc-200 text-sm" />
+              <label className="mb-1 block text-xs font-bold text-slate-500">Nombre Completo</label>
+              <input
+                type="text"
+                name="name"
+                required
+                placeholder="Ej. Karen Palacios"
+                className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Correo Electrónico</label>
+              <input
+                type="email"
+                name="email"
+                required
+                placeholder="Ej. karen@tienda.com"
+                className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-xs font-bold text-slate-500">Contraseña Inicial</label>
+              <input
+                type="text"
+                name="password"
+                required
+                minLength={6}
+                placeholder="Mínimo 6 caracteres"
+                className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm"
+              />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={isPending}
-            className="w-full flex items-center justify-center gap-2 h-10 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50"
+            className="flex h-10 w-full items-center justify-center gap-2 rounded-lg bg-indigo-600 font-bold text-white transition-colors hover:bg-indigo-700 disabled:opacity-50"
           >
             {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <UserPlus className="h-5 w-5" />}
             {isPending ? "Creando..." : "Crear Usuario"}
@@ -91,11 +119,11 @@ export default function CreateEncargadoForm() {
         </form>
       </div>
 
-      <SecurityPinModal 
-        isOpen={showPinModal} 
-        onClose={() => setShowPinModal(false)} 
-        onSuccess={handlePinSuccess} 
-        isFirstTime={false} // Assume PIN is already created by TeamPage
+      <SecurityPinModal
+        isOpen={showPinModal}
+        onClose={() => setShowPinModal(false)}
+        onSuccess={handlePinSuccess}
+        isFirstTime={false}
       />
     </div>
   );

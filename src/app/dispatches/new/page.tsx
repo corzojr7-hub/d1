@@ -15,6 +15,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { createDispatchDifference } from "../actions";
 
 export default function NewDispatchDifferencePage() {
@@ -154,16 +155,18 @@ export default function NewDispatchDifferencePage() {
             <label className="mb-1 block text-xs font-bold text-slate-500">
               Categoria <span className="text-red-500">*</span>
             </label>
-            <select
+            <AppSelect
+              label="Categoria"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="OTC">OTC</option>
-              <option value="Fruver">Fruver</option>
-              <option value="Cuadrante 1">Cuadrante 1</option>
-              <option value="Estiba Completa">Estiba Completa</option>
-            </select>
+              onChange={setCategory}
+              buttonClassName="rounded-xl px-4 py-2.5 text-sm shadow-none"
+              options={[
+                { value: "OTC", label: "OTC" },
+                { value: "Fruver", label: "Fruver" },
+                { value: "Cuadrante 1", label: "Cuadrante 1" },
+                { value: "Estiba Completa", label: "Estiba Completa" },
+              ]}
+            />
           </div>
 
           <div>
@@ -211,14 +214,16 @@ export default function NewDispatchDifferencePage() {
               <label className="mb-1 block text-xs font-bold text-slate-500">
                 Diferencia
               </label>
-              <select
+              <AppSelect
+                label="Diferencia"
                 value={differenceType}
-                onChange={(e) => setDifferenceType(e.target.value)}
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="Faltante">Faltante</option>
-                <option value="Sobrante">Sobrante</option>
-              </select>
+                onChange={setDifferenceType}
+                buttonClassName="rounded-xl bg-white px-4 py-2.5 text-sm shadow-none"
+                options={[
+                  { value: "Faltante", label: "Faltante" },
+                  { value: "Sobrante", label: "Sobrante" },
+                ]}
+              />
             </div>
 
             <div className="md:col-span-2">

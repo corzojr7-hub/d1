@@ -8,6 +8,7 @@ import { addFefoRecord, updateFefoStatus, subtractFefoQty, deleteFefoRecord, edi
 import { searchProducts } from "@/app/products/actions";
 import { Search, X, Minus, Trash2, Edit2, Check } from "lucide-react";
 import { get, set } from "idb-keyval";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { useProfile } from '@/components/ui/ProfileContext';
 import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
 
@@ -320,15 +321,16 @@ export default function FefoClient({ records }: { records: FefoRecord[]; profile
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-500 mb-1 block">Categoría FEFO</label>
-                <select
+                <AppSelect
+                  label="Categoría FEFO"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-blue-500"
-                >
-                  {FEFO_CATEGORIES.map(c => (
-                    <option key={c.value} value={c.value}>{c.label} (Retira a {c.retirementDays} días)</option>
-                  ))}
-                </select>
+                  onChange={setSelectedCategory}
+                  buttonClassName="rounded-xl border-0 px-3 py-2.5 text-sm font-medium text-slate-800 ring-1 ring-slate-200 shadow-none"
+                  options={FEFO_CATEGORIES.map((category) => ({
+                    value: category.value,
+                    label: `${category.label} (Retira a ${category.retirementDays} días)`,
+                  }))}
+                />
               </div>
               <div className="flex gap-3">
                 <div className="flex-1">
@@ -369,15 +371,20 @@ export default function FefoClient({ records }: { records: FefoRecord[]; profile
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                 {records.length} {records.length === 1 ? 'producto' : 'productos'} en radar
               </span>
-              <select
+              <AppSelect
+                label="Orden"
+                hideLabel
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as "criticidad" | "cantidad" | "fecha")}
-                className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="criticidad">Ordenar por: Criticidad (Color)</option>
-                <option value="fecha">Ordenar por: Fecha Vencimiento</option>
-                <option value="cantidad">Ordenar por: Cantidad (Menor a Mayor)</option>
-              </select>
+                onChange={(value) => setSortBy(value as "criticidad" | "cantidad" | "fecha")}
+                containerClassName="min-w-[240px]"
+                buttonClassName="rounded-lg bg-white px-2 py-1 text-xs font-medium text-slate-700 shadow-none"
+                panelClassName="right-0 left-auto w-64"
+                options={[
+                  { value: "criticidad", label: "Ordenar por: Criticidad (Color)" },
+                  { value: "fecha", label: "Ordenar por: Fecha Vencimiento" },
+                  { value: "cantidad", label: "Ordenar por: Cantidad (Menor a Mayor)" },
+                ]}
+              />
             </div>
           )}
 

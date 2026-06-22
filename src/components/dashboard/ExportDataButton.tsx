@@ -3,6 +3,7 @@
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
 import * as XLSX from "xlsx";
+import AppSelect from "@/components/dashboard/AppSelect";
 
 type WasteExportRow = {
   created_at?: string;
@@ -166,18 +167,22 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
         <FileText className="h-3.5 w-3.5" />
         PDF
       </button>
-      <select
+      <AppSelect
+        label="Seleccionar seccion para PDF"
+        hideLabel
         value={pdfSection}
-        onChange={(event) => setPdfSection(event.target.value)}
-        className="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm outline-none transition focus:border-[#0a3875]"
-        aria-label="Seleccionar sección para PDF"
-      >
-        <option value="ventas">PDF ventas</option>
-        <option value="impulso">PDF impulso</option>
-        <option value="merma">PDF merma</option>
-        <option value="productividad-pos">PDF productividad POS</option>
-        <option value="life-for-life">PDF comparativo</option>
-      </select>
+        onChange={setPdfSection}
+        containerClassName="min-w-[170px]"
+        buttonClassName="px-4 py-2.5 text-xs font-bold text-slate-600 shadow-sm"
+        panelClassName="right-0 left-auto w-56"
+        options={[
+          { value: "ventas", label: "PDF ventas" },
+          { value: "impulso", label: "PDF impulso" },
+          { value: "merma", label: "PDF merma" },
+          { value: "productividad-pos", label: "PDF productividad POS" },
+          { value: "life-for-life", label: "PDF comparativo" },
+        ]}
+      />
     </div>
   );
 }

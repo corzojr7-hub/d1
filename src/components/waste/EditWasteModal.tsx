@@ -1,16 +1,28 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import { X, Save } from "lucide-react";
+import { useState, useTransition } from "react";
+import { X } from "lucide-react";
 import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { updateWasteRecord } from "@/app/waste/actions";
 import { WASTE_REASONS } from "@/lib/domain/catalogs";
+
+type EditableWasteRecord = {
+  id: string;
+  qty: number;
+  unit: string;
+  reason: string;
+  barcode_id?: string | null;
+  products?: {
+    name?: string | null;
+  } | null;
+};
 
 export default function EditWasteModal({
   record,
   onClose,
 }: {
-  record: any;
+  record: EditableWasteRecord;
   onClose: () => void;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -19,7 +31,7 @@ export default function EditWasteModal({
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
-    
+
     setError(null);
     startTransition(async () => {
       try {
@@ -33,22 +45,22 @@ export default function EditWasteModal({
   }
 
   const inputBase =
-    "w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-4 py-3 text-sm font-medium transition-shadow focus:ring-2 focus:ring-blue-500 focus:outline-none";
+    "w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm font-medium ring-1 ring-slate-200 transition-shadow focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm duration-200">
       <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-800">Editar Merma</h2>
           <button
             onClick={onClose}
-            className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <p className="text-xs font-semibold text-slate-500 mb-5 pb-3 border-b border-slate-100">
+        <p className="mb-5 border-b border-slate-100 pb-3 text-xs font-semibold text-slate-500">
           {record.products?.name ?? record.barcode_id}
         </p>
 
@@ -60,10 +72,10 @@ export default function EditWasteModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <input type="hidden" name="id" value={record.id} />
-          
+
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold text-slate-600 uppercase tracking-wide">
+              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">
                 Cantidad
               </span>
               <input
@@ -77,7 +89,7 @@ export default function EditWasteModal({
               />
             </label>
             <label className="block">
-              <span className="mb-1.5 block text-xs font-bold text-slate-600 uppercase tracking-wide">
+              <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">
                 Unidad
               </span>
               <input
@@ -91,27 +103,25 @@ export default function EditWasteModal({
           </div>
 
           <label className="block">
-            <span className="mb-1.5 block text-xs font-bold text-slate-600 uppercase tracking-wide">
+            <span className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-600">
               Motivo
             </span>
-            <select
+            <AppSelect
               name="reason"
               defaultValue={record.reason}
               required
-              className={`${inputBase} appearance-none`}
-            >
-              {WASTE_REASONS.map((reason) => (
-                <option key={reason.value} value={reason.value}>
-                  {reason.label}
-                </option>
-              ))}
-            </select>
+              options={WASTE_REASONS.map((reason) => ({
+                value: reason.value,
+                label: reason.label,
+              }))}
+              buttonClassName="rounded-xl py-3 text-sm font-medium shadow-none"
+            />
           </label>
 
           <button
             type="submit"
             disabled={isPending}
-            className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-bold text-white shadow-md shadow-blue-600/20 active:scale-95 disabled:opacity-70 transition-all"
+            className="mt-6 flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-blue-600 px-5 text-sm font-bold text-white shadow-md shadow-blue-600/20 transition-all active:scale-95 disabled:opacity-70"
           >
             {isPending ? "Guardando..." : "Guardar Cambios"}
           </button>

@@ -14,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { useProfile } from "@/components/ui/ProfileContext";
 import { createFeedback, rewriteFeedbackWhatsappMessage } from "../actions";
 import {
@@ -198,44 +199,42 @@ export default function NewFeedbackPage() {
           <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
             <User className="h-4 w-4 text-slate-400" /> Para quien
           </span>
-          <select
+          <AppSelect
             value={formData.directed_to}
-            onChange={(e) => setFormData((current) => ({ ...current, directed_to: e.target.value }))}
-            className={inputBase}
-          >
-            <option value="">Selecciona al destinatario...</option>
-            {recipientOptions.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => setFormData((current) => ({ ...current, directed_to: value }))}
+            options={[
+              { value: "", label: "Selecciona al destinatario..." },
+              ...recipientOptions.map((name) => ({ value: name, label: name })),
+            ]}
+            buttonClassName="py-3.5 text-base"
+          />
         </label>
 
         <label className="block">
           <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
             <MessageSquareWarning className="h-4 w-4 text-slate-400" /> Tipo
           </span>
-          <select
+          <AppSelect
             value={formData.type}
-            onChange={(e) =>
+            onChange={(value) =>
               setFormData((current) => ({
                 ...current,
-                type: e.target.value as FeedbackType,
-                acta_template: e.target.value === "acta_compromiso" ? current.acta_template : "",
+                type: value as FeedbackType,
+                acta_template: value === "acta_compromiso" ? current.acta_template : "",
               }))
             }
-            className={`${inputBase} ${
+            options={[
+              ...(isWhatsappMode ? [{ value: "mensaje_normal", label: "Mensaje normal" }] : []),
+              { value: "retroalimentacion", label: "Retroalimentación" },
+              { value: "llamado_atencion", label: "Llamado de atención" },
+              { value: "acta_compromiso", label: "Acta de compromiso" },
+            ]}
+            buttonClassName={`py-3.5 text-base ${
               formData.type === "llamado_atencion" || formData.type === "acta_compromiso"
-                ? "bg-red-50 font-bold text-red-700 ring-red-200"
-                : "bg-amber-50 font-bold text-amber-700 ring-amber-200"
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-amber-200 bg-amber-50 text-amber-700"
             }`}
-          >
-            {isWhatsappMode && <option value="mensaje_normal">Mensaje normal</option>}
-            <option value="retroalimentacion">Retroalimentacion</option>
-            <option value="llamado_atencion">Llamado de atencion</option>
-            <option value="acta_compromiso">Acta de compromiso</option>
-          </select>
+          />
         </label>
 
         {isActaType && (
@@ -243,18 +242,18 @@ export default function NewFeedbackPage() {
             <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
               <FileText className="h-4 w-4 text-slate-400" /> Tipo de acta
             </span>
-            <select
+            <AppSelect
               value={formData.acta_template}
-              onChange={(e) => handleActaTemplateChange(e.target.value)}
-              className={`${inputBase} bg-white font-semibold text-slate-700`}
-            >
-              <option value="">Selecciona el formato...</option>
-              {ACTA_TEMPLATES.map((template) => (
-                <option key={template.key} value={template.key}>
-                  {template.subtitle}
-                </option>
-              ))}
-            </select>
+              onChange={handleActaTemplateChange}
+              options={[
+                { value: "", label: "Selecciona el formato..." },
+                ...ACTA_TEMPLATES.map((template) => ({
+                  value: template.key,
+                  label: template.subtitle,
+                })),
+              ]}
+              buttonClassName="bg-white py-3.5 text-base"
+            />
           </label>
         )}
 

@@ -6,6 +6,7 @@ import { ArrowLeft, Plus, CheckCircle2, TrendingUp, BarChart3, Search, X } from 
 import { toast } from "sonner";
 import { saveImpulseRecord } from "./actions";
 import { searchProducts } from "@/app/products/actions";
+import AppSelect from "@/components/dashboard/AppSelect";
 
 type ProductCatalogEntry = {
   id: string;
@@ -73,7 +74,7 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <div className="flex flex-col flex-1">
+          <div className="flex flex-1 flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
               Impulso
             </p>
@@ -93,54 +94,56 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-6 p-4">
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-emerald-500" />
+          <div className="mb-4 flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
             <h2 className="text-sm font-bold text-slate-800">Nuevo Registro</h2>
           </div>
-          
+
           <div className="space-y-4">
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Asistente
               </label>
-              <select
+              <AppSelect
+                label="Asistente"
                 name="assistant"
                 required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Selecciona el asistente</option>
-                {assistants.map((a) => (
-                  <option key={a.name} value={a.name}>{a.name}</option>
-                ))}
-              </select>
+                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                options={[
+                  { value: "", label: "Selecciona el asistente" },
+                  ...assistants.map((a) => ({ value: a.name, label: a.name })),
+                ]}
+              />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Tipo de Impulso
               </label>
-              <select
+              <AppSelect
+                label="Tipo de Impulso"
                 name="impulse_type"
                 required
-                className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              >
-                <option value="">Seleccionar tipo</option>
-                <option value="Nacional">Nacional</option>
-                <option value="Regional">Regional</option>
-                <option value="Fecha Pronta">Fecha Pronta</option>
-              </select>
+                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                options={[
+                  { value: "", label: "Seleccionar tipo" },
+                  { value: "Nacional", label: "Nacional" },
+                  { value: "Regional", label: "Regional" },
+                  { value: "Fecha Pronta", label: "Fecha Pronta" },
+                ]}
+              />
             </div>
 
             <div className="relative">
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Producto
               </label>
-              
+
               {!selectedProduct ? (
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
                   <input
@@ -148,13 +151,13 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
                     value={catalogQuery}
                     onChange={(e) => handleCatalogSearch(e.target.value)}
                     placeholder="Escribe para buscar (ej. wafer)..."
-                    className="w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl pl-10 pr-3 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    className="w-full rounded-xl border-0 bg-slate-50 py-2.5 pl-10 pr-3 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     autoComplete="off"
                   />
                   {catalogQuery.trim() && (
-                    <div className="absolute z-10 mt-1 w-full rounded-xl bg-white shadow-lg ring-1 ring-black/5 max-h-60 overflow-auto">
+                    <div className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-xl bg-white shadow-lg ring-1 ring-black/5">
                       {catalogResults.length === 0 ? (
-                        <div className="p-3 text-xs text-slate-500 text-center">No se encontraron productos.</div>
+                        <div className="p-3 text-center text-xs text-slate-500">No se encontraron productos.</div>
                       ) : (
                         <ul className="py-1">
                           {catalogResults.slice(0, 30).map((p) => (
@@ -162,10 +165,10 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
                               <button
                                 type="button"
                                 onClick={() => setSelectedProduct(p)}
-                                className="w-full text-left px-4 py-2 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none flex flex-col"
+                                className="flex w-full flex-col px-4 py-2 text-left hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
                               >
                                 <span className="text-sm font-semibold text-slate-800">{p.name}</span>
-                                <span className="text-[10px] text-slate-400">EAN: {p.barcode_id} {p.material_code ? `• Mat: ${p.material_code}` : ''}</span>
+                                <span className="text-[10px] text-slate-400">EAN: {p.barcode_id} {p.material_code ? `• Mat: ${p.material_code}` : ""}</span>
                               </button>
                             </li>
                           ))}
@@ -175,9 +178,9 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
                   )}
                 </div>
               ) : (
-                <div className="flex items-center justify-between bg-blue-50 ring-1 ring-blue-200 rounded-xl px-3 py-2.5">
-                  <div className="flex flex-col min-w-0 pr-2">
-                    <span className="text-sm font-bold text-blue-900 truncate">{selectedProduct.name}</span>
+                <div className="flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-200">
+                  <div className="min-w-0 pr-2">
+                    <span className="block truncate text-sm font-bold text-blue-900">{selectedProduct.name}</span>
                     <span className="text-[10px] text-blue-600">EAN: {selectedProduct.barcode_id}</span>
                   </div>
                   <button
@@ -187,35 +190,41 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
                       setCatalogQuery("");
                       setCatalogResults([]);
                     }}
-                    className="shrink-0 p-1 rounded-full text-blue-400 hover:text-blue-600 hover:bg-blue-100 transition-colors"
+                    className="shrink-0 rounded-full p-1 text-blue-400 transition-colors hover:bg-blue-100 hover:text-blue-600"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               )}
+
+              {selectedProduct && <input type="hidden" name="product_id" value={selectedProduct.id} />}
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Cantidad Vendida
+              <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Cantidad impulsada
               </label>
               <div className="flex items-center gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-lg hover:bg-slate-200"
+                <button
+                  type="button"
+                  onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 transition-colors hover:bg-slate-200"
                 >
                   -
                 </button>
-                <div className="flex-1 text-center font-bold text-2xl text-slate-800">
-                  {quantity}
-                </div>
-                <button 
-                  type="button" 
-                  onClick={() => setQuantity(quantity + 1)}
-                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 text-slate-600 font-bold text-lg hover:bg-slate-200"
+                <input
+                  type="number"
+                  min={1}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Number(e.target.value) || 1)}
+                  className="h-12 flex-1 rounded-2xl border-0 bg-slate-50 px-4 text-center text-lg font-black text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => setQuantity((current) => current + 1)}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-slate-700 ring-1 ring-slate-200 transition-colors hover:bg-slate-200"
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -225,12 +234,17 @@ export default function ClientImpulses({ assistants }: { assistants: Assistant[]
         <button
           type="submit"
           disabled={isPending}
-          className="w-full rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg active:scale-95 disabled:opacity-70 transition-all flex items-center justify-center gap-2"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-emerald-600 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-70"
         >
-          {isPending ? "Guardando..." : (
+          {isPending ? (
             <>
-              <CheckCircle2 className="w-5 h-5" />
-              Guardar Impulso
+              <CheckCircle2 className="h-5 w-5 animate-pulse" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <CheckCircle2 className="h-5 w-5" />
+              Guardar impulso
             </>
           )}
         </button>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Camera, CameraOff, X, Pencil, Trash2, Copy, CheckCircle2 } from "lucide-react";
 import { updateWasteStatus, deleteWasteRecord, markWasteReportSent } from "@/app/waste/actions";
+import AppSelect from "@/components/dashboard/AppSelect";
 import EditWasteModal from "./EditWasteModal";
 import { WASTE_REASONS, getLabel } from "@/lib/domain/catalogs";
 import type { WasteReason } from "@/lib/domain/types";
@@ -90,8 +91,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     timeZone: "America/Bogota",
   }).format(new Date(record.created_at));
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newStatus = e.target.value;
+  function handleChange(newStatus: string) {
     startTransition(async () => {
       try {
         await updateWasteStatus(record.id, newStatus);
@@ -383,20 +383,20 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             ) : null}
           </div>
 
-          <select
+          <AppSelect
+            label="Estado"
+            hideLabel
             value={record.status}
             onChange={handleChange}
             disabled={pending || userRole !== "supervisor"}
-            className={`rounded-full border-0 bg-slate-50 px-3 py-1.5 text-[11px] font-bold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
-              statusTextColors[record.status] ?? "text-slate-600"
-            }`}
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {statusLabels[s] ?? s}
-              </option>
-            ))}
-          </select>
+            containerClassName="min-w-[174px]"
+            buttonClassName={`rounded-full border-0 px-3 py-1.5 text-[11px] font-bold ring-1 ring-slate-200 shadow-none ${statusTextColors[record.status] ?? "text-slate-600"}`}
+            panelClassName="right-0 left-auto w-56"
+            options={statuses.map((status) => ({
+              value: status,
+              label: statusLabels[status] ?? status,
+            }))}
+          />
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { useTransition } from "react";
 import { toast } from "sonner";
 import { ClipboardList, Trash2 } from "lucide-react";
 import { removeInstruction, updateInstructionStatus } from "@/app/instructions/actions";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { useProfile } from "@/components/ui/ProfileContext";
 
 type Instruction = {
@@ -66,8 +67,7 @@ export default function InstructionCard({
     timeZone: "America/Bogota",
   }).format(new Date(instruction.created_at));
 
-  function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
-    const newStatus = e.target.value;
+  function handleChange(newStatus: string) {
     startTransition(async () => {
       try {
         await updateInstructionStatus(instruction.id, newStatus, operator || "");
@@ -107,20 +107,20 @@ export default function InstructionCard({
         </span>
 
         <div className="flex items-center gap-2">
-          <select
+          <AppSelect
+            label="Estado"
+            hideLabel
             value={instruction.status}
             onChange={handleChange}
             disabled={pending}
-            className={`rounded-full border-0 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
-              statusSelectColors[instruction.status] ?? "text-zinc-600"
-            }`}
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {statusLabels[s] ?? s}
-              </option>
-            ))}
-          </select>
+            containerClassName="min-w-[148px]"
+            buttonClassName={`rounded-full border-0 px-3 py-1.5 text-[11px] font-semibold ring-1 ring-slate-200 shadow-none ${statusSelectColors[instruction.status] ?? "text-zinc-600"}`}
+            panelClassName="right-0 left-auto w-56"
+            options={statuses.map((status) => ({
+              value: status,
+              label: statusLabels[status] ?? status,
+            }))}
+          />
           {canDelete ? (
             <button
               type="button"

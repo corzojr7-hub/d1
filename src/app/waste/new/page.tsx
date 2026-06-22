@@ -7,6 +7,7 @@ import { Barcode, Camera, Search, PackagePlus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { get, set } from "idb-keyval";
 import BarcodeScanner from "@/components/waste/BarcodeScanner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { WASTE_REASONS } from "@/lib/domain/catalogs";
 import type { Tables } from "@/lib/supabase/database.types";
 import { findProductByBarcode, submitWaste } from "@/app/waste/actions";
@@ -424,19 +425,18 @@ export default function NewWastePage() {
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Motivo de merma
               </span>
-              <select
+              <AppSelect
+                label="Motivo de merma"
                 name="reason"
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                onChange={setReason}
                 required
-                className={`${inputBase} appearance-none`}
-              >
-                {WASTE_REASONS.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
+                buttonClassName="rounded-2xl px-4 py-3.5 text-base shadow-none"
+                options={WASTE_REASONS.map((r) => ({
+                  value: r.value,
+                  label: r.label,
+                }))}
+              />
             </label>
 
             <div className="grid grid-cols-2 gap-4">
@@ -445,17 +445,20 @@ export default function NewWastePage() {
                   Depositado por
                 </span>
                 {teamMembers.length > 0 ? (
-                  <select
+                  <AppSelect
+                    label="Depositado por"
                     name="deposited_by"
                     defaultValue={teamMembers.includes(operator) ? operator : ""}
                     required
-                    className={`${inputBase} appearance-none`}
-                  >
-                    <option value="" disabled>Seleccionar...</option>
-                    {teamMembers.map((name: string) => (
-                      <option key={name} value={name}>{name}</option>
-                    ))}
-                  </select>
+                    buttonClassName="rounded-2xl px-4 py-3.5 text-base shadow-none"
+                    options={[
+                      { value: "", label: "Seleccionar..." },
+                      ...teamMembers.map((name: string) => ({
+                        value: name,
+                        label: name,
+                      })),
+                    ]}
+                  />
                 ) : (
                   <input
                     name="deposited_by"
@@ -473,17 +476,20 @@ export default function NewWastePage() {
                   Area / Cuadrante
                 </span>
                 {areas.length > 0 ? (
-                  <select
+                  <AppSelect
+                    label="Area / Cuadrante"
                     name="area"
                     defaultValue=""
                     required
-                    className={`${inputBase} appearance-none`}
-                  >
-                    <option value="" disabled>Seleccionar...</option>
-                    {areas.map((area: string) => (
-                      <option key={area} value={area}>{area}</option>
-                    ))}
-                  </select>
+                    buttonClassName="rounded-2xl px-4 py-3.5 text-base shadow-none"
+                    options={[
+                      { value: "", label: "Seleccionar..." },
+                      ...areas.map((area: string) => ({
+                        value: area,
+                        label: area,
+                      })),
+                    ]}
+                  />
                 ) : (
                   <input
                     name="area"

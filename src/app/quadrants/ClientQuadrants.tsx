@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, Download, FileSignature, ShieldCheck, UserPlus } from "lucide-react";
 import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { acceptQuadrant, assignQuadrant, updateQuadrantAssignment } from "./actions";
 
 type QuadrantAssignment = {
@@ -334,18 +335,18 @@ export default function ClientQuadrants({
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Responsable
               </label>
-              <select
+              <AppSelect
                 name="assigned_to"
                 required
-                className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="">Selecciona la persona responsable...</option>
-                {availableAssistants.map((ast) => (
-                  <option key={ast.name} value={ast.name}>
-                    {ast.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Selecciona la persona responsable..." },
+                  ...availableAssistants.map((assistant) => ({
+                    value: assistant.name,
+                    label: assistant.name,
+                  })),
+                ]}
+                buttonClassName="rounded-xl py-2.5 text-sm font-medium shadow-none"
+              />
             </div>
 
             <div>
@@ -353,18 +354,15 @@ export default function ClientQuadrants({
                 Cuadrante / Pasillo
               </label>
               {areas.length > 0 ? (
-                <select
+                <AppSelect
                   name="quadrant_name"
                   required
-                  className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Selecciona un cuadrante guardado...</option>
-                  {availableAreas.map((area) => (
-                    <option key={area} value={area}>
-                      {area}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Selecciona un cuadrante guardado..." },
+                    ...availableAreas.map((area) => ({ value: area, label: area })),
+                  ]}
+                  buttonClassName="rounded-xl py-2.5 text-sm font-medium shadow-none"
+                />
               ) : (
                 <input
                   type="text"
@@ -420,33 +418,29 @@ export default function ClientQuadrants({
                       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
                         Responsable
                       </span>
-                      <select
+                      <AppSelect
                         name="assigned_to"
                         defaultValue={assignment.assigned_to}
-                        className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {assistants.map((assistant) => (
-                          <option key={assistant.name} value={assistant.name}>
-                            {assistant.name}
-                          </option>
-                        ))}
-                      </select>
+                        options={assistants.map((assistant) => ({
+                          value: assistant.name,
+                          label: assistant.name,
+                        }))}
+                        buttonClassName="rounded-xl py-2.5 text-sm font-medium shadow-none"
+                      />
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
                         Cuadrante / Pasillo
                       </span>
-                      <select
+                      <AppSelect
                         name="quadrant_name"
                         defaultValue={assignment.quadrant_name}
-                        className="w-full rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      >
-                        {areas.map((area) => (
-                          <option key={area} value={area}>
-                            {area}
-                          </option>
-                        ))}
-                      </select>
+                        options={areas.map((area) => ({
+                          value: area,
+                          label: area,
+                        }))}
+                        buttonClassName="rounded-xl py-2.5 text-sm font-medium shadow-none"
+                      />
                     </label>
                     <div className="flex gap-2">
                       <button

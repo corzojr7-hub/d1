@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, useTransition } from "react";
 import { Plus, Save, UsersRound, Trash2 } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { updateTeam } from "./actions";
 import { useProfile } from "@/components/ui/ProfileContext";
 import SecurityPinModal from "@/components/team/SecurityPinModal";
@@ -403,48 +404,42 @@ export default function TeamPage() {
               <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                 Segundo(a) Encargado(a)
               </span>
-              <select
+              <AppSelect
                 name="second_in_charge"
                 value={profile.second_in_charge}
-                onChange={(e) =>
-                  setProfile((p) => ({
-                    ...p,
-                    second_in_charge: e.target.value,
+                onChange={(value) =>
+                  setProfile((current) => ({
+                    ...current,
+                    second_in_charge: value,
                   }))
                 }
-                className={`${fieldClassName} bg-white focus:border-blue-300 focus:ring-blue-100`}
-              >
-                <option value="">Sin asignar</option>
-                {assistantNames.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Sin asignar" },
+                  ...assistantNames.map((name) => ({ value: name, label: name })),
+                ]}
+                buttonClassName="min-h-12 rounded-[18px] border-slate-200 bg-white text-sm font-medium shadow-none focus:border-blue-300 focus:ring-blue-100"
+              />
             </label>
 
             <label className="block rounded-[22px] bg-slate-50 p-4 ring-1 ring-slate-200">
               <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                 Tercero(a) Encargado(a)
               </span>
-              <select
+              <AppSelect
                 name="third_in_charge"
                 value={profile.third_in_charge}
-                onChange={(e) =>
-                  setProfile((p) => ({
-                    ...p,
-                    third_in_charge: e.target.value,
+                onChange={(value) =>
+                  setProfile((current) => ({
+                    ...current,
+                    third_in_charge: value,
                   }))
                 }
-                className={`${fieldClassName} bg-white focus:border-blue-300 focus:ring-blue-100`}
-              >
-                <option value="">Sin asignar</option>
-                {assistantNames.map((name) => (
-                  <option key={name} value={name}>
-                    {name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Sin asignar" },
+                  ...assistantNames.map((name) => ({ value: name, label: name })),
+                ]}
+                buttonClassName="min-h-12 rounded-[18px] border-slate-200 bg-white text-sm font-medium shadow-none focus:border-blue-300 focus:ring-blue-100"
+              />
             </label>
           </div>
         </section>
@@ -509,23 +504,15 @@ export default function TeamPage() {
                     <span className="mb-2 block text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                       Contrato
                     </span>
-                    <select
+                    <AppSelect
                       name={`assistant_contract_${index}`}
                       value={assistant.contract_type}
-                      onChange={(event) =>
-                        setAssistantContract(
-                          index,
-                          event.target.value as AssistantContractType,
-                        )
+                      onChange={(value) =>
+                        setAssistantContract(index, value as AssistantContractType)
                       }
-                      className="min-h-12 w-full rounded-[18px] border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
-                    >
-                      {ASSISTANT_CONTRACT_OPTIONS.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
+                      options={ASSISTANT_CONTRACT_OPTIONS}
+                      buttonClassName="min-h-12 rounded-[18px] border-slate-200 bg-white text-sm font-medium shadow-none focus:border-blue-300 focus:ring-blue-100"
+                    />
                   </label>
                 </div>
               </div>
@@ -684,20 +671,17 @@ export default function TeamPage() {
                   <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
                     {day}
                   </span>
-                  <select
+                  <AppSelect
                     value={currentAssignee}
-                    onChange={(e) => setAseoSchedule(day, e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700 outline-none ring-1 ring-slate-200 transition focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Sin asignar</option>
-                    {assistantNames
-                      .filter((name) => name === currentAssignee || !usedByOtherDays.has(name))
-                      .map((name, idx) => (
-                      <option key={idx} value={name}>
-                        {name}
-                      </option>
-                      ))}
-                  </select>
+                    onChange={(value) => setAseoSchedule(day, value)}
+                    options={[
+                      { value: "", label: "Sin asignar" },
+                      ...assistantNames
+                        .filter((name) => name === currentAssignee || !usedByOtherDays.has(name))
+                        .map((name) => ({ value: name, label: name })),
+                    ]}
+                    buttonClassName="rounded-xl bg-slate-50 py-2 text-xs font-semibold shadow-none"
+                  />
                 </div>
               );
             })}

@@ -3,9 +3,10 @@
 import { useActionState, useEffect } from "react";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
+import { toast } from "sonner";
+import AppSelect from "@/components/dashboard/AppSelect";
 import { createTeamMember } from "./actions";
-import { useProfile } from '@/components/ui/ProfileContext';
-import { toast } from 'sonner';
+import { useProfile } from "@/components/ui/ProfileContext";
 
 export default function InvitesPage() {
   const [state, formAction, pending] = useActionState(createTeamMember, undefined);
@@ -22,7 +23,12 @@ export default function InvitesPage() {
       <div className="mx-auto mt-20 max-w-md p-6 text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 text-red-600">
           <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+            />
           </svg>
         </div>
         <h2 className="text-2xl font-bold text-slate-800">Acceso Restringido</h2>
@@ -38,10 +44,7 @@ export default function InvitesPage() {
 
   return (
     <div className="mx-auto max-w-md px-4 py-8">
-      <Link
-        href="/team"
-        className="text-xs text-zinc-400 underline-offset-2 hover:underline"
-      >
+      <Link href="/team" className="text-xs text-zinc-400 underline-offset-2 hover:underline">
         Volver a Equipo
       </Link>
 
@@ -49,9 +52,7 @@ export default function InvitesPage() {
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100 text-[#e51d2e]">
           <UserPlus className="h-5 w-5" />
         </div>
-        <h1 className="text-2xl font-extrabold text-slate-800">
-          Crear Acceso
-        </h1>
+        <h1 className="text-2xl font-extrabold text-slate-800">Crear Acceso</h1>
       </div>
 
       <p className="mt-2 text-sm text-slate-500">
@@ -60,43 +61,36 @@ export default function InvitesPage() {
 
       <form action={formAction} className="mt-6 space-y-4 rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-200">
         {state?.error && (
-          <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600 ring-1 ring-red-200">
-            {state.error}
-          </div>
+          <div className="rounded-xl bg-red-50 p-3 text-sm text-red-600 ring-1 ring-red-200">{state.error}</div>
         )}
 
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">
-            Rol
-          </label>
-          <select
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Rol</label>
+          <AppSelect
             name="role"
             required
-            className="w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-red-500"
-          >
-            <option value="">Seleccionar rol</option>
-            <option value="segundo_al_mando">Segundo(a) Encargado(a)</option>
-            <option value="tercero_al_mando">Tercero(a) Encargado(a)</option>
-          </select>
+            options={[
+              { value: "", label: "Seleccionar rol" },
+              { value: "segundo_al_mando", label: "Segundo(a) Encargado(a)" },
+              { value: "tercero_al_mando", label: "Tercero(a) Encargado(a)" },
+            ]}
+            buttonClassName="rounded-xl py-3 text-sm ring-red-100 focus:ring-red-500"
+          />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">
-            Nombre Completo
-          </label>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre Completo</label>
           <input
             type="text"
             name="name"
             required
-            placeholder="Ej: Ana María Perez"
+            placeholder="Ej: Ana María Pérez"
             className="w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-red-500"
           />
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">
-            Correo (Usuario)
-          </label>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Correo (Usuario)</label>
           <input
             type="email"
             name="email"
@@ -107,15 +101,13 @@ export default function InvitesPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">
-            Contraseña Inicial
-          </label>
+          <label className="mb-1 block text-xs font-bold uppercase tracking-wider text-slate-500">Contraseña Inicial</label>
           <input
             type="text"
             name="password"
             required
-            placeholder="Mínimo 6 caracteres"
             minLength={6}
+            placeholder="Mínimo 6 caracteres"
             className="w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-red-500"
           />
         </div>
