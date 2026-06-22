@@ -2,8 +2,8 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { ClipboardList } from "lucide-react";
-import { updateInstructionStatus } from "@/app/instructions/actions";
+import { ClipboardList, Trash2 } from "lucide-react";
+import { removeInstruction, updateInstructionStatus } from "@/app/instructions/actions";
 import { useProfile } from "@/components/ui/ProfileContext";
 
 type Instruction = {
@@ -57,6 +57,7 @@ export default function InstructionCard({
   const [pending, startTransition] = useTransition();
   const { profile } = useProfile();
   const operator = profile?.display_name;
+  const canDelete = profile?.role === "supervisor" || profile?.role === "admin";
   const formattedDate = new Intl.DateTimeFormat("es-CO", {
     day: "numeric",
     month: "short",
@@ -77,6 +78,18 @@ export default function InstructionCard({
     });
   }
 
+  function handleDelete() {
+    if (!confirm("¿Seguro que deseas borrar esta instrucción?")) return;
+    startTransition(async () => {
+      try {
+        await removeInstruction(instruction.id);
+        toast.success("Instrucción eliminada");
+      } catch (error) {
+        toast.error(error instanceof Error ? error.message : "Error al borrar");
+      }
+    });
+  }
+
   return (
     <div
       className={`rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm transition ${
@@ -93,20 +106,33 @@ export default function InstructionCard({
           {instruction.priority}
         </span>
 
-        <select
-          value={instruction.status}
-          onChange={handleChange}
-          disabled={pending}
-          className={`rounded-full border-0 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
-            statusSelectColors[instruction.status] ?? "text-zinc-600"
-          }`}
-        >
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {statusLabels[s] ?? s}
-            </option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <select
+            value={instruction.status}
+            onChange={handleChange}
+            disabled={pending}
+            className={`rounded-full border-0 bg-slate-50 px-3 py-1.5 text-[11px] font-semibold outline-none ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-50 ${
+              statusSelectColors[instruction.status] ?? "text-zinc-600"
+            }`}
+          >
+            {statuses.map((s) => (
+              <option key={s} value={s}>
+                {statusLabels[s] ?? s}
+              </option>
+            ))}
+          </select>
+          {canDelete ? (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={pending}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 ring-1 ring-rose-100 transition hover:bg-rose-100 disabled:opacity-50"
+              title="Borrar instrucción"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <p className="line-clamp-2 text-[17px] font-black leading-snug tracking-tight text-slate-900">

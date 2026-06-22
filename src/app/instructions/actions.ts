@@ -37,6 +37,9 @@ export async function fetchInstructions() {
 
 export async function removeInstruction(id: string) {
   const { profile } = await requireAuth();
+  if (profile.role !== "supervisor" && profile.role !== "admin") {
+    throw new Error("No tienes permiso para borrar instrucciones.");
+  }
   const adminClient = getAdminClient();
 
   const { error } = await adminClient
@@ -52,6 +55,9 @@ export async function removeInstruction(id: string) {
 
 export async function clearInstructions() {
   const { profile } = await requireAuth();
+  if (profile.role !== "supervisor" && profile.role !== "admin") {
+    throw new Error("No tienes permiso para limpiar instrucciones.");
+  }
   const adminClient = getAdminClient();
 
   const { error } = await adminClient
