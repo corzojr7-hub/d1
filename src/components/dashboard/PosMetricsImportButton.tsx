@@ -101,53 +101,66 @@ function buildDate(baseDate: string, day: number) {
 }
 
 function extractRows(sheetRows: unknown[][], assistantOptions: string[], baseDate: string) {
-  const headerIndex = sheetRows.findIndex((row) =>
-    Array.isArray(row) &&
-    row.some((cell) => normalizeText(String(cell ?? "")) === "nombre") &&
-    row.some((cell) => isProductivityHeader(cell)) &&
-    row.some((cell) => isScanHeader(cell)),
+  const nameHeaderIndex = sheetRows.findIndex(
+    (row) =>
+      Array.isArray(row) &&
+      row.some((cell) => normalizeText(String(cell ?? "")) === "nombre"),
   );
 
-  if (headerIndex < 0) {
-    throw new Error("No encontré las columnas Nombre, Art/Mi y Esc en el Excel.");
+  if (nameHeaderIndex < 0) {
+    throw new Error("No encontré la columna Nombre en el Excel.");
   }
 
-  const header = sheetRows[headerIndex];
-  const nameIndex = header.findIndex((cell) => normalizeText(String(cell ?? "")) === "nombre");
+  const nameHeaderRow = sheetRows[nameHeaderIndex];
+  const nameIndex = nameHeaderRow.findIndex(
+    (cell) => normalizeText(String(cell ?? "")) === "nombre",
+  );
+
   const dayColumns: Array<{ day: number; productivityIndex: number; scanIndex: number }> = [];
+  const headerStart = Math.max(0, nameHeaderIndex - 1);
+  const headerEnd = Math.min(sheetRows.length - 1, nameHeaderIndex + 4);
 
-  header.forEach((cell, index) => {
-    if (!isProductivityHeader(cell)) return;
+  for (let rowIndex = headerStart; rowIndex <= headerEnd; rowIndex += 1) {
+    const row = sheetRows[rowIndex];
+    if (!Array.isArray(row)) continue;
 
-    const day = extractDayByColumn(sheetRows, headerIndex, index);
-    if (!day) return;
+    row.forEach((cell, index) => {
+      if (!isProductivityHeader(cell)) return;
 
-    let scanIndex = -1;
-    for (let next = index + 1; next <= index + 3; next += 1) {
-      if (isScanHeader(header[next])) {
-        scanIndex = next;
-        break;
+      const day = extractDayByColumn(sheetRows, rowIndex, index);
+      if (!day) return;
+
+      let scanIndex = -1;
+      for (let next = index + 1; next <= index + 3; next += 1) {
+        if (isScanHeader(row[next])) {
+          scanIndex = next;
+          break;
+        }
       }
-    }
 
-    if (scanIndex >= 0) {
-      dayColumns.push({ day, productivityIndex: index, scanIndex });
-    }
-  });
+      if (scanIndex >= 0) {
+        dayColumns.push({ day, productivityIndex: index, scanIndex });
+      }
+    });
+  }
 
-  if (dayColumns.length === 0) {
-    throw new Error("No encontré columnas diarias de Art/Mi y Esc para importar.");
+  const uniqueDayColumns = Array.from(
+    new Map(dayColumns.map((column) => [column.day, column])).values(),
+  ).sort((a, b) => a.day - b.day);
+
+  if (uniqueDayColumns.length === 0) {
+    throw new Error("No encontré columnas diarias de Art/Mi y Esc en el Excel.");
   }
 
   const rows: PosImportRow[] = [];
 
-  for (const row of sheetRows.slice(headerIndex + 1)) {
+  for (const row of sheetRows.slice(nameHeaderIndex + 1)) {
     if (!Array.isArray(row)) continue;
 
     const assistant = findAssistantName(row[nameIndex], assistantOptions);
     if (!assistant) continue;
 
-    for (const dayColumn of dayColumns) {
+    for (const dayColumn of uniqueDayColumns) {
       const productivity = parseNumber(row[dayColumn.productivityIndex]);
       const scan = parseNumber(row[dayColumn.scanIndex]);
 
