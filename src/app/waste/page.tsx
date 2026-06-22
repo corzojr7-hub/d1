@@ -4,12 +4,25 @@ import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import WasteCard from "@/components/waste/WasteCard";
+import { startWasteWeekCut } from "./actions";
+import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export const metadata: Metadata = {
   title: "Control e Historial de Merma — Sistema de Control Operativo de Tienda",
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+
+function formatCutDate(value: string) {
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Bogota",
+  }).format(new Date(value));
+}
 
 export default async function WasteIndex({
   searchParams,
@@ -41,6 +54,7 @@ export default async function WasteIndex({
 
   const params = await searchParams;
   const page = Number(params?.page) || 1;
+  const selectedCut = typeof params?.cut === "string" ? params.cut : "";
   const pageSize = 50;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
@@ -51,20 +65,47 @@ export default async function WasteIndex({
   );
 
   const [
-    { data: records, count: totalRecords },
+    { data: cutEntries },
     { data: storeProfiles },
   ] = await Promise.all([
     adminClient
-      .from("waste_records")
-      .select("*, products(name)", { count: "exact" })
+      .from("daily_logbook")
+      .select("id, author, created_at, content")
       .eq("store_code", storeCode)
+      .like("content", `${WASTE_WEEK_CUT_PREFIX}%`)
       .order("created_at", { ascending: false })
-      .range(from, to),
+      .limit(12),
     adminClient
       .from("profiles")
       .select("user_id, display_name")
       .eq("store_code", storeCode),
   ]);
+
+  const cuts = (cutEntries || []).filter((entry) =>
+    entry.content.startsWith(WASTE_WEEK_CUT_PREFIX),
+  );
+  const activeCut = cuts[0]?.created_at || "";
+  const selectedCutIndex = cuts.findIndex((cut) => cut.created_at === selectedCut);
+  const selectedCutIsValid = selectedCutIndex >= 0;
+  const cycleStart = selectedCutIsValid ? selectedCut : activeCut;
+  const cycleEnd =
+    selectedCutIsValid && selectedCutIndex > 0 ? cuts[selectedCutIndex - 1]?.created_at : "";
+
+  let recordsQuery = adminClient
+    .from("waste_records")
+    .select("*, products(name)", { count: "exact" })
+    .eq("store_code", storeCode)
+    .order("created_at", { ascending: false });
+
+  if (cycleStart) {
+    recordsQuery = recordsQuery.gte("created_at", cycleStart);
+  }
+
+  if (cycleEnd) {
+    recordsQuery = recordsQuery.lt("created_at", cycleEnd);
+  }
+
+  const { data: records, count: totalRecords } = await recordsQuery.range(from, to);
 
   const signedRecords = await Promise.all(
     (records || []).map(async (record) => {
@@ -93,6 +134,15 @@ export default async function WasteIndex({
   const profileMap = new Map(
     (storeProfiles || []).map((p) => [p.user_id, p.display_name]),
   );
+  const canManageWasteCut =
+    currentUserProfile?.role === "supervisor" || currentUserProfile?.role === "admin";
+  const pageHref = (nextPage: number) => {
+    const query = new URLSearchParams({ page: String(nextPage) });
+    if (selectedCutIsValid) {
+      query.set("cut", selectedCut);
+    }
+    return `/waste?${query.toString()}`;
+  };
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
@@ -118,6 +168,61 @@ export default async function WasteIndex({
         </p>
         <div className="mt-4 inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
           {totalRecords ?? 0} registros totales (Página {page})
+        </div>
+      </section>
+
+      <section className="mt-6 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+              Corte semanal
+            </p>
+            <h2 className="mt-1 text-sm font-black text-slate-900">
+              {selectedCutIsValid ? "Consultando semana cerrada" : "Semana activa de merma"}
+            </h2>
+            <p className="mt-1 text-[11px] text-slate-500">
+              {selectedCutIsValid
+                ? `Mostrando registros desde ${formatCutDate(selectedCut)}${cycleEnd ? ` hasta ${formatCutDate(cycleEnd)}` : ""}.`
+                : activeCut
+                  ? `La semana actual iniciÃ³ en ${formatCutDate(activeCut)}.`
+                  : "TodavÃ­a no hay un corte manual. EstÃ¡s viendo todos los registros actuales."}
+            </p>
+          </div>
+
+          {canManageWasteCut && (
+            <form action={startWasteWeekCut}>
+              <button type="submit" className="app-cta-primary px-4 py-2 text-xs font-bold">
+                Iniciar nueva semana
+              </button>
+            </form>
+          )}
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link
+            href="/waste"
+            className={`rounded-full px-3 py-2 text-[11px] font-bold ring-1 transition ${
+              !selectedCutIsValid
+                ? "bg-slate-900 text-white ring-slate-900"
+                : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            Semana activa
+          </Link>
+
+          {cuts.map((cut) => (
+            <Link
+              key={cut.id}
+              href={`/waste?cut=${encodeURIComponent(cut.created_at)}`}
+              className={`rounded-full px-3 py-2 text-[11px] font-bold ring-1 transition ${
+                selectedCut === cut.created_at
+                  ? "bg-blue-600 text-white ring-blue-600"
+                  : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+              }`}
+            >
+              {formatCutDate(cut.created_at)}
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -234,7 +339,7 @@ export default async function WasteIndex({
         <div className="mt-8 flex items-center justify-between px-2 text-sm font-bold text-slate-600">
           {page > 1 ? (
             <Link
-              href={`/waste?page=${page - 1}`}
+              href={pageHref(page - 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
               ← Anterior
@@ -249,7 +354,7 @@ export default async function WasteIndex({
 
           {to < totalRecords ? (
             <Link
-              href={`/waste?page=${page + 1}`}
+              href={pageHref(page + 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
               Siguiente →

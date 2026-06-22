@@ -6,6 +6,7 @@ import type { TablesInsert } from "@/lib/supabase/database.types";
 import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export async function findProductByBarcode(
   barcode: string,
@@ -418,4 +419,27 @@ export async function deleteWasteRecord(id: string) {
 
   revalidatePath("/waste");
   revalidatePath("/");
+}
+
+export async function startWasteWeekCut() {
+  const { profile } = await requireAuth();
+
+  if (profile.role !== "supervisor" && profile.role !== "admin") {
+    throw new Error("Solo supervisor o admin pueden iniciar un nuevo corte de merma.");
+  }
+
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { error } = await adminClient.from("daily_logbook").insert({
+    store_code: profile.store_code,
+    author: profile.display_name,
+    content: `${WASTE_WEEK_CUT_PREFIX}${new Date().toISOString()}`,
+  });
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/waste");
 }

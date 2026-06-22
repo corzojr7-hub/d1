@@ -1,0 +1,1 @@
+export const WASTE_WEEK_CUT_PREFIX = "WASTE_WEEK_CUT::";
