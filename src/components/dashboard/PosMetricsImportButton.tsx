@@ -40,6 +40,25 @@ function parseNumber(value: unknown) {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
+function isProductivityHeader(value: unknown) {
+  const normalized = normalizeText(String(value ?? ""));
+  return (
+    normalized.includes("art mi") ||
+    normalized.includes("ar mi") ||
+    normalized.includes("articulos min") ||
+    normalized.includes("articulos por minuto")
+  );
+}
+
+function isScanHeader(value: unknown) {
+  const normalized = normalizeText(String(value ?? ""));
+  return (
+    normalized === "esc" ||
+    normalized.startsWith("esc ") ||
+    normalized.includes("esc prod")
+  );
+}
+
 function findAssistantName(rawName: unknown, assistantOptions: string[]) {
   const sourceTokens = tokenizeName(String(rawName ?? ""));
   if (sourceTokens.length === 0) return "";
@@ -85,11 +104,8 @@ function extractRows(sheetRows: unknown[][], assistantOptions: string[], baseDat
   const headerIndex = sheetRows.findIndex((row) =>
     Array.isArray(row) &&
     row.some((cell) => normalizeText(String(cell ?? "")) === "nombre") &&
-    row.some((cell) => normalizeText(String(cell ?? "")).includes("art mi")) &&
-    row.some((cell) => {
-      const normalized = normalizeText(String(cell ?? ""));
-      return normalized === "esc" || normalized.startsWith("esc ");
-    }),
+    row.some((cell) => isProductivityHeader(cell)) &&
+    row.some((cell) => isScanHeader(cell)),
   );
 
   if (headerIndex < 0) {
@@ -101,16 +117,14 @@ function extractRows(sheetRows: unknown[][], assistantOptions: string[], baseDat
   const dayColumns: Array<{ day: number; productivityIndex: number; scanIndex: number }> = [];
 
   header.forEach((cell, index) => {
-    const normalized = normalizeText(String(cell ?? ""));
-    if (!normalized.includes("art mi")) return;
+    if (!isProductivityHeader(cell)) return;
 
     const day = extractDayByColumn(sheetRows, headerIndex, index);
     if (!day) return;
 
     let scanIndex = -1;
     for (let next = index + 1; next <= index + 3; next += 1) {
-      const nextNormalized = normalizeText(String(header[next] ?? ""));
-      if (nextNormalized === "esc" || nextNormalized.startsWith("esc ")) {
+      if (isScanHeader(header[next])) {
         scanIndex = next;
         break;
       }
