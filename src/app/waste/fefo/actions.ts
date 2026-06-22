@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAuth, requireSupervisor } from "@/lib/supabase/require-auth";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 function getAdminClient() {
@@ -18,7 +18,7 @@ export async function addFefoRecord(data: {
   expiration_date: string;
   operator_name?: string;
 }) {
-  const { profile, supabase } = await requireAuth();
+  const { profile } = await requireAuth();
 
   const adminClient = getAdminClient();
 

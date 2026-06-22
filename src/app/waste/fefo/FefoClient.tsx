@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
-import { ArrowLeft, Radar, Plus, AlertTriangle, Clock, Target, CheckCircle2, PackageX } from "lucide-react";
+import { Radar, Plus, AlertTriangle, Clock, CheckCircle2, PackageX } from "lucide-react";
 import { toast } from "sonner";
 import { addFefoRecord, updateFefoStatus, subtractFefoQty, deleteFefoRecord, editFefoRecord } from "./actions";
 import { searchProducts } from "@/app/products/actions";
@@ -20,7 +20,32 @@ type ProductCatalogEntry = {
   unit: string;
 };
 
-export default function FefoClient({ records, profileId }: { records: any[]; profileId: string }) {
+type FefoRecord = {
+  id: string;
+  barcode_id: string;
+  product_name: string;
+  quantity: number;
+  expiration_date: string;
+};
+
+type OfflineQueueItem =
+  | {
+      action: "ADD";
+      idempotency_key: string;
+      barcode_id: string;
+      product_name: string;
+      quantity: number;
+      expiration_date: string;
+      timestamp: number;
+    }
+  | {
+      action: "UPDATE_STATUS";
+      id: string;
+      newStatus: string;
+      timestamp: number;
+    };
+
+export default function FefoClient({ records }: { records: FefoRecord[]; profileId: string }) {
   const { profile } = useProfile();
   const operator = profile?.display_name;
   const [isAdding, setIsAdding] = useState(false);
@@ -41,16 +66,11 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
   const [editDate, setEditDate] = useState("");
 
   const isSupervisor = profile?.role === "supervisor" || profile?.role === "admin";
-
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) return null;
-
-  const today = new Date();
-  today.setHours(0,0,0,0);
+  const [today] = useState(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  });
 
   const calculateDaysLeft = (expDateStr: string) => {
     const expDate = new Date(expDateStr);
@@ -73,7 +93,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
     }
 
     if (!navigator.onLine) {
-      const payload = {
+      const payload: OfflineQueueItem = {
         action: "ADD",
         idempotency_key: crypto.randomUUID(),
         barcode_id: selectedProduct.barcode_id || Math.random().toString().slice(2, 8),
@@ -82,7 +102,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
         expiration_date: expirationDate,
         timestamp: Date.now()
       };
-      const queue: any = (await get("fefoOfflineQueue")) || [];
+      const queue = ((await get("fefoOfflineQueue")) || []) as OfflineQueueItem[];
       queue.push(payload);
       await set("fefoOfflineQueue", queue);
       
@@ -119,7 +139,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
         } else {
           toast.error(res.error || "Error al añadir");
         }
-      } catch (err) {
+      } catch {
         toast.error("Error inesperado");
       }
     });
@@ -127,13 +147,13 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     if (!navigator.onLine) {
-      const payload = {
+      const payload: OfflineQueueItem = {
         action: "UPDATE_STATUS",
         id,
         newStatus,
         timestamp: Date.now()
       };
-      const queue: any = (await get("fefoOfflineQueue")) || [];
+      const queue = ((await get("fefoOfflineQueue")) || []) as OfflineQueueItem[];
       queue.push(payload);
       await set("fefoOfflineQueue", queue);
       toast.success(`Sin conexión: Actualizado localmente a ${newStatus}`);
@@ -351,7 +371,7 @@ export default function FefoClient({ records, profileId }: { records: any[]; pro
               </span>
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as any)}
+                onChange={(e) => setSortBy(e.target.value as "criticidad" | "cantidad" | "fecha")}
                 className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               >
                 <option value="criticidad">Ordenar por: Criticidad (Color)</option>
