@@ -5,6 +5,7 @@ import { es } from "date-fns/locale";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { DailySale } from "@/lib/domain/types";
 import DashboardCharts from "@/components/dashboard/DashboardCharts";
+import AppSelect from "@/components/dashboard/AppSelect";
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
 import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
 import PosAssistantFilter from "@/components/dashboard/PosAssistantFilter";
@@ -639,22 +640,15 @@ export default async function DashboardPage(props: {
                   <p className="mt-1 text-xs text-slate-500">Escaneo ideal: 15 o más</p>
                 </div>
 
-                <label className="block">
-                  <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                    Colaborador
-                  </span>
-                  <select
-                    name="assistant"
-                    defaultValue={posFormAssistantDefault}
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700 outline-none transition focus:border-[#0a3875] focus:bg-white"
-                  >
-                    {assistantOptions.map((assistant) => (
-                      <option key={assistant} value={assistant}>
-                        {assistant}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                <AppSelect
+                  label="Colaborador"
+                  name="assistant"
+                  defaultValue={posFormAssistantDefault}
+                  options={assistantOptions.map((assistant) => ({
+                    value: assistant,
+                    label: assistant,
+                  }))}
+                />
 
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
