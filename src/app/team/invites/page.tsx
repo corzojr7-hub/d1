@@ -84,7 +84,7 @@ export default function InvitesPage() {
             type="text"
             name="name"
             required
-            placeholder="Ej: Ana María Pérez"
+            placeholder="Ej: Nombre Apellido"
             className="w-full rounded-xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-red-500"
           />
         </div>

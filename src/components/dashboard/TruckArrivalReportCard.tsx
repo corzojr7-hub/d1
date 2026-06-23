@@ -271,7 +271,7 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
               value={driver}
               onChange={(e) => setDriver(e.target.value)}
               className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]"
-              placeholder="Ej. Andrés Chitiva"
+              placeholder="Ej. Nombre Apellido"
             />
           </label>
 
@@ -284,7 +284,7 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
               value={plate}
               onChange={(e) => setPlate(e.target.value.toUpperCase())}
               className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold uppercase text-slate-800 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]"
-              placeholder="Ej. LUL 693"
+              placeholder="Ej. XYZ 123"
             />
           </label>
         </div>

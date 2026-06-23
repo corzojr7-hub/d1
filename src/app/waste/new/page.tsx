@@ -529,7 +529,7 @@ export default function NewWastePage() {
                       type="text"
                       required
                       className={inputBase}
-                      placeholder="Ej. Juan Perez"
+                      placeholder="Ej. Nombre Apellido"
                     />
                   </label>
 
@@ -542,7 +542,7 @@ export default function NewWastePage() {
                       type="text"
                       required
                       className={inputBase}
-                      placeholder="Ej. ABC123"
+                      placeholder="Ej. XYZ 123"
                     />
                   </label>
                 </div>

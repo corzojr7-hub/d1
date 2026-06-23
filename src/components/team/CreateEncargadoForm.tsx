@@ -79,7 +79,7 @@ export default function CreateEncargadoForm() {
                 type="text"
                 name="name"
                 required
-                placeholder="Ej. Karen Palacios"
+                placeholder="Ej. Nombre Apellido"
                 className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm"
               />
             </div>
@@ -90,7 +90,7 @@ export default function CreateEncargadoForm() {
                 type="email"
                 name="email"
                 required
-                placeholder="Ej. karen@tienda.com"
+                placeholder="Ej. encargado@tienda.com"
                 className="h-10 w-full rounded-lg border border-zinc-200 px-3 text-sm"
               />
             </div>

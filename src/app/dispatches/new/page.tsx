@@ -111,7 +111,7 @@ export default function NewDispatchDifferencePage() {
                 required
                 value={driverName}
                 onChange={(e) => setDriverName(e.target.value)}
-                placeholder="Nombre del conductor"
+                placeholder="Ej: Nombre Apellido"
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -126,7 +126,7 @@ export default function NewDispatchDifferencePage() {
               required
               value={truckPlate}
               onChange={(e) => setTruckPlate(e.target.value)}
-              placeholder="Ej: ABC123"
+              placeholder="Ej: XYZ 123"
               className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm uppercase focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>

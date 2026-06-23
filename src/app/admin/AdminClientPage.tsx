@@ -497,7 +497,7 @@ export default function AdminClientPage({
                 <input
                   name="supervisor_name"
                   required
-                  placeholder="Ej. Dairo Corzo"
+                  placeholder="Ej. Nombre Apellido"
                   className="min-h-12 w-full rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-900 outline-none ring-1 ring-slate-200 focus:ring-2 focus:ring-blue-500"
                 />
               </label>

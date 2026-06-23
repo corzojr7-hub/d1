@@ -180,7 +180,7 @@ Debes devolver UNICAMENTE un JSON valido. Tu razonamiento paso a paso, aplicando
 
 Estructura:
 {
-  "reasoning": "1. Primero pongo a Dairo (Supervisor)... 2. Luego a Karen con parejas exactas... 3. Reviso que no queden huecos...",
+  "reasoning": "1. Primero ubico al supervisor... 2. Luego asigno a la segunda con su pareja exacta... 3. Reviso que no queden huecos...",
   "schedule": [
     {
       "assistant": "Nombre del colaborador",
