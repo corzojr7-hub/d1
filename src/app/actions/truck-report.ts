@@ -7,6 +7,7 @@ import { createClient as createAdminClient } from "@supabase/supabase-js";
 import {
   parseTruckReportContent,
   serializeTruckReport,
+  TRUCK_ORDER_SHORTAGE_AREAS,
   type TruckReportPayload,
 } from "@/lib/truck-report";
 
@@ -20,6 +21,20 @@ const truckReportSchema = z.object({
   plate: z.string().min(1),
   temperature: z.string().optional(),
   novelty: z.string().min(1),
+  orderShortages: z
+    .record(z.string(), z.string())
+    .optional()
+    .transform((value) =>
+      value
+        ? Object.fromEntries(
+            Object.entries(value).filter(([key]) =>
+              TRUCK_ORDER_SHORTAGE_AREAS.includes(
+                key as (typeof TRUCK_ORDER_SHORTAGE_AREAS)[number],
+              ),
+            ),
+          )
+        : undefined,
+    ),
 });
 
 function getAdminClient() {
@@ -85,4 +100,3 @@ export async function markTruckReportSent(entryId: string) {
 
   revalidatePath("/");
 }
-

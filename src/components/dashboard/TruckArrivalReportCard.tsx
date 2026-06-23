@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Copy, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { markTruckReportSent, saveTruckReport } from "@/app/actions/truck-report";
-import type { TruckReportPayload } from "@/lib/truck-report";
+import {
+  TRUCK_ORDER_SHORTAGE_AREAS,
+  type TruckOrderShortages,
+  type TruckReportPayload,
+} from "@/lib/truck-report";
 
 type Props = {
   storeName: string;
@@ -24,6 +28,17 @@ const ARRIVAL_AREAS = [
   "Fríos",
   "Congelados",
 ] as const;
+
+const EMPTY_SHORTAGES: TruckOrderShortages = {
+  "Cuadrante 1": "",
+  Aseo: "",
+  Alimentos: "",
+  Fruver: "",
+  "Distribución": "",
+  Sensibles: "",
+  Nevera: "",
+  Congelados: "",
+};
 
 function formatBogotaNow(date: Date) {
   const formatted = new Intl.DateTimeFormat("es-CO", {
@@ -47,6 +62,7 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
   const [plate, setPlate] = useState("");
   const [temperature, setTemperature] = useState("");
   const [novelty, setNovelty] = useState("S/N.");
+  const [orderShortages, setOrderShortages] = useState<TruckOrderShortages>(EMPTY_SHORTAGES);
   const [isSaving, setIsSaving] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
 
@@ -57,6 +73,14 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
 
   const needsTemperature =
     selectedAreas.includes("Fríos") || selectedAreas.includes("Congelados");
+
+  const shortageLines = useMemo(
+    () =>
+      TRUCK_ORDER_SHORTAGE_AREAS.filter((area) => orderShortages[area].trim()).map(
+        (area) => `${area}: ${orderShortages[area].trim()}`,
+      ),
+    [orderShortages],
+  );
 
   const reportText = useMemo(() => {
     const lines = [
@@ -74,8 +98,24 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
     }
 
     lines.push(`Novedad inicial: ${novelty}`);
+
+    if (shortageLines.length > 0) {
+      lines.push("", "", "Faltantes de pedido:", ...shortageLines);
+    }
+
     return lines.join("\n");
-  }, [driver, needsTemperature, novelty, now, pallets, plate, selectedAreas, storeName, temperature]);
+  }, [
+    driver,
+    needsTemperature,
+    novelty,
+    now,
+    pallets,
+    plate,
+    selectedAreas,
+    shortageLines,
+    storeName,
+    temperature,
+  ]);
 
   function toggleArea(area: string) {
     setSelectedAreas((current) =>
@@ -83,6 +123,13 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
         ? current.filter((item) => item !== area)
         : [...current, area],
     );
+  }
+
+  function setShortage(area: keyof TruckOrderShortages, value: string) {
+    setOrderShortages((current) => ({
+      ...current,
+      [area]: value,
+    }));
   }
 
   async function handleCopy() {
@@ -111,6 +158,9 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
         plate,
         temperature: needsTemperature ? temperature : "",
         novelty,
+        orderShortages: Object.fromEntries(
+          Object.entries(orderShortages).filter(([, value]) => value.trim()),
+        ) as Partial<TruckOrderShortages>,
       });
       await navigator.clipboard.writeText(reportText);
       toast.success("Reporte guardado y copiado.");
@@ -252,6 +302,30 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
           />
         </label>
 
+        <div>
+          <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.14em] text-slate-600">
+            Faltantes de pedido por cuadrante
+          </p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {TRUCK_ORDER_SHORTAGE_AREAS.map((area) => (
+              <label key={area} className="block">
+                <span className="mb-2 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                  {area}
+                </span>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="0"
+                  value={orderShortages[area]}
+                  onChange={(e) => setShortage(area, e.target.value)}
+                  className="w-full rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]"
+                  placeholder="Ej. 0"
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
         <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
             Vista previa
@@ -281,10 +355,7 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
               {initialReports.map((report) => {
                 const sent = Boolean(report.payload.sentAt);
                 return (
-                  <div
-                    key={report.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-3"
-                  >
+                  <div key={report.id} className="rounded-2xl border border-slate-200 bg-white p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <p className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-700">
