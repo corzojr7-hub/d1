@@ -408,6 +408,7 @@ export default async function Home() {
       <TruckArrivalReportCard
         storeName={profile.store_name}
         initialReports={todayTruckReports}
+        canManage={profile.role === "supervisor" || profile.role === "admin"}
       />
 
       <div className="mx-4 mt-6 rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">

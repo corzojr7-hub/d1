@@ -44,6 +44,12 @@ function getAdminClient() {
   );
 }
 
+function ensureSupervisorAccess(role: string) {
+  if (role !== "supervisor" && role !== "admin") {
+    throw new Error("Solo el supervisor puede editar o borrar reportes.");
+  }
+}
+
 export async function saveTruckReport(input: TruckReportPayload) {
   const { profile } = await requireAuth();
   const payload = truckReportSchema.parse(input);
@@ -96,6 +102,47 @@ export async function markTruckReportSent(entryId: string) {
 
   if (updateError) {
     throw new Error("No se pudo marcar el reporte como enviado.");
+  }
+
+  revalidatePath("/");
+}
+
+export async function updateTruckReport(entryId: string, input: TruckReportPayload) {
+  const { profile } = await requireAuth();
+  ensureSupervisorAccess(profile.role);
+
+  const payload = truckReportSchema.parse(input);
+  const adminClient = getAdminClient();
+
+  const { error } = await adminClient
+    .from("daily_logbook")
+    .update({
+      author: profile.display_name,
+      content: serializeTruckReport(payload),
+    })
+    .eq("id", entryId)
+    .eq("store_code", profile.store_code);
+
+  if (error) {
+    throw new Error("No se pudo actualizar el reporte del camión.");
+  }
+
+  revalidatePath("/");
+}
+
+export async function deleteTruckReport(entryId: string) {
+  const { profile } = await requireAuth();
+  ensureSupervisorAccess(profile.role);
+
+  const adminClient = getAdminClient();
+  const { error } = await adminClient
+    .from("daily_logbook")
+    .delete()
+    .eq("id", entryId)
+    .eq("store_code", profile.store_code);
+
+  if (error) {
+    throw new Error("No se pudo borrar el reporte del camión.");
   }
 
   revalidatePath("/");

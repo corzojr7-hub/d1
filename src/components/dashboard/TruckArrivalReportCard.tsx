@@ -2,9 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Copy, Truck } from "lucide-react";
+import { CheckCircle2, Copy, Pencil, Trash2, Truck } from "lucide-react";
 import { toast } from "sonner";
-import { markTruckReportSent, saveTruckReport } from "@/app/actions/truck-report";
+import {
+  deleteTruckReport,
+  markTruckReportSent,
+  saveTruckReport,
+  updateTruckReport,
+} from "@/app/actions/truck-report";
 import {
   TRUCK_ORDER_SHORTAGE_AREAS,
   type TruckOrderShortages,
@@ -19,6 +24,7 @@ type Props = {
     created_at: string;
     payload: TruckReportPayload;
   }>;
+  canManage: boolean;
 };
 
 const ARRIVAL_AREAS = [
@@ -29,16 +35,18 @@ const ARRIVAL_AREAS = [
   "Congelados",
 ] as const;
 
-const EMPTY_SHORTAGES: TruckOrderShortages = {
-  "Cuadrante 1": "",
-  Aseo: "",
-  Alimentos: "",
-  Fruver: "",
-  "Distribución": "",
-  Sensibles: "",
-  Nevera: "",
-  Congelados: "",
-};
+function createEmptyShortages(): TruckOrderShortages {
+  return {
+    "Cuadrante 1": "",
+    Aseo: "",
+    Alimentos: "",
+    Fruver: "",
+    "Distribución": "",
+    Sensibles: "",
+    Nevera: "",
+    Congelados: "",
+  };
+}
 
 function formatBogotaNow(date: Date) {
   const formatted = new Intl.DateTimeFormat("es-CO", {
@@ -53,7 +61,11 @@ function formatBogotaNow(date: Date) {
   return formatted.replace(",", "");
 }
 
-export default function TruckArrivalReportCard({ storeName, initialReports }: Props) {
+export default function TruckArrivalReportCard({
+  storeName,
+  initialReports,
+  canManage,
+}: Props) {
   const router = useRouter();
   const [now, setNow] = useState(() => new Date());
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
@@ -62,9 +74,13 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
   const [plate, setPlate] = useState("");
   const [temperature, setTemperature] = useState("");
   const [novelty, setNovelty] = useState("S/N.");
-  const [orderShortages, setOrderShortages] = useState<TruckOrderShortages>(EMPTY_SHORTAGES);
+  const [orderShortages, setOrderShortages] = useState<TruckOrderShortages>(
+    createEmptyShortages(),
+  );
   const [isSaving, setIsSaving] = useState(false);
   const [sendingId, setSendingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => setNow(new Date()), 60_000);
@@ -132,6 +148,34 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
     }));
   }
 
+  function resetForm() {
+    setNow(new Date());
+    setSelectedAreas([]);
+    setPallets("");
+    setDriver("");
+    setPlate("");
+    setTemperature("");
+    setNovelty("S/N.");
+    setOrderShortages(createEmptyShortages());
+    setEditingId(null);
+  }
+
+  function loadReportForEdit(report: Props["initialReports"][number]) {
+    setEditingId(report.id);
+    setNow(new Date(report.payload.reportedAt || report.created_at));
+    setSelectedAreas(report.payload.arrivalAreas);
+    setPallets(report.payload.pallets);
+    setDriver(report.payload.driver);
+    setPlate(report.payload.plate);
+    setTemperature(report.payload.temperature || "");
+    setNovelty(report.payload.novelty);
+    setOrderShortages({
+      ...createEmptyShortages(),
+      ...(report.payload.orderShortages || {}),
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   async function handleCopy() {
     if (selectedAreas.length === 0) {
       toast.error("Selecciona al menos un cuadrante.");
@@ -148,7 +192,7 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
 
     try {
       setIsSaving(true);
-      await saveTruckReport({
+      const payload: TruckReportPayload = {
         reportText,
         reportedAt: now.toISOString(),
         storeName,
@@ -161,12 +205,23 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
         orderShortages: Object.fromEntries(
           Object.entries(orderShortages).filter(([, value]) => value.trim()),
         ) as Partial<TruckOrderShortages>,
-      });
+      };
+
+      if (editingId) {
+        await updateTruckReport(editingId, payload);
+      } else {
+        await saveTruckReport(payload);
+      }
       await navigator.clipboard.writeText(reportText);
-      toast.success("Reporte guardado y copiado.");
+      toast.success(editingId ? "Reporte actualizado y copiado." : "Reporte guardado y copiado.");
+      resetForm();
       router.refresh();
     } catch {
-      toast.error("No se pudo guardar o copiar el reporte.");
+      toast.error(
+        editingId
+          ? "No se pudo actualizar o copiar el reporte."
+          : "No se pudo guardar o copiar el reporte.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -182,6 +237,26 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
       toast.error(error instanceof Error ? error.message : "No se pudo marcar como enviado.");
     } finally {
       setSendingId(null);
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("¿Seguro que quieres borrar este reporte de camión?")) {
+      return;
+    }
+
+    try {
+      setDeletingId(id);
+      await deleteTruckReport(id);
+      if (editingId === id) {
+        resetForm();
+      }
+      toast.success("Reporte borrado.");
+      router.refresh();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo borrar el reporte.");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -342,8 +417,24 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
           className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#e51d2e] px-5 text-sm font-black text-white shadow-[0_14px_28px_rgba(229,29,46,0.18)] transition active:scale-[0.98]"
         >
           <Copy className="h-4 w-4" />
-          {isSaving ? "Guardando..." : "Guardar y copiar reporte"}
+          {isSaving
+            ? editingId
+              ? "Actualizando..."
+              : "Guardando..."
+            : editingId
+              ? "Guardar cambios y copiar reporte"
+              : "Guardar y copiar reporte"}
         </button>
+
+        {editingId && (
+          <button
+            type="button"
+            onClick={resetForm}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-black text-slate-700 transition active:scale-[0.98]"
+          >
+            Cancelar edición
+          </button>
+        )}
 
         {initialReports.length > 0 && (
           <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
@@ -403,6 +494,17 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
                         Copiar
                       </button>
 
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => loadReportForEdit(report)}
+                          className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-bold text-slate-700 transition hover:bg-slate-200"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                          Editar
+                        </button>
+                      )}
+
                       <button
                         type="button"
                         onClick={() => handleMarkSent(report.id)}
@@ -412,6 +514,18 @@ export default function TruckArrivalReportCard({ storeName, initialReports }: Pr
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         {sent ? "Marcar reenviado" : "Marcar enviado"}
                       </button>
+
+                      {canManage && (
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(report.id)}
+                          disabled={deletingId === report.id}
+                          className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-3 py-1.5 text-[11px] font-bold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          {deletingId === report.id ? "Borrando..." : "Borrar"}
+                        </button>
+                      )}
                     </div>
 
                     {report.payload.sentAt && (
