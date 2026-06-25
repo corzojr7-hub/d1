@@ -23,13 +23,10 @@ const createDispatchSchema = z.object({
   material_code: z.string().optional(),
   material_description: z.string().optional(),
   difference_type: z.string().optional(),
-  product_value: z.string().optional(),
-  units_per_ump: z.string().optional(),
-  difference_ump: z.string().optional(),
-  difference_units: z.string().optional(),
   total_units: z.string().optional(),
   received_total_value: z.string().optional(),
   observations: z.string().optional(),
+  report_text: z.string().optional(),
 });
 
 export async function createDispatchDifference(formData: FormData) {
@@ -47,29 +44,23 @@ export async function createDispatchDifference(formData: FormData) {
       material_code: formData.get("material_code") || undefined,
       material_description: formData.get("material_description") || undefined,
       difference_type: formData.get("difference_type") || undefined,
-      product_value: formData.get("product_value") || undefined,
-      units_per_ump: formData.get("units_per_ump") || undefined,
-      difference_ump: formData.get("difference_ump") || undefined,
-      difference_units: formData.get("difference_units") || undefined,
       total_units: formData.get("total_units") || undefined,
       received_total_value: formData.get("received_total_value") || undefined,
       observations: formData.get("observations") || undefined,
+      report_text: formData.get("report_text") || undefined,
     });
 
     const adminClient = getAdminClient();
     const descriptionLines = [
       parsed.description.trim(),
-      parsed.transfer_number ? `Numero de tra: ${parsed.transfer_number}` : "",
-      parsed.material_code ? `Codigo material: ${parsed.material_code}` : "",
-      parsed.material_description ? `Descripcion material: ${parsed.material_description}` : "",
+      parsed.transfer_number ? `Numero de detra: ${parsed.transfer_number}` : "",
+      parsed.material_code ? `EAN: ${parsed.material_code}` : "",
+      parsed.material_description ? `Producto: ${parsed.material_description}` : "",
       parsed.difference_type ? `Diferencia: ${parsed.difference_type}` : "",
-      parsed.product_value ? `Valor producto: ${parsed.product_value}` : "",
-      parsed.units_per_ump ? `Unidad por UMP: ${parsed.units_per_ump}` : "",
-      parsed.difference_ump ? `Diferencia UMP: ${parsed.difference_ump}` : "",
-      parsed.difference_units ? `Diferencia unidad: ${parsed.difference_units}` : "",
       parsed.total_units ? `Total unidades: ${parsed.total_units}` : "",
-      parsed.received_total_value ? `Valor total recibido: ${parsed.received_total_value}` : "",
+      parsed.received_total_value ? `Total valor: ${parsed.received_total_value}` : "",
       parsed.observations ? `Observaciones: ${parsed.observations}` : "",
+      parsed.report_text ? `\n--- REPORTE PARA GRUPOS ---\n${parsed.report_text}` : "",
     ].filter(Boolean);
 
     const { data, error } = await adminClient
