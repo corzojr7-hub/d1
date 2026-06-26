@@ -1,28 +1,18 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
-import { format, subDays, subMonths, subYears } from "date-fns";
+import { format, subDays, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
+import { ArrowRight, BarChart3, ShoppingBag, TrendingUp, WalletCards } from "lucide-react";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { DailySale } from "@/lib/domain/types";
-import DashboardCharts from "@/components/dashboard/DashboardCharts";
 import AppSelect from "@/components/dashboard/AppSelect";
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
-import ImpulseCharts from "@/components/dashboard/ImpulseCharts";
 import PosAssistantFilter from "@/components/dashboard/PosAssistantFilter";
 import PosMetricsImportButton from "@/components/dashboard/PosMetricsImportButton";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
-import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { savePosMetric } from "./actions";
 import type { StoreAssistant } from "@/lib/domain/types";
-
-type WasteRecordForDashboard = {
-  qty: number;
-  reason?: string | null;
-  deposited_by?: string | null;
-  created_at?: string;
-  products?: { name?: string | null } | null;
-};
 
 type ImpulseRecordForDashboard = {
   assistant?: string | null;
@@ -48,8 +38,16 @@ type PosMetricRow = {
   date: string;
 };
 
-type TopProduct = { name: string; qty: number };
-type ReasonData = { name: string; value: number };
+type WasteRowForDashboard = {
+  created_at?: string | null;
+  qty?: number | null;
+  reason?: string | null;
+  deposited_by?: string | null;
+  area?: string | null;
+  status?: string | null;
+  products?: { name?: string | null } | null;
+};
+
 const TEAM_OPTION = "__team__";
 
 function getBogotaDateParts(now = new Date()) {
@@ -114,7 +112,7 @@ function getAssistantOptions(profile: {
 }
 
 export const metadata: Metadata = {
-  title: "Estadísticas - Sistema Operativo",
+  title: "Indicadores - Sistema Operativo",
 };
 
 export default async function DashboardPage(props: {
@@ -134,13 +132,6 @@ export default async function DashboardPage(props: {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
-
-  const wastePromise = adminClient
-    .from("waste_records")
-    .select("*, products(name)")
-    .eq("store_code", profile.store_code)
-    .order("created_at", { ascending: false })
-    .limit(300);
 
   const impulsePromise = adminClient
     .from("impulse_records")
@@ -163,16 +154,23 @@ export default async function DashboardPage(props: {
     .order("date", { ascending: true })
     .limit(365);
 
+  const wastePromise = adminClient
+    .from("waste_records")
+    .select("created_at, qty, reason, deposited_by, area, status, products(name)")
+    .eq("store_code", profile.store_code)
+    .order("created_at", { ascending: false })
+    .limit(365);
+
   const [
-    { data: allWaste },
     { data: impulseRecords },
     { data: rawPosMetrics },
     { data: dailySales },
-  ] = (await Promise.all([wastePromise, impulsePromise, posPromise, salesPromise])) as [
-    { data: WasteRecordForDashboard[] | null },
+    { data: allWaste },
+  ] = (await Promise.all([impulsePromise, posPromise, salesPromise, wastePromise])) as [
     { data: ImpulseRecordForDashboard[] | null },
     { data: PosMetricRow[] | null },
     { data: DailySale[] | null },
+    { data: WasteRowForDashboard[] | null },
   ];
 
   const posMetrics: PosMetricForDashboard[] = (rawPosMetrics || []).map((item) => ({
@@ -184,9 +182,6 @@ export default async function DashboardPage(props: {
     date: item.date,
   }));
 
-  let topProducts: TopProduct[] = [];
-  let reasonData: ReasonData[] = [];
-  let userWasteData: ReasonData[] = [];
   const assistantOptions = getAssistantOptions(profile);
 
   const bogotaToday = getBogotaDateParts();
@@ -194,10 +189,6 @@ export default async function DashboardPage(props: {
   const todayKey = `${currentMonthPrefix}-${String(bogotaToday.day).padStart(2, "0")}`;
   const previousMonthDate = subMonths(new Date(`${currentMonthPrefix}-01T00:00:00`), 1);
   const previousMonthPrefix = format(previousMonthDate, "yyyy-MM");
-  const previousYearMonthPrefix = format(
-    subYears(new Date(`${currentMonthPrefix}-01T00:00:00`), 1),
-    "yyyy-MM",
-  );
   const yesterdayKey = format(subDays(new Date(`${todayKey}T12:00:00`), 1), "yyyy-MM-dd");
   const previousMonthSameDayKey = format(
     subMonths(new Date(`${todayKey}T12:00:00`), 1),
@@ -225,27 +216,13 @@ export default async function DashboardPage(props: {
   const previousSalesMtd = Array.from(salesByDayPrevious.entries())
     .filter(([day]) => day <= bogotaToday.day)
     .reduce((sum, [, amount]) => sum + amount, 0);
-  const currentSalesExactDay = salesByDayCurrent.get(bogotaToday.day) || 0;
-  const previousSalesExactDay = salesByDayPrevious.get(bogotaToday.day) || 0;
+  const daysInCurrentMonth = new Date(bogotaToday.year, bogotaToday.month, 0).getDate();
+  const averageDailySale = bogotaToday.day > 0 ? currentSalesMtd / bogotaToday.day : 0;
+  const forecastedTotal = averageDailySale * daysInCurrentMonth;
   const salesDeltaPercent =
     previousSalesMtd > 0
       ? ((currentSalesMtd - previousSalesMtd) / previousSalesMtd) * 100
       : currentSalesMtd > 0
-        ? 100
-        : 0;
-
-  const impulseCurrentMtd = (impulseRecords || [])
-    .filter((item) => item.date.startsWith(currentMonthPrefix))
-    .filter((item) => Number(item.date.slice(8, 10)) <= bogotaToday.day)
-    .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  const impulsePreviousMtd = (impulseRecords || [])
-    .filter((item) => item.date.startsWith(previousMonthPrefix))
-    .filter((item) => Number(item.date.slice(8, 10)) <= bogotaToday.day)
-    .reduce((sum, item) => sum + Number(item.quantity || 0), 0);
-  const impulseDeltaPercent =
-    impulsePreviousMtd > 0
-      ? ((impulseCurrentMtd - impulsePreviousMtd) / impulsePreviousMtd) * 100
-      : impulseCurrentMtd > 0
         ? 100
         : 0;
 
@@ -263,6 +240,16 @@ export default async function DashboardPage(props: {
       : wasteCurrentMtd > 0
         ? 100
         : 0;
+
+  const wasteExportData = (allWaste || []).map((item) => ({
+    created_at: item.created_at || undefined,
+    qty: item.qty || 0,
+    reason: item.reason || undefined,
+    deposited_by: item.deposited_by || undefined,
+    area: item.area || undefined,
+    status: item.status || undefined,
+    products: item.products?.name ? { name: item.products.name } : undefined,
+  }));
 
   const selectedAssistant =
     (searchParams.posAssistant || "").trim() ||
@@ -344,9 +331,6 @@ export default async function DashboardPage(props: {
   const posPreviousMtd = posDailyMetrics.filter(
     (item) => item.date.startsWith(previousMonthPrefix) && item.day <= bogotaToday.day,
   );
-  const posPreviousYearMtd = posDailyMetrics.filter(
-    (item) => item.date.startsWith(previousYearMonthPrefix) && item.day <= bogotaToday.day,
-  );
   const posToday = getDailyPosMetric(todayKey);
   const posYesterday = getDailyPosMetric(yesterdayKey);
   const posPreviousMonthSameDay = getDailyPosMetric(previousMonthSameDayKey);
@@ -354,51 +338,17 @@ export default async function DashboardPage(props: {
   const posPreviousMtdProductivity = averagePosMetric(posPreviousMtd, "productivity");
   const posCurrentMtdScan = averagePosMetric(posCurrentMtd, "scan");
   const posPreviousMtdScan = averagePosMetric(posPreviousMtd, "scan");
-  const posPreviousYearMtdProductivity = averagePosMetric(posPreviousYearMtd, "productivity");
-  const posPreviousYearMtdScan = averagePosMetric(posPreviousYearMtd, "scan");
   const posCurrentMtdCancellations = sumPosMetric(posCurrentMtd, "cancellations");
   const posPreviousMtdCancellations = sumPosMetric(posPreviousMtd, "cancellations");
   const posCurrentMtdVoids = sumPosMetric(posCurrentMtd, "voids");
   const posPreviousMtdVoids = sumPosMetric(posPreviousMtd, "voids");
-  const posPreviousYearMtdCancellations = sumPosMetric(posPreviousYearMtd, "cancellations");
-  const posPreviousYearMtdVoids = sumPosMetric(posPreviousYearMtd, "voids");
   const posStatus = searchParams.posStatus;
   const posMessage = searchParams.posMessage;
   const posDate = searchParams.posDate || todayKey;
   const posFormDefaults = getDailyPosMetric(posDate);
 
-  if (allWaste) {
-    const productCounts: Record<string, number> = {};
-    const reasonCounts: Record<string, number> = {};
-    const userCounts: Record<string, number> = {};
-
-    allWaste.forEach((item) => {
-      const productName = item.products?.name || "Desconocido";
-      productCounts[productName] = (productCounts[productName] || 0) + Number(item.qty);
-
-      const reason = item.reason || "Otro";
-      reasonCounts[reason] = (reasonCounts[reason] || 0) + Number(item.qty);
-
-      const user = item.deposited_by || "Desconocido";
-      userCounts[user] = (userCounts[user] || 0) + Number(item.qty);
-    });
-
-    topProducts = Object.entries(productCounts)
-      .map(([name, qty]) => ({ name, qty }))
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 5);
-
-    reasonData = Object.entries(reasonCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-
-    userWasteData = Object.entries(userCounts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value);
-  }
-
   return (
-    <div className="mx-auto w-full max-w-md px-4 pb-24 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+    <div className="mx-auto w-full max-w-[1600px] px-4 pb-24 pt-6 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <Link
         href="/"
         className="mb-2 inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
@@ -419,32 +369,135 @@ export default async function DashboardPage(props: {
         Volver
       </Link>
 
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight text-[#0a3875]">Estadísticas</h1>
-          <p className="mt-1 text-sm font-medium text-slate-500">
-            Métricas y eficiencia de la tienda
-          </p>
+      <div className="mb-6 rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Lectura ejecutiva</p>
+            <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Indicadores</h1>
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              Lectura analitica de ventas, merma y productividad para revisar el pulso real de la tienda.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center xl:justify-end">
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">Tienda</p>
+              <p className="mt-1 text-sm font-black text-slate-900">{profile.store_name || profile.store_code}</p>
+            </div>
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-500">Corte de hoy</p>
+              <p className="mt-1 text-sm font-black text-blue-900">{formatDayLabel(todayKey)}</p>
+            </div>
+            <div className="sm:self-end">
+              <ExportDataButton
+                wasteData={wasteExportData}
+                impulseData={impulseRecords || []}
+                posData={posMetrics || []}
+              />
+            </div>
+          </div>
         </div>
-        <ExportDataButton
-          wasteData={allWaste || []}
-          impulseData={impulseRecords || []}
-          posData={posMetrics || []}
-        />
       </div>
 
-      <div className="space-y-8">
+      <section className="mb-6 rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+          <div className="max-w-3xl">
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+              Frente comercial
+            </p>
+            <h2 className="mt-1 text-xl font-black text-slate-900">Explora ventas, impulso y productividad sin salirte del hilo</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Esta vista queda como centro de lectura. Desde aqui puedes bajar al detalle comercial o saltar directo al modulo que necesites.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">
+            Resumen rapido arriba, detalle operativo abajo.
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
+          <Link
+            href="#ventas-merma"
+            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
+                <BarChart3 className="h-5 w-5" />
+              </span>
+              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-blue-500" />
+            </div>
+            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Ventas y merma</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Revisa el life for life y el pulso acumulado del mes.
+            </p>
+          </Link>
+
+          <Link
+            href="/sales"
+            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
+                <WalletCards className="h-5 w-5" />
+              </span>
+              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-500" />
+            </div>
+            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Control de ventas</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Abre presupuesto, venta diaria y seguimiento comercial completo.
+            </p>
+          </Link>
+
+          <Link
+            href="/impulses"
+            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+                <TrendingUp className="h-5 w-5" />
+              </span>
+              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-amber-500" />
+            </div>
+            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Impulso</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Registra la venta sugerida y consulta el comportamiento por colaborador.
+            </p>
+          </Link>
+
+          <Link
+            href="#productividad-pos"
+            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
+                <ShoppingBag className="h-5 w-5" />
+              </span>
+              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-rose-500" />
+            </div>
+            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Detalle</p>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Productividad POS</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Baja directo a escaneo, articulos por minuto, anulaciones y cancelaciones.
+            </p>
+          </Link>
+        </div>
+      </section>
+
+      <div className="space-y-6 xl:space-y-8">
         <section
+          id="ventas-merma"
           data-pdf-section="life-for-life"
-          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6"
+          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7"
         >
-          <div className="mb-5 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
+          <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
-              Life for Life
+                Life for Life
               </p>
               <h2 className="mt-1 text-xl font-black text-slate-900">
-                Comparativo del día {bogotaToday.day} vs {previousMonthPrefix}
+                Comparativo del dia {bogotaToday.day} vs {previousMonthPrefix}
               </h2>
               <p className="mt-1 text-sm text-slate-500">
                 Corte acumulado del mes actual frente al mismo punto del mes anterior.
@@ -464,13 +517,13 @@ export default async function DashboardPage(props: {
                   Punto de corte
                 </p>
                 <p className="mt-1 text-lg font-black text-blue-900">
-                  Día {bogotaToday.day}
+                  Dia {bogotaToday.day}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-4">
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Ventas MTD
@@ -489,22 +542,6 @@ export default async function DashboardPage(props: {
 
             <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                Impulso MTD
-              </p>
-              <p className="mt-2 text-lg font-black text-slate-900">{impulseCurrentMtd}</p>
-              <p className="mt-1 text-[11px] text-slate-500">Antes: {impulsePreviousMtd}</p>
-              <p
-                className={`mt-2 text-[11px] font-bold ${
-                  impulseDeltaPercent >= 0 ? "text-emerald-600" : "text-red-600"
-                }`}
-              >
-                {impulseDeltaPercent >= 0 ? "+" : ""}
-                {impulseDeltaPercent.toFixed(1)}%
-              </p>
-            </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
                 Merma MTD
               </p>
               <p className="mt-2 text-lg font-black text-slate-900">{wasteCurrentMtd} uds</p>
@@ -518,54 +555,33 @@ export default async function DashboardPage(props: {
                 {wasteDeltaPercent.toFixed(1)}%
               </p>
             </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                Venta promedio diaria
+              </p>
+              <p className="mt-2 text-lg font-black text-slate-900">{formatCop(averageDailySale)}</p>
+              <p className="mt-1 text-[11px] text-slate-500">Proyeccion: {formatCop(forecastedTotal)}</p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                Productividad POS
+              </p>
+              <p className="mt-2 text-lg font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
+              <p className="mt-1 text-[11px] text-slate-500">Escaneo hoy: {formatMetric(posToday.scan)}</p>
+            </div>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 px-4 py-4 text-[12px] text-blue-900">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-blue-500">
-              Día comparable
-            </p>
-            <p className="mt-2 text-sm">
-              Venta del día {bogotaToday.day}: <span className="font-black">{formatCop(currentSalesExactDay)}</span>
-              {" "}vs{" "}
-              <span className="font-black">{formatCop(previousSalesExactDay)}</span> en el mismo día
-              del mes anterior.
-            </p>
-          </div>
-        </section>
-
-        <section data-pdf-section="ventas">
-          <div className="mb-4">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Ventas</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">Comportamiento comercial</h2>
-            <p className="mt-1 text-sm text-slate-500">Lectura por día, semana y mes con el mismo corte del tablero.</p>
-          </div>
-          <SalesTrendsChart data={dailySales || []} />
-        </section>
-
-        <section data-pdf-section="impulso">
-          <div className="mb-4">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Impulso</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">Movimiento por colaborador</h2>
-            <p className="mt-1 text-sm text-slate-500">Evolución diaria y participación del equipo en piso.</p>
-          </div>
-          <ImpulseCharts data={impulseRecords || []} />
-        </section>
-
-        <section data-pdf-section="merma">
-          <div className="mb-4">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Merma</p>
-            <h2 className="mt-1 text-lg font-black text-slate-900">Prevención y trazabilidad</h2>
-            <p className="mt-1 text-sm text-slate-500">Productos críticos, motivos más frecuentes y registradores con más casos.</p>
-          </div>
-          <DashboardCharts topProducts={topProducts} reasonData={reasonData} userWasteData={userWasteData} />
         </section>
 
         <section
+          id="productividad-pos"
           data-pdf-section="productividad-pos"
-          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6"
+          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6 xl:p-7"
         >
-          <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <div>
+          <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">
                 Productividad POS
               </p>
@@ -596,7 +612,7 @@ export default async function DashboardPage(props: {
             </div>
           ) : null}
 
-          <div className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
+          <div className="mb-4 rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
             <div className="flex flex-col gap-3 md:flex-row md:items-end">
               <PosAssistantFilter
                 assistantOptions={assistantOptions}
@@ -606,7 +622,7 @@ export default async function DashboardPage(props: {
             </div>
           </div>
 
-          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(0,360px)_minmax(0,1fr)]">
+          <div className="mb-4 grid gap-4 xl:grid-cols-[minmax(320px,360px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(340px,390px)_minmax(0,1fr)]">
             <form action={savePosMetric} className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -615,7 +631,7 @@ export default async function DashboardPage(props: {
                   </p>
                   <h3 className="mt-1 text-lg font-black text-slate-900">Registrar productividad POS</h3>
                   <p className="mt-1 text-sm text-slate-500">
-                    Meta artículos/min: 30. Meta escaneo: 15 o más.
+                    Meta articulos/min: 30. Meta escaneo: 15 o mas.
                   </p>
                 </div>
                 <div className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-500">
@@ -636,8 +652,8 @@ export default async function DashboardPage(props: {
                   <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-violet-700">
                     Meta sugerida
                   </p>
-                  <p className="mt-2 text-sm font-bold text-slate-800">30 artículos/min</p>
-                  <p className="mt-1 text-xs text-slate-500">Escaneo ideal: 15 o más</p>
+                  <p className="mt-2 text-sm font-bold text-slate-800">30 articulos/min</p>
+                  <p className="mt-1 text-xs text-slate-500">Escaneo ideal: 15 o mas</p>
                 </div>
 
                 <AppSelect
@@ -652,7 +668,7 @@ export default async function DashboardPage(props: {
 
                 <label className="block">
                   <span className="mb-1.5 block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                    Artículos por minuto
+                    Articulos por minuto
                   </span>
                   <input
                     name="productivity"
@@ -712,38 +728,38 @@ export default async function DashboardPage(props: {
               </button>
             </form>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 xl:grid-cols-2">
               <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                   Hoy vs ayer
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Artículos/min</p>
+                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Ayer: {formatMetric(posYesterday.productivity)} · {getMetricDelta(posToday.productivity, posYesterday.productivity).toFixed(1)}%
+                      Ayer: {formatMetric(posYesterday.productivity)} | {getMetricDelta(posToday.productivity, posYesterday.productivity).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-sky-50 p-3">
                     <p className="text-xs font-bold text-sky-700">Escaneo</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Ayer: {formatMetric(posYesterday.scan)} · {getMetricDelta(posToday.scan, posYesterday.scan).toFixed(1)}%
+                      Ayer: {formatMetric(posYesterday.scan)} | {getMetricDelta(posToday.scan, posYesterday.scan).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-amber-50 p-3">
                     <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Ayer: {posYesterday.cancellations} · {getMetricDelta(posToday.cancellations, posYesterday.cancellations).toFixed(1)}%
+                      Ayer: {posYesterday.cancellations} | {getMetricDelta(posToday.cancellations, posYesterday.cancellations).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-rose-50 p-3">
                     <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Ayer: {posYesterday.voids} · {getMetricDelta(posToday.voids, posYesterday.voids).toFixed(1)}%
+                      Ayer: {posYesterday.voids} | {getMetricDelta(posToday.voids, posYesterday.voids).toFixed(1)}%
                     </p>
                   </div>
                 </div>
@@ -755,31 +771,31 @@ export default async function DashboardPage(props: {
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Artículos/min</p>
+                    <p className="text-xs font-bold text-violet-700">Articulos/min</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.productivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousMonthSameDay.productivity)} · {getMetricDelta(posToday.productivity, posPreviousMonthSameDay.productivity).toFixed(1)}%
+                      Antes: {formatMetric(posPreviousMonthSameDay.productivity)} | {getMetricDelta(posToday.productivity, posPreviousMonthSameDay.productivity).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-sky-50 p-3">
                     <p className="text-xs font-bold text-sky-700">Escaneo</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posToday.scan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousMonthSameDay.scan)} · {getMetricDelta(posToday.scan, posPreviousMonthSameDay.scan).toFixed(1)}%
+                      Antes: {formatMetric(posPreviousMonthSameDay.scan)} | {getMetricDelta(posToday.scan, posPreviousMonthSameDay.scan).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-amber-50 p-3">
                     <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.cancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousMonthSameDay.cancellations} · {getMetricDelta(posToday.cancellations, posPreviousMonthSameDay.cancellations).toFixed(1)}%
+                      Antes: {posPreviousMonthSameDay.cancellations} | {getMetricDelta(posToday.cancellations, posPreviousMonthSameDay.cancellations).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-rose-50 p-3">
                     <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posToday.voids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousMonthSameDay.voids} · {getMetricDelta(posToday.voids, posPreviousMonthSameDay.voids).toFixed(1)}%
+                      Antes: {posPreviousMonthSameDay.voids} | {getMetricDelta(posToday.voids, posPreviousMonthSameDay.voids).toFixed(1)}%
                     </p>
                   </div>
                 </div>
@@ -791,71 +807,36 @@ export default async function DashboardPage(props: {
                 </p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Artículos/min promedio</p>
+                    <p className="text-xs font-bold text-violet-700">Articulos/min promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousMtdProductivity).toFixed(1)}%
+                      Antes: {formatMetric(posPreviousMtdProductivity)} | {getMetricDelta(posCurrentMtdProductivity, posPreviousMtdProductivity).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-sky-50 p-3">
                     <p className="text-xs font-bold text-sky-700">Escaneo promedio</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousMtdScan).toFixed(1)}%
+                      Antes: {formatMetric(posPreviousMtdScan)} | {getMetricDelta(posCurrentMtdScan, posPreviousMtdScan).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-amber-50 p-3">
                     <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousMtdCancellations).toFixed(1)}%
+                      Antes: {posPreviousMtdCancellations} | {getMetricDelta(posCurrentMtdCancellations, posPreviousMtdCancellations).toFixed(1)}%
                     </p>
                   </div>
                   <div className="rounded-2xl bg-rose-50 p-3">
                     <p className="text-xs font-bold text-rose-700">Anulaciones</p>
                     <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
                     <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousMtdVoids).toFixed(1)}%
+                      Antes: {posPreviousMtdVoids} | {getMetricDelta(posCurrentMtdVoids, posPreviousMtdVoids).toFixed(1)}%
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm">
-                <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-                  Mes actual vs mismo mes año anterior
-                </p>
-                <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl bg-violet-50 p-3">
-                    <p className="text-xs font-bold text-violet-700">Artículos/min promedio</p>
-                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdProductivity)}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousYearMtdProductivity)} · {getMetricDelta(posCurrentMtdProductivity, posPreviousYearMtdProductivity).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-sky-50 p-3">
-                    <p className="text-xs font-bold text-sky-700">Escaneo promedio</p>
-                    <p className="mt-1 text-xl font-black text-slate-900">{formatMetric(posCurrentMtdScan)}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {formatMetric(posPreviousYearMtdScan)} · {getMetricDelta(posCurrentMtdScan, posPreviousYearMtdScan).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-amber-50 p-3">
-                    <p className="text-xs font-bold text-amber-700">Cancelaciones</p>
-                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdCancellations}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousYearMtdCancellations} · {getMetricDelta(posCurrentMtdCancellations, posPreviousYearMtdCancellations).toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="rounded-2xl bg-rose-50 p-3">
-                    <p className="text-xs font-bold text-rose-700">Anulaciones</p>
-                    <p className="mt-1 text-xl font-black text-slate-900">{posCurrentMtdVoids}</p>
-                    <p className="mt-1 text-[11px] text-slate-500">
-                      Antes: {posPreviousYearMtdVoids} · {getMetricDelta(posCurrentMtdVoids, posPreviousYearMtdVoids).toFixed(1)}%
-                    </p>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -865,3 +846,4 @@ export default async function DashboardPage(props: {
     </div>
   );
 }
+

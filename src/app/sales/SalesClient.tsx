@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useMemo, useEffect, startTransition } from "react";
 import Link from "next/link";
@@ -12,13 +12,12 @@ import {
   startOfWeek,
   endOfWeek,
   parseISO,
-  subMonths,
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste, setBulkDailySales } from "./actions";
 import * as XLSX from "xlsx";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
-import { TrendingUp, Target, Save, Calendar, AlertCircle, Upload, Loader2 } from "lucide-react";
+import { TrendingUp, Target, Save, Calendar, AlertCircle, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useProfile } from "@/components/ui/ProfileContext";
 import { toast } from "sonner";
 
@@ -69,8 +68,6 @@ export default function SalesClient({
   const [isImporting, setIsImporting] = useState(false);
 
   const currentMonthYear = format(currentDate, "yyyy-MM");
-  const previousMonthDate = useMemo(() => subMonths(currentDate, 1), [currentDate]);
-  const previousMonthYear = format(previousMonthDate, "yyyy-MM");
 
   const currentBudget = useMemo(() => {
     return initialBudgets.find((budget) => budget.month_year === currentMonthYear)?.budget_amount || 0;
@@ -92,65 +89,7 @@ export default function SalesClient({
     });
   }, [initialSales, currentDate]);
 
-  const previousMonthSales = useMemo(() => {
-    const start = startOfMonth(previousMonthDate);
-    const end = endOfMonth(previousMonthDate);
-    return initialSales.filter((sale) => {
-      const date = parseISO(sale.date);
-      return isWithinInterval(date, { start, end });
-    });
-  }, [initialSales, previousMonthDate]);
-
   const totalSalesMonth = monthSales.reduce((acc, curr) => acc + Number(curr.amount), 0);
-
-  const salesLifeForLife = useMemo(() => {
-    const currentSalesByDay = new Map<number, number>();
-    monthSales.forEach((sale) => {
-      const day = parseISO(sale.date).getDate();
-      currentSalesByDay.set(day, (currentSalesByDay.get(day) || 0) + Number(sale.amount));
-    });
-
-    const previousSalesByDay = new Map<number, number>();
-    previousMonthSales.forEach((sale) => {
-      const day = parseISO(sale.date).getDate();
-      previousSalesByDay.set(day, (previousSalesByDay.get(day) || 0) + Number(sale.amount));
-    });
-
-    const cutoffDay =
-      monthSales.length > 0
-        ? Math.max(...monthSales.map((sale) => parseISO(sale.date).getDate()))
-        : 0;
-
-    const currentMtd = Array.from(currentSalesByDay.entries())
-      .filter(([day]) => day <= cutoffDay)
-      .reduce((sum, [, amount]) => sum + amount, 0);
-
-    const previousMtd = Array.from(previousSalesByDay.entries())
-      .filter(([day]) => day <= cutoffDay)
-      .reduce((sum, [, amount]) => sum + amount, 0);
-
-    const exactCurrent = cutoffDay > 0 ? currentSalesByDay.get(cutoffDay) || 0 : 0;
-    const exactPrevious = cutoffDay > 0 ? previousSalesByDay.get(cutoffDay) || 0 : 0;
-
-    const deltaPercent =
-      previousMtd > 0 ? ((currentMtd - previousMtd) / previousMtd) * 100 : currentMtd > 0 ? 100 : 0;
-    const dailyDeltaPercent =
-      exactPrevious > 0
-        ? ((exactCurrent - exactPrevious) / exactPrevious) * 100
-        : exactCurrent > 0
-          ? 100
-          : 0;
-
-    return {
-      cutoffDay,
-      currentMtd,
-      previousMtd,
-      exactCurrent,
-      exactPrevious,
-      deltaPercent,
-      dailyDeltaPercent,
-    };
-  }, [monthSales, previousMonthSales]);
 
   const existingDailySale = useMemo(() => {
     return initialSales.find((sale) => sale.date === saleDate);
@@ -255,7 +194,9 @@ export default function SalesClient({
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-      const json = XLSX.utils.sheet_to_json<any[]>(worksheet, { header: 1 });
+      const json = XLSX.utils.sheet_to_json<unknown[]>(worksheet, { header: 1 }) as Array<
+        Array<string | number | null | undefined>
+      >;
       
       const targetYear = format(currentDate, "yyyy");
       const targetMonthName = format(currentDate, "MMM", { locale: es }).toLowerCase();
@@ -264,14 +205,15 @@ export default function SalesClient({
       const monthRow = json[1] || [];
       let colIndex = -1;
       for (let i = 0; i < monthRow.length; i++) {
-        if (typeof monthRow[i] === 'string' && monthRow[i].toLowerCase().startsWith(targetMonthName)) {
+        const monthValue = monthRow[i];
+        if (typeof monthValue === "string" && monthValue.toLowerCase().startsWith(targetMonthName)) {
           colIndex = i;
           break;
         }
       }
       
       if (colIndex === -1) {
-        throw new Error(`No se encontró la columna para el mes de ${targetMonthName}`);
+        throw new Error(`No se encontro la columna para el mes de ${targetMonthName}`);
       }
       
       const salesToImport: { date: string; amount: number }[] = [];
@@ -296,15 +238,15 @@ export default function SalesClient({
       }
       
       if (salesToImport.length === 0) {
-        throw new Error("No se encontraron ventas válidas en la columna del mes.");
+        throw new Error("No se encontraron ventas validas en la columna del mes.");
       }
       
       const res = await setBulkDailySales(salesToImport);
       if (!res.success) throw new Error(res.error);
       
       toast.success(`Se importaron ${res.count} ventas correctamente.`);
-    } catch (err: any) {
-      toast.error(err.message || "Error al leer el archivo Excel");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al leer el archivo Excel");
     } finally {
       setIsImporting(false);
       e.target.value = '';
@@ -338,7 +280,7 @@ export default function SalesClient({
   }
 
   return (
-    <div className="mx-auto max-w-md space-y-6 px-4 pt-6 pb-24 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8 lg:pt-10">
+    <div className="mx-auto min-h-screen max-w-[1600px] space-y-6 px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pt-10 xl:px-10 2xl:px-12">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
@@ -359,38 +301,41 @@ export default function SalesClient({
         Volver
       </Link>
 
-      <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Ventas</p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875]">Control comercial</h1>
+      <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-3xl">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Registro comercial</p>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Ventas y presupuesto</h1>
           <p className="mt-1 text-sm font-medium capitalize text-slate-500">
             {format(currentDate, "MMMM yyyy", { locale: es })}
           </p>
           <p className="mt-1 text-[11px] font-medium text-slate-400">
-            Puedes cargar meses anteriores moviendo el mes y registrando la fecha exacta.
+            Aqui registras ventas, ajustas presupuesto y sigues el corte real del mes con una lectura mas clara para movil y escritorio.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2 self-start lg:self-auto">
           <button
             onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() - 1)))}
-            className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100"
+            aria-label="Mes anterior"
           >
-            ←
+            <ChevronLeft className="h-4 w-4" />
           </button>
           <button
             onClick={() => setCurrentDate(new Date(currentDate.setMonth(currentDate.getMonth() + 1)))}
-            className="rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100"
+            aria-label="Mes siguiente"
           >
-            →
+            <ChevronRight className="h-4 w-4" />
           </button>
         </div>
         </div>
       </div>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm">
+      <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] 2xl:items-start">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm lg:p-6 xl:p-7">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <Target className="h-4 w-4" /> Presupuesto del Mes
+          <Target className="h-4 w-4" /> Planeacion del mes
         </h2>
         {isSupervisor ? (
           currentBudget > 0 && !isEditingBudget ? (
@@ -401,7 +346,7 @@ export default function SalesClient({
                 </label>
                 <div className="mt-1 flex w-full items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-bold text-slate-800">
                   <span>{formatCurrency(currentBudget)}</span>
-                  <span className="text-[10px] text-emerald-600">✓ Registrado</span>
+                  <span className="text-[10px] text-emerald-600">OK Registrado</span>
                 </div>
               </div>
               <button
@@ -482,10 +427,10 @@ export default function SalesClient({
             <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-3">
               <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <div>
-                <p className="text-xs font-bold text-blue-900">Pronostico (Run Rate)</p>
+                <p className="text-xs font-bold text-blue-900">Proyeccion del mes</p>
                 <p className="mt-1 text-[11px] leading-tight text-blue-700">
-                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}/dia</b>,
-                  cerraras el mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
+                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}</b>, cerraras el
+                  mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
                 </p>
               </div>
             </div>
@@ -493,89 +438,10 @@ export default function SalesClient({
         )}
       </section>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-        <div className="mb-4">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-slate-400">
-            Life for Life
-          </h2>
-          <p className="mt-1 text-sm font-medium text-slate-500">
-            Comparacion del corte actual frente al mismo corte del mes anterior.
-          </p>
-        </div>
-
-        {salesLifeForLife.cutoffDay === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-5 text-center">
-            <p className="text-[11px] font-bold text-slate-400">
-              Aun no hay ventas registradas en este mes para comparar.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-slate-50 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                  Corte acumulado al dia {salesLifeForLife.cutoffDay}
-                </p>
-                <p className="mt-2 text-lg font-black text-slate-900">
-                  {formatCurrency(salesLifeForLife.currentMtd)}
-                </p>
-                <p className="mt-1 text-[11px] text-slate-500">
-                  Mes anterior: {formatCurrency(salesLifeForLife.previousMtd)}
-                </p>
-              </div>
-
-              <div className="rounded-2xl bg-blue-50 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue-500">
-                  Variacion acumulada
-                </p>
-                <p
-                  className={`mt-2 text-lg font-black ${
-                    salesLifeForLife.deltaPercent >= 0 ? "text-emerald-600" : "text-red-600"
-                  }`}
-                >
-                  {salesLifeForLife.deltaPercent >= 0 ? "+" : ""}
-                  {salesLifeForLife.deltaPercent.toFixed(1)}%
-                </p>
-                <p className="mt-1 text-[11px] text-slate-500">
-                  {salesLifeForLife.deltaPercent >= 0 ? "Mejora" : "Caida"} frente a{" "}
-                  {previousMonthYear}
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-slate-100 bg-white px-4 py-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
-                Dia exacto vs mes anterior
-              </p>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-sm font-black text-slate-900">
-                    Dia {salesLifeForLife.cutoffDay}: {formatCurrency(salesLifeForLife.exactCurrent)}
-                  </p>
-                  <p className="mt-1 text-[11px] text-slate-500">
-                    Mismo dia en {previousMonthYear}: {formatCurrency(salesLifeForLife.exactPrevious)}
-                  </p>
-                </div>
-                <span
-                  className={`inline-flex rounded-full px-3 py-1 text-[11px] font-bold ${
-                    salesLifeForLife.dailyDeltaPercent >= 0
-                      ? "bg-emerald-50 text-emerald-600"
-                      : "bg-red-50 text-red-600"
-                  }`}
-                >
-                  {salesLifeForLife.dailyDeltaPercent >= 0 ? "+" : ""}
-                  {salesLifeForLife.dailyDeltaPercent.toFixed(1)}%
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
-
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center justify-between text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm 2xl:h-full lg:p-6 xl:p-7">
+        <h2 className="mb-4 flex flex-col gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Venta Diaria
+            <Calendar className="h-4 w-4" /> Carga diaria
           </div>
           {isSupervisor && (
             <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition-colors hover:bg-slate-200">
@@ -586,8 +452,8 @@ export default function SalesClient({
           )}
         </h2>
         {canCreateSale ? (
-          <div className="flex gap-3">
-            <div className="w-1/3">
+          <div className="grid gap-4 sm:grid-cols-[180px_minmax(0,1fr)]">
+            <div>
               <label className="text-[10px] font-bold uppercase text-slate-500">Dia</label>
               <input
                 type="date"
@@ -598,7 +464,7 @@ export default function SalesClient({
             </div>
             <div className="flex-1">
               <label className="text-[10px] font-bold uppercase text-slate-500">Venta ($)</label>
-              <div className="flex gap-2">
+              <div className="mt-1 flex gap-2">
                 <input
                   type="text"
                   inputMode="numeric"
@@ -606,7 +472,7 @@ export default function SalesClient({
                   onChange={(e) => setSaleAmount(formatMoneyInput(e.target.value))}
                   placeholder="Ej: 5000000"
                   disabled={Boolean(existingDailySale && !canEditSale)}
-                  className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm font-bold text-slate-800 transition-colors ${
+                  className={`w-full rounded-xl border px-3 py-2 text-sm font-bold text-slate-800 transition-colors ${
                     existingDailySale
                       ? "border-emerald-300 bg-emerald-50"
                       : "border-slate-200 bg-slate-50"
@@ -615,7 +481,7 @@ export default function SalesClient({
                 <button
                   onClick={handleSaveSale}
                   disabled={Boolean(existingDailySale && !canEditSale)}
-                  className={`mt-1 h-10 rounded-xl px-4 text-sm font-bold text-white transition-all active:scale-95 ${
+                  className={`h-10 rounded-xl px-4 text-sm font-bold text-white transition-all active:scale-95 ${
                     existingDailySale
                       ? canEditSale
                         ? "bg-emerald-600"
@@ -628,12 +494,12 @@ export default function SalesClient({
               </div>
               {existingDailySale && canEditSale && (
                 <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-emerald-600">
-                  ✓ Ya registrada (puedes editarla)
+                  Ya registrada, puedes editarla.
                 </p>
               )}
               {existingDailySale && !canEditSale && (
-                <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-amber-600">
-                  ✓ Ya registrada. Solo el supervisor puede editarla.
+                <p className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-slate-500">
+                  Ya registrada. Solo el supervisor puede editarla.
                 </p>
               )}
               {!existingDailySale && !canEditSale && (
@@ -651,13 +517,14 @@ export default function SalesClient({
           </div>
         )}
       </section>
+      </div>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/30 p-5 shadow-sm">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/30 p-5 shadow-sm lg:p-6">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <AlertCircle className="h-4 w-4" /> Cortes Semanales e Impacto Merma
+          <AlertCircle className="h-4 w-4" /> Corte semanal e impacto de merma
         </h2>
 
-        <div className="space-y-4">
+        <div className="grid gap-4 lg:grid-cols-2">
           {weeksInMonth.map((week, idx) => {
             const isEditingWaste = wasteWeek === week.key;
             const impactPercent = week.sales > 0 ? (week.waste / week.sales) * 100 : 0;
@@ -665,7 +532,7 @@ export default function SalesClient({
             const wasteGoal = weeklyBudget * 0.002;
 
             return (
-              <div key={week.key} className="rounded-2xl border border-slate-100 p-4">
+              <div key={week.key} className="rounded-[24px] border border-slate-100 bg-white/90 p-4 shadow-sm">
                 <p className="mb-2 text-[10px] font-bold uppercase text-slate-400">
                   Semana {idx + 1} ({format(week.start, "dd MMM")} - {format(week.end, "dd MMM")})
                 </p>
@@ -762,36 +629,7 @@ export default function SalesClient({
         </div>
       </section>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <Calendar className="h-4 w-4" /> Historial de {format(currentDate, "MMMM", { locale: es })}
-        </h2>
-        {monthSales.length === 0 ? (
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 text-center">
-            <p className="text-[11px] font-bold text-slate-400">
-              Aun no hay ventas registradas en este mes
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {[...monthSales]
-              .sort((a, b) => b.date.localeCompare(a.date))
-              .map((sale) => (
-                <div
-                  key={sale.id}
-                  className="flex items-center justify-between rounded-xl border border-slate-100 p-3"
-                >
-                  <p className="text-xs font-bold text-slate-500">
-                    {format(parseISO(sale.date), "EEEE dd", { locale: es }).toUpperCase()}
-                  </p>
-                  <p className="text-sm font-black text-slate-800">
-                    {formatCurrency(Number(sale.amount))}
-                  </p>
-                </div>
-              ))}
-          </div>
-        )}
-      </section>
     </div>
   );
 }
+

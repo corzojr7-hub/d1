@@ -5,12 +5,13 @@ import { ClipboardPlus, FileText, Radar, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
-import InstructionCard from "@/components/instructions/InstructionCard";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
 import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
+import HomeStartupAlerts from "@/components/dashboard/HomeStartupAlerts";
 import TruckArrivalReportCard from "@/components/dashboard/TruckArrivalReportCard";
+import InstructionCard from "@/components/instructions/InstructionCard";
 import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
-import { parseTruckReportContent, TRUCK_REPORT_PREFIX } from "@/lib/truck-report";
+import { parseTruckReportContent } from "@/lib/truck-report";
 
 export const metadata: Metadata = {
   title: "Inicio - Sistema de Control Operativo de Tienda",
@@ -22,15 +23,30 @@ function getBogotaCalendar(now = new Date()) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
   }).formatToParts(now);
 
   const year = Number(parts.find((part) => part.type === "year")?.value ?? "0");
   const month = Number(parts.find((part) => part.type === "month")?.value ?? "0");
   const day = Number(parts.find((part) => part.type === "day")?.value ?? "0");
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
   const dateString = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const bogotaMidnight = new Date(`${dateString}T00:00:00-05:00`);
 
-  return { year, month, day, dateString, bogotaMidnight };
+  return { year, month, day, hour, minute, dateString, bogotaMidnight };
+}
+
+function getBogotaDateString(input: string | Date) {
+  const date = typeof input === "string" ? new Date(input) : input;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
 }
 
 export default async function Home() {
@@ -61,7 +77,14 @@ export default async function Home() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
-  const { year, month, day: currentDay, dateString: bogotaToday, bogotaMidnight } =
+  const {
+    year,
+    month,
+    day: currentDay,
+    hour: currentHour,
+    dateString: bogotaToday,
+    bogotaMidnight,
+  } =
     getBogotaCalendar();
   const currentMonthYear = `${year}-${String(month).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
@@ -75,7 +98,6 @@ export default async function Home() {
 
   const [
     { count: pendingCount },
-    { data: recentInstructions },
     { count: wasteCount },
     { count: wasteCountWeek },
     { data: currentBudgetRow },
@@ -83,19 +105,15 @@ export default async function Home() {
     { data: preShiftData },
     { data: fefoRecords },
     { data: storeAdminProfile },
-    { data: truckReportEntries },
+    { data: recentInstructions },
+    { data: rawTruckReports },
+    { data: pendingDispatches },
   ] = await Promise.all([
     adminClient
       .from("instructions")
       .select("*", { count: "exact", head: true })
       .in("status", ["pendiente", "en_proceso"])
       .eq("store_code", storeCode),
-    adminClient
-      .from("instructions")
-      .select("*")
-      .eq("store_code", storeCode)
-      .order("created_at", { ascending: false })
-      .limit(3),
     adminClient
       .from("waste_records")
       .select("*", { count: "exact", head: true })
@@ -138,13 +156,23 @@ export default async function Home() {
       .limit(1)
       .single(),
     adminClient
+      .from("instructions")
+      .select("id, responsible, content, priority, status, created_at")
+      .eq("store_code", storeCode)
+      .order("created_at", { ascending: false })
+      .limit(4),
+    adminClient
       .from("daily_logbook")
       .select("id, author, content, created_at")
       .eq("store_code", storeCode)
-      .gte("created_at", bogotaMidnight.toISOString())
-      .like("content", `${TRUCK_REPORT_PREFIX}%`)
       .order("created_at", { ascending: false })
-      .limit(6),
+      .limit(12),
+    adminClient
+      .from("dispatch_differences")
+      .select("id, category, description, dispatch_date, created_at, status")
+      .eq("store_code", storeCode)
+      .eq("status", "pendiente")
+      .order("created_at", { ascending: false }),
   ]);
 
   const monthlyBudget = currentBudgetRow?.budget_amount || 0;
@@ -174,6 +202,41 @@ export default async function Home() {
     const threshold = catInfo ? catInfo.retirementDays : 0;
     const delta = daysLeft - threshold;
     return delta <= 6;
+  });
+
+  const startupFefoItems = (fefoRecords || []).flatMap((rec) => {
+    const nameParts = rec.product_name.split(" ||| ");
+    const cleanName = nameParts[0] || rec.product_name;
+    const categoryVal = nameParts[1] || "otro";
+    const categoryInfo =
+      FEFO_CATEGORIES.find((item) => item.value === categoryVal) ||
+      FEFO_CATEGORIES.find((item) => item.value === "otro");
+    const retirementDays = categoryInfo?.retirementDays ?? 0;
+    const expirationDate = new Date(`${rec.expiration_date}T00:00:00-05:00`);
+    const removalDate = new Date(expirationDate);
+    removalDate.setUTCDate(removalDate.getUTCDate() - retirementDays);
+    const removalDateKey = getBogotaDateString(removalDate);
+    const reminderStart = new Date(removalDate);
+    reminderStart.setUTCDate(reminderStart.getUTCDate() - 1);
+    const reminderStartKey = getBogotaDateString(reminderStart);
+    const shouldWarnTonight = currentHour >= 20 && bogotaToday === reminderStartKey;
+    const shouldWarnToday = bogotaToday >= removalDateKey;
+
+    if (!shouldWarnTonight && !shouldWarnToday) {
+      return [];
+    }
+
+    return [
+      {
+        id: rec.id,
+        productName: cleanName,
+        quantity: rec.quantity,
+        expirationDate: rec.expiration_date,
+        actionLabel: shouldWarnTonight
+          ? "Prepáralo desde esta noche para salida o venta final mañana."
+          : "Revísalo hoy y sácalo si ya cumplió el retiro FEFO.",
+      },
+    ];
   });
 
   const dayNames = [
@@ -217,22 +280,20 @@ export default async function Home() {
       aseoTask.schedule &&
       typeof aseoTask.schedule === "object"
     ) {
-      aseoSchedule = Object.entries(aseoTask.schedule).reduce<Record<string, string>>(
-        (acc, [key, value]) => {
-          if (typeof value === "string" && value.trim()) {
-            acc[key] = value;
-          }
-          return acc;
-        },
-        {},
-      );
+      aseoSchedule = Object.fromEntries(
+        Object.entries(aseoTask.schedule).filter(
+          ([, value]) => typeof value === "string" && value.trim(),
+        ),
+      ) as Record<string, string>;
     }
   }
 
-  const todayTruckReports = (truckReportEntries || [])
+  const todayTruckReports = (rawTruckReports || [])
     .map((entry) => {
       const payload = parseTruckReportContent(entry.content);
-      if (!payload) return null;
+      if (!payload || getBogotaDateString(entry.created_at) !== bogotaToday) {
+        return null;
+      }
 
       return {
         id: entry.id,
@@ -241,24 +302,29 @@ export default async function Home() {
         payload,
       };
     })
-    .filter(
-      (
-        entry,
-      ): entry is {
-        id: string;
-        author: string;
-        created_at: string;
-        payload: ReturnType<typeof parseTruckReportContent> extends infer T
-          ? Exclude<T, null>
-          : never;
-      } => entry !== null,
-    );
+    .filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+
+  const startupDispatchAlerts = (pendingDispatches || []).map((dispatch) => ({
+    id: dispatch.id,
+    title: dispatch.category,
+    createdAt: dispatch.created_at,
+    message:
+      "Comprueba el corte documental y valida si ya dieron respuesta a la diferencia.",
+    detail: dispatch.description,
+  }));
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-24 lg:max-w-6xl xl:max-w-7xl">
+    <div className="mx-auto min-h-screen max-w-[1600px] bg-slate-50 pb-24">
       <StoreTeamSummary />
+      <HomeStartupAlerts
+        todayKey={bogotaToday}
+        storeCode={storeCode || ""}
+        aseoPerson={todayAseoPerson}
+        dispatchAlerts={startupDispatchAlerts}
+        fefoAlerts={startupFefoItems}
+      />
 
-      <section className="mx-4 mt-4 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] shadow-[0_20px_40px_rgba(229,29,46,0.18)]">
+      <section className="mx-4 mt-4 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] shadow-[0_20px_40px_rgba(229,29,46,0.18)] lg:mx-6 xl:mx-8">
         <div className="flex items-start justify-between gap-4 px-5 py-5 text-white">
           <div className="flex items-start gap-3">
             <span className="mt-0.5 text-xl">O</span>
@@ -332,13 +398,14 @@ export default async function Home() {
         )}
       </section>
 
-      <section className="mx-4 mt-5 rounded-[26px] border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mx-4 mt-5 grid gap-5 lg:mx-6 lg:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] lg:items-start xl:mx-8 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)]">
+        <section className="rounded-[28px] border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
         <div className="mb-4">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-            Resumen Rapido
+            Resumen RÃ¡pido
           </p>
           <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-            Lo critico del dia
+            Lo crÃ­tico del dÃ­a
           </h2>
         </div>
 
@@ -349,29 +416,63 @@ export default async function Home() {
             tone="text-[#0a58ca]"
           />
           <MetricCard
-            label="Merma Sem"
+            label="Merma sem"
             value={String(wasteCountWeek ?? 0)}
             tone="text-[#e51d2e]"
           />
           <MetricCard
-            label="Merma Total"
+            label="Merma total"
             value={String(wasteCount ?? 0)}
             tone="text-[#b91c1c]"
           />
         </div>
-      </section>
+        </section>
 
-      <section className="mt-5 px-4">
-        <div className="mb-3">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-            Acciones Principales
-          </p>
+        <section className="rounded-[28px] border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
+        <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+              Acciones del turno
+            </p>
+            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+              Registro rapido
+            </h2>
+            <p className="mt-1 text-[12px] leading-snug text-slate-500">
+              Deja a mano lo urgente del dia y manten visibles las alertas que si requieren reaccion inmediata.
+            </p>
+          </div>
+          {criticalFefoItems.length > 0 && (
+            <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 xl:max-w-[320px]">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-start gap-2">
+                  <Radar className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+                  <div className="min-w-0">
+                    <h3 className="text-[13px] font-bold text-amber-900">
+                      Radar FEFO activo
+                    </h3>
+                    <p className="mt-0.5 text-[11px] leading-snug text-amber-800/80">
+                      {criticalFefoItems.length} alerta{criticalFefoItems.length === 1 ? "" : "s"} para revisar hoy.
+                    </p>
+                  </div>
+                </div>
+                <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
+                  {criticalFefoItems.length}
+                </span>
+              </div>
+              <Link
+                href="/waste/fefo"
+                className="mt-3 block rounded-2xl bg-amber-200/70 py-2 text-center text-[11px] font-bold text-amber-800 transition-colors hover:bg-amber-200"
+              >
+                Ver radar completo
+              </Link>
+            </div>
+          )}
         </div>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <Link
             href="/instructions/new"
-            className="group flex min-h-[136px] flex-col justify-between rounded-[24px] bg-[#e51d2e] p-4 shadow-[0_16px_32px_rgba(229,29,46,0.18)] transition-all duration-200 active:scale-[0.98]"
+            className="group flex min-h-[150px] flex-col justify-between rounded-[24px] bg-[#e51d2e] p-4 shadow-[0_16px_32px_rgba(229,29,46,0.18)] transition-all duration-200 active:scale-[0.98]"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/18 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
               <ClipboardPlus className="h-[22px] w-[22px] text-white" strokeWidth={2} />
@@ -381,14 +482,14 @@ export default async function Home() {
                 Nueva Instruccion
               </p>
               <p className="mt-1 pr-2 text-[11px] leading-snug text-white/88">
-                Asignar orden de trabajo urgente
+                Asigna una novedad o accion puntual sin perder tiempo en el menu.
               </p>
             </div>
           </Link>
 
           <Link
             href="/waste/new"
-            className="group flex min-h-[136px] flex-col justify-between rounded-[24px] border border-blue-200 bg-white p-4 shadow-sm transition-all duration-200 active:scale-[0.98]"
+            className="group flex min-h-[150px] flex-col justify-between rounded-[24px] border border-blue-200 bg-white p-4 shadow-sm transition-all duration-200 active:scale-[0.98]"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
               <Trash2 className="h-[22px] w-[22px] text-[#0a58ca]" strokeWidth={2} />
@@ -398,150 +499,120 @@ export default async function Home() {
                 Registrar Merma
               </p>
               <p className="mt-1 pr-2 text-[11px] leading-snug text-slate-600">
-                Trazabilidad de averia o merma
+                Traza la novedad, deja evidencia y sigue el caso sin salir del flujo.
               </p>
             </div>
           </Link>
         </div>
-      </section>
+        </section>
 
-      <TruckArrivalReportCard
-        storeName={profile.store_name}
-        initialReports={todayTruckReports}
-        canManage={profile.role === "supervisor" || profile.role === "admin"}
-      />
+        <TruckArrivalReportCard
+          storeName={profile.store_name}
+          initialReports={todayTruckReports}
+          canManage={profile.role === "supervisor" || profile.role === "admin"}
+        />
 
-      <div className="mx-4 mt-6 rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-3 flex items-center justify-between">
-          <div>
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Presupuesto
-            </p>
-            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              Control de Ventas
-            </h2>
-          </div>
-          <BudgetEditModal
-            storeCode={storeCode || ""}
-            currentBudget={monthlyBudget}
-            currentAccumulated={accumulatedSales}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              Objetivo Mes
-            </p>
-            <p className="mt-1 text-sm font-bold leading-snug text-slate-800">
-              {new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: 0,
-              }).format(monthlyBudget)}
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-              Venta Acumulada
-            </p>
-            <p className="mt-1 text-sm font-bold leading-snug text-[#0a58ca]">
-              {new Intl.NumberFormat("es-CO", {
-                style: "currency",
-                currency: "COP",
-                maximumFractionDigits: 0,
-              }).format(accumulatedSales)}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 rounded-2xl bg-slate-50 p-3">
-          <div className="mb-2 h-2 w-full rounded-full bg-slate-200">
-            <div
-              className="h-2 rounded-full bg-[#0a58ca]"
-              style={{
-                width: `${Math.min(
-                  100,
-                  (accumulatedSales / (monthlyBudget || 1)) * 100,
-                )}%`,
-              }}
+        <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Presupuesto
+              </p>
+              <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+                Control de Ventas
+              </h2>
+            </div>
+            <BudgetEditModal
+              storeCode={storeCode || ""}
+              currentBudget={monthlyBudget}
+              currentAccumulated={accumulatedSales}
             />
           </div>
-          <div className="flex justify-between text-[10px] font-bold text-slate-500">
-            <span>0%</span>
-            <span>
-              {Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}%
-              {" "}Cumplimiento
-            </span>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                Objetivo Mes
+              </p>
+              <p className="mt-1 text-sm font-bold leading-snug text-slate-800">
+                {new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  maximumFractionDigits: 0,
+                }).format(monthlyBudget)}
+              </p>
+            </div>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                Venta Acumulada
+              </p>
+              <p className="mt-1 text-sm font-bold leading-snug text-[#0a58ca]">
+                {new Intl.NumberFormat("es-CO", {
+                  style: "currency",
+                  currency: "COP",
+                  maximumFractionDigits: 0,
+                }).format(accumulatedSales)}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-2xl bg-slate-50 p-3">
+            <div className="mb-2 h-2 w-full rounded-full bg-slate-200">
+              <div
+                className="h-2 rounded-full bg-[#0a58ca]"
+                style={{
+                  width: `${Math.min(
+                    100,
+                    (accumulatedSales / (monthlyBudget || 1)) * 100,
+                  )}%`,
+                }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] font-bold text-slate-500">
+              <span>0%</span>
+              <span>
+                {Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}%
+                {" "}Cumplimiento
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {recentInstructions && recentInstructions.length > 0 && (
-        <section className="mx-4 mt-6 rounded-[26px] border border-red-100 bg-white p-5 shadow-[0_10px_24px_rgba(229,29,46,0.08)]">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-[#e51d2e]">
-                Instruccion Activa
-              </p>
-              <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-                Tarea con mayor atencion
-              </h2>
-            </div>
-            <span className="rounded-full bg-[#fff8e6] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#d97706]">
-              {recentInstructions[0].priority === "alta"
-                ? "Alta Prioridad"
-                : recentInstructions[0].priority === "media"
-                  ? "Media Prioridad"
-                  : "Baja Prioridad"}
-            </span>
-          </div>
-
-          <h3 className="mt-4 text-[17px] font-black leading-snug tracking-tight text-slate-900">
-            {recentInstructions[0].content}
-          </h3>
-          <div className="mt-4 flex items-center gap-4 text-[12px]">
-            <span className="text-slate-600">
-              Resp:{" "}
-              <span className="font-bold text-slate-900">
-                {recentInstructions[0].responsible}
-              </span>
-            </span>
-            <span className="text-slate-600">
-              Estado:{" "}
-              <span className="font-bold text-[#e51d2e]">
-                {recentInstructions[0].status === "pendiente"
-                  ? "Pendiente"
-                  : "En Proceso"}
-              </span>
-            </span>
-          </div>
-        </section>
-      )}
-
-      <section className="mt-6 px-4">
-        <div className="mb-4 flex items-end justify-between">
-          <div>
+      <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Accesos Rapidos
+              Navegacion del dia
             </p>
             <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              Herramientas de operacion
+              Operacion principal
             </h2>
+            <p className="mt-1 text-[12px] leading-snug text-slate-500">
+              Deja arriba lo que si se usa durante el turno y manda lo complementario a un segundo nivel mas limpio.
+            </p>
           </div>
-          <Link
-            href="/instructions"
-            className="rounded-full border border-[#e51d2e]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#e51d2e] shadow-sm transition-transform active:scale-95"
-          >
-            Manual Encargado
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/dashboard"
+              className="rounded-full border border-[#e51d2e]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#e51d2e] shadow-sm transition-transform active:scale-95"
+            >
+              Ver indicadores
+            </Link>
+            <Link
+              href="/instructions"
+              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 shadow-sm transition-transform active:scale-95"
+            >
+              Manual encargado
+            </Link>
+          </div>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <QuickAccessCard
             href="/preshift"
             title="Pre-Turno"
-            subtitle="Objetivos del dia"
+            subtitle="Objetivos y enfoque del dia"
             iconBg="bg-amber-50"
             iconTone="text-amber-600"
             icon={
@@ -550,8 +621,8 @@ export default async function Home() {
           />
           <QuickAccessCard
             href="/logbook"
-            title="Bitacora Diaria"
-            subtitle="Muro de novedades"
+            title="Bitacora"
+            subtitle="Novedades y seguimiento"
             iconBg="bg-fuchsia-50"
             iconTone="text-fuchsia-600"
             icon={
@@ -561,7 +632,7 @@ export default async function Home() {
           <QuickAccessCard
             href="/quadrants"
             title="Cuadrantes"
-            subtitle="Asignacion de pasillos"
+            subtitle="Pasillos y responsables"
             iconBg="bg-orange-50"
             iconTone="text-orange-600"
             icon={
@@ -570,56 +641,77 @@ export default async function Home() {
           />
           <QuickAccessCard
             href="/handover"
-            title="Entrega Turno"
-            subtitle="Foto de bodega"
+            title="Entrega"
+            subtitle="Cierre y foto de bodega"
             iconBg="bg-blue-50"
             iconTone="text-blue-600"
             icon={
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
             }
           />
-          <QuickAccessCard
-            href="/impulses"
-            title="Impulso"
-            subtitle="Ventas por asistente"
-            iconBg="bg-emerald-50"
-            iconTone="text-emerald-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-            }
-          />
-          <QuickAccessCard
-            href="/instructions/feedback/new?mode=whatsapp"
-            title="Mensaje IA"
-            subtitle="Retroalimentacion WhatsApp"
-            iconBg="bg-rose-50"
-            iconTone="text-rose-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
-            }
-          />
-          <QuickAccessCard
-            href="/dispatches"
-            title="Diferencias"
-            subtitle="Despachos C1/OTC"
-            iconBg="bg-indigo-50"
-            iconTone="text-indigo-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-            }
-          />
         </div>
 
-        <Link
-          href="/schedule"
-          className="mt-3 flex w-full items-center justify-center gap-2 rounded-[22px] border border-blue-200 bg-white px-4 py-3 text-xs font-bold text-blue-700 shadow-sm transition-transform active:scale-95"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-          Armar Horarios IA
-        </Link>
+        <details className="group mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Herramientas complementarias
+              </p>
+              <p className="mt-1 text-[13px] font-bold text-slate-900">
+                Impulso, mensajes, diferencias y horarios
+              </p>
+            </div>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600 transition group-open:bg-slate-900 group-open:text-white">
+              Ver mas
+            </span>
+          </summary>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <QuickAccessCard
+              href="/impulses"
+              title="Impulso"
+              subtitle="Ventas por asistente"
+              iconBg="bg-emerald-50"
+              iconTone="text-emerald-600"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              }
+            />
+            <QuickAccessCard
+              href="/instructions/feedback/new?mode=whatsapp"
+              title="Mensaje IA"
+              subtitle="WhatsApp y retroalimentacion"
+              iconBg="bg-rose-50"
+              iconTone="text-rose-600"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+              }
+            />
+            <QuickAccessCard
+              href="/dispatches"
+              title="Diferencias"
+              subtitle="Despachos C1 y OTC"
+              iconBg="bg-indigo-50"
+              iconTone="text-indigo-600"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+              }
+            />
+            <QuickAccessCard
+              href="/schedule"
+              title="Horarios IA"
+              subtitle="Planeacion semanal"
+              iconBg="bg-cyan-50"
+              iconTone="text-cyan-700"
+              icon={
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+              }
+            />
+          </div>
+        </details>
       </section>
 
-      <div className="mx-4 mt-6 rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
+      <div className="mx-4 mt-6 rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm lg:mx-6 xl:mx-8">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-blue-100 p-2.5 text-blue-600">
             <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -641,7 +733,7 @@ export default async function Home() {
             {dayNames.map((day) => (
               <div
                 key={day}
-                className="w-[calc(50%-4px)] sm:w-[calc(25%-6px)] rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm"
+                className="w-[calc(50%-4px)] rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm sm:w-[calc(25%-6px)]"
               >
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
                   {day}
@@ -655,47 +747,8 @@ export default async function Home() {
         )}
       </div>
 
-      {criticalFefoItems.length > 0 && (
-        <div className="mx-4 mt-6 rounded-[26px] border border-amber-200 bg-amber-50 p-5 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-sm font-bold text-amber-900">
-              <Radar className="h-5 w-5 text-amber-600" />
-              Radar FEFO: Atencion Requerida
-            </h3>
-            <span className="rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-              {criticalFefoItems.length} alertas
-            </span>
-          </div>
-          <div className="max-h-32 space-y-2 overflow-y-auto">
-            {criticalFefoItems.map((item) => {
-              const rawName = item.product_name.split(" ||| ")[0];
-              const daysLeft = calculateDaysLeft(item.expiration_date);
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-center justify-between rounded-2xl border border-amber-100 bg-white/70 p-2.5 text-xs"
-                >
-                  <span className="truncate pr-2 font-semibold text-amber-900">
-                    {rawName}
-                  </span>
-                  <span className="shrink-0 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-black text-amber-800">
-                    {daysLeft}d / {item.quantity}u
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          <Link
-            href="/waste/fefo"
-            className="mt-3 block rounded-2xl bg-amber-200/60 py-2.5 text-center text-xs font-bold text-amber-800 transition-colors hover:bg-amber-200"
-          >
-            Ver Radar Completo
-          </Link>
-        </div>
-      )}
-
       {recentInstructions && recentInstructions.length > 0 && (
-        <section className="mt-8 px-4">
+        <section className="mx-4 mt-8 lg:mx-6 xl:mx-8">
           <div className="mb-4">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
               Seguimiento
@@ -708,7 +761,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="grid gap-3 xl:grid-cols-2">
             {recentInstructions.map((inst) => (
               <InstructionCard key={inst.id} instruction={inst} />
             ))}
@@ -717,7 +770,7 @@ export default async function Home() {
       )}
 
       {(!recentInstructions || recentInstructions.length === 0) && (
-        <div className="mx-4 mt-8 flex flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm">
+        <div className="mx-4 mt-8 flex flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm lg:mx-6 xl:mx-8">
           <FileText className="mb-3 size-6 text-slate-300" />
           <p className="text-xs font-medium text-slate-500">
             No hay instrucciones recientes
@@ -775,7 +828,7 @@ function QuickAccessCard({
   return (
     <Link
       href={href}
-      className="w-[calc(50%-6px)] rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm transition-transform active:scale-95"
+      className="w-full rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm transition-transform active:scale-95"
     >
       <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${iconBg} ${iconTone}`}>
         {icon}
