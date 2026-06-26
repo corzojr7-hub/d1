@@ -21,6 +21,7 @@ type FefoAlert = {
 
 type Props = {
   todayKey: string;
+  sessionKey: string;
   storeCode: string;
   aseoPerson: string;
   dispatchAlerts: DispatchAlert[];
@@ -56,12 +57,13 @@ function formatBogotaDate(value: string) {
 
 export default function HomeStartupAlerts({
   todayKey,
+  sessionKey,
   storeCode,
   aseoPerson,
   dispatchAlerts,
   fefoAlerts,
 }: Props) {
-  const closeKey = `home-alerts:${storeCode}:${todayKey}:closed`;
+  const closeKey = `home-alerts:${storeCode}:${sessionKey}:closed`;
   const dispatchKey = `home-alerts:${storeCode}:${todayKey}:dispatch`;
   const fefoKey = `home-alerts:${storeCode}:${todayKey}:fefo`;
 

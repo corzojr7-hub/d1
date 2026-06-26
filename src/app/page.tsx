@@ -86,6 +86,9 @@ export default async function Home() {
     bogotaMidnight,
   } =
     getBogotaCalendar();
+  const sessionAlertKey = user?.last_sign_in_at
+    ? `${user.id}:${user.last_sign_in_at}`
+    : `${user?.id ?? "anon"}:${bogotaToday}`;
   const currentMonthYear = `${year}-${String(month).padStart(2, "0")}`;
   const monthStart = `${currentMonthYear}-01`;
   const nextMonthYear = month === 12 ? year + 1 : year;
@@ -318,6 +321,7 @@ export default async function Home() {
       <StoreTeamSummary />
       <HomeStartupAlerts
         todayKey={bogotaToday}
+        sessionKey={sessionAlertKey}
         storeCode={storeCode || ""}
         aseoPerson={todayAseoPerson}
         dispatchAlerts={startupDispatchAlerts}
@@ -506,11 +510,13 @@ export default async function Home() {
         </div>
         </section>
 
-        <TruckArrivalReportCard
-          storeName={profile.store_name}
-          initialReports={todayTruckReports}
-          canManage={profile.role === "supervisor" || profile.role === "admin"}
-        />
+        <div className="lg:col-span-2">
+          <TruckArrivalReportCard
+            storeName={profile.store_name}
+            initialReports={todayTruckReports}
+            canManage={profile.role === "supervisor" || profile.role === "admin"}
+          />
+        </div>
 
         <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
