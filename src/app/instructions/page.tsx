@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Search } from "lucide-react";
-import { requireAuth } from "@/lib/supabase/require-auth";
+import { AlertCircle, CheckCircle2, ClipboardList, Plus } from "lucide-react";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import InstructionCard from "@/components/instructions/InstructionCard";
+import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const metadata: Metadata = {
-  title: "Bitácora de Instrucciones — Sistema de Control Operativo de Tienda",
+  title: "Bitácora de Instrucciones - Sistema de Control Operativo de Tienda",
 };
 
 export default async function InstructionsIndex() {
@@ -24,116 +24,263 @@ export default async function InstructionsIndex() {
     .order("created_at", { ascending: false })
     .limit(50);
 
+  const instructionList = instructions || [];
+  const activeCount = instructionList.filter((item) =>
+    ["pendiente", "en_proceso", "requiere_seguimiento"].includes(item.status),
+  ).length;
+  const completedCount = instructionList.filter((item) => item.status === "cumplida").length;
+  const urgentCount = instructionList.filter((item) =>
+    ["critica", "alta"].includes(item.priority),
+  ).length;
+
   return (
-    <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+    <div className="mx-auto min-h-screen w-full max-w-[1600px] bg-slate-50 px-4 py-8 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
       <div className="mb-2">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-sm font-bold text-slate-500 transition-colors hover:text-slate-700"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="m15 18-6-6 6-6" />
+          </svg>
           Volver
         </Link>
       </div>
 
-      <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.16)]">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-          Centro de Control
-        </p>
-        <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-          Bitácora de Instrucciones
-        </h1>
-        <p className="mt-2 max-w-[250px] text-[13px] leading-relaxed text-white/82">
-          Revisa tareas activas, seguimiento operativo y novedades del turno.
-        </p>
-        <div className="mt-4 inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
-          {instructions?.length ?? 0} instrucciones registradas
+      <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.16)] sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
+          <div className="max-w-3xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
+              Centro de control
+            </p>
+            <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
+              Bitácora de Instrucciones
+            </h1>
+            <p className="mt-2 max-w-[420px] text-[13px] leading-relaxed text-white/82 sm:text-sm">
+              Revisa tareas activas, organiza el seguimiento del turno y entra rápido
+              a los flujos clave.
+            </p>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <div className="inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
+                {instructionList.length} instrucciones registradas
+              </div>
+              <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/88 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
+                {activeCount} activas por seguimiento
+              </div>
+            </div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[420px]">
+            <div className="rounded-[24px] bg-white/10 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] backdrop-blur-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/65">
+                Pendientes del turno
+              </p>
+              <p className="mt-2 text-3xl font-black text-white">{activeCount}</p>
+              <p className="mt-1 text-xs font-medium text-white/75">
+                Instrucciones que siguen abiertas o requieren seguimiento.
+              </p>
+            </div>
+            <div className="rounded-[24px] bg-white/10 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] backdrop-blur-sm">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/65">
+                Alta prioridad
+              </p>
+              <p className="mt-2 text-3xl font-black text-white">{urgentCount}</p>
+              <p className="mt-1 text-xs font-medium text-white/75">
+                Casos que piden reacción rápida del equipo.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
-      <div className="mt-6 space-y-3">
-        <Link
-          href="/audits"
-          className="flex w-full items-center justify-between rounded-[24px] border border-blue-200 bg-white p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-blue-50 p-2.5 text-blue-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      <section className="mt-6 grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Flujos del turno
+              </p>
+              <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+                Centro operativo
+              </h2>
             </div>
-            <div className="text-left">
-              <h2 className="text-sm font-bold">Tablero de Básicos</h2>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Asignación y Verificación Diaria
+            <p className="max-w-[240px] text-right text-[11px] font-medium leading-snug text-slate-400">
+              Entra rápido a verificaciones, básicos y retroalimentación.
+            </p>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <Link
+              href="/audits"
+              className="flex min-h-[112px] w-full items-center justify-between rounded-[24px] border border-blue-200 bg-white p-4 text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-blue-50 p-2.5 text-blue-700">
+                  <ClipboardList className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-sm font-bold">Tablero de Básicos</h2>
+                  <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                    Asignación y verificación diaria
+                  </p>
+                </div>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-slate-300"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/audits/daily"
+              className="flex min-h-[112px] w-full items-center justify-between rounded-[24px] border border-emerald-200 bg-white p-4 text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-700">
+                  <CheckCircle2 className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-sm font-bold">Checklist operativo</h2>
+                  <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                    Aseo, baño, cafetín y puntos clave
+                  </p>
+                </div>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-slate-300"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/instructions/feedback"
+              className="flex min-h-[112px] w-full items-center justify-between rounded-[24px] border border-amber-200 bg-white p-4 text-slate-900 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98]"
+            >
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl bg-amber-50 p-2.5 text-amber-700">
+                  <AlertCircle className="h-6 w-6" />
+                </div>
+                <div className="text-left">
+                  <h2 className="text-sm font-bold">Retroalimentaciones</h2>
+                  <p className="mt-0.5 text-[11px] font-medium text-slate-500">
+                    Llamados de atención y compromisos
+                  </p>
+                </div>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-slate-300"
+              >
+                <path d="m9 18 6-6-6-6" />
+              </svg>
+            </Link>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+            Acción principal
+          </p>
+          <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+            Registra una novedad nueva
+          </h2>
+          <p className="mt-2 text-sm leading-relaxed text-slate-500">
+            Si el equipo necesita una instrucción nueva, entra directo al registro y
+            deja la novedad lista desde aquí.
+          </p>
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-[22px] border border-slate-100 bg-slate-50 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                Cumplidas
+              </p>
+              <p className="mt-2 text-2xl font-black text-slate-900">{completedCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500">
+                Tareas que ya cerró el equipo.
               </p>
             </div>
+            <Link
+              href="/instructions/new"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e51d2e] px-5 py-3 text-sm font-black text-white shadow-[0_16px_32px_rgba(229,29,46,0.2)] transition hover:-translate-y-0.5 hover:bg-[#cf1727]"
+            >
+              <Plus className="h-4 w-4" />
+              Crear instrucción
+            </Link>
           </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6"/></svg>
-        </Link>
+        </div>
+      </section>
 
-        <Link
-          href="/audits/daily"
-          className="flex w-full items-center justify-between rounded-[24px] border border-emerald-200 bg-white p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-emerald-50 p-2.5 text-emerald-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      <section className="mt-6 rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+              Listado reciente
+            </p>
+            <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+              Instrucciones del turno
+            </h2>
+            <p className="mt-1 text-[12px] leading-snug text-slate-500">
+              Baja directo al historial reciente y revisa primero lo que sigue abierto o con prioridad alta.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-full bg-slate-100 px-3 py-2 text-[11px] font-bold text-slate-600">
+              {instructionList.length} registradas
             </div>
-            <div className="text-left">
-              <h2 className="text-sm font-bold">Checklist Operativo</h2>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Aseo, baño, cafetín y puntos clave
-              </p>
+            <div className="rounded-full bg-rose-50 px-3 py-2 text-[11px] font-bold text-rose-700">
+              {activeCount} activas
+            </div>
+            <div className="rounded-full bg-amber-50 px-3 py-2 text-[11px] font-bold text-amber-700">
+              {urgentCount} urgentes
+            </div>
+            <div className="rounded-full bg-emerald-50 px-3 py-2 text-[11px] font-bold text-emerald-700">
+              {completedCount} cumplidas
             </div>
           </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6"/></svg>
-        </Link>
-
-        <Link
-          href="/instructions/feedback"
-          className="flex w-full items-center justify-between rounded-[24px] border border-amber-200 bg-white p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98]"
-        >
-          <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-amber-50 p-2.5 text-amber-700">
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            </div>
-            <div className="text-left">
-              <h2 className="text-sm font-bold">Retroalimentaciones</h2>
-              <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                Llamados de atención y compromisos
-              </p>
-            </div>
-          </div>
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6"/></svg>
-        </Link>
-      </div>
-
-      <div className="mt-6 flex items-center gap-3 rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
-        <Search className="h-5 w-5 shrink-0 text-slate-400" />
-        <input
-          type="text"
-          placeholder="Buscar instrucción, notas..."
-          className="w-full bg-transparent text-[15px] font-medium text-slate-700 outline-none placeholder:text-slate-400"
-        />
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
-        <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
-          Asignado
-          <span className="text-[10px]">▼</span>
-        </button>
-        <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
-          Prioridad
-          <span className="text-[10px]">▼</span>
-        </button>
-        <button type="button" className="flex items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:text-slate-700">
-          Estado
-          <span className="text-[10px]">▼</span>
-        </button>
-      </div>
+        </div>
+      </section>
 
       <div className="mt-6 space-y-4">
-        {instructions && instructions.length > 0 ? (
-          instructions.map((inst) => (
+        {instructionList.length > 0 ? (
+          instructionList.map((inst) => (
             <InstructionCard key={inst.id} instruction={inst} />
           ))
         ) : (
