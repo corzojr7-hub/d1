@@ -33,8 +33,8 @@ export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) 
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#0a3875] via-[#0f4c97] to-[#2b6fc0] px-4 py-4 shadow-[0_16px_34px_rgba(10,56,117,0.18)]">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#0a3875] via-[#0f4c97] to-[#2b6fc0] px-4 py-4 shadow-[0_16px_34px_rgba(10,56,117,0.18)] lg:rounded-[36px] lg:px-7 lg:py-7">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -56,28 +56,31 @@ export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) 
         </div>
       </header>
 
-      <div className="flex flex-col gap-6 p-4">
+      <div className="flex flex-col gap-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.88fr)_minmax(0,1.12fr)] lg:gap-6 lg:py-6">
         <form
           onSubmit={handleSubmit}
-          className="flex gap-2 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm"
+          className="flex gap-2 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:sticky lg:top-28 lg:flex-col lg:gap-4 lg:self-start lg:p-6"
         >
           <textarea
             name="content"
             required
             rows={2}
-            className="flex-1 bg-slate-50 border-0 ring-1 ring-slate-200 rounded-xl px-3 py-2 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none"
+            className="flex-1 resize-none rounded-xl border-0 bg-slate-50 px-3 py-2 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 lg:min-h-[180px] lg:px-4 lg:py-3"
             placeholder="Escribe una novedad..."
           />
-          <button
-            type="submit"
-            disabled={isPending}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0a3875] text-white self-end transition hover:bg-[#072a59] disabled:opacity-50"
-          >
-            <Send className="h-4 w-4" />
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={isPending}
+              className="flex h-10 w-10 shrink-0 items-center justify-center self-end rounded-full bg-[#0a3875] text-white transition hover:bg-[#072a59] disabled:opacity-50 lg:h-11 lg:min-w-[164px] lg:gap-2 lg:px-5"
+            >
+              <Send className="h-4 w-4" />
+              <span className="hidden text-sm font-semibold lg:inline">Registrar novedad</span>
+            </button>
+          </div>
         </form>
 
-        <div className="space-y-4">
+        <div className="grid gap-4 xl:grid-cols-2">
           {entries && entries.length > 0 ? (
             entries.map((entry) => (
               <div

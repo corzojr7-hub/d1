@@ -49,8 +49,8 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -72,11 +72,14 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-6 lg:space-y-0 lg:py-6"
+      >
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:p-6">
           <h2 className="mb-4 text-sm font-bold text-slate-800">¿Quiénes realizan el cambio?</h2>
 
-          <div className="space-y-4">
+          <div className="space-y-4 lg:space-y-5">
             <div>
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
                 Entrega el turno
@@ -111,7 +114,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm lg:p-6">
           <h2 className="mb-4 text-sm font-bold text-slate-800">Estado de la Bodega</h2>
 
           <div
@@ -149,23 +152,25 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-70"
-        >
-          {isPending ? (
-            <>
-              <UploadCloud className="h-5 w-5 animate-pulse" />
-              Subiendo registro...
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-5 w-5" />
-              Confirmar Entrega
-            </>
-          )}
-        </button>
+        <div className="lg:col-span-2">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-70 lg:mx-auto lg:max-w-md"
+          >
+            {isPending ? (
+              <>
+                <UploadCloud className="h-5 w-5 animate-pulse" />
+                Subiendo registro...
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-5 w-5" />
+                Confirmar Entrega
+              </>
+            )}
+          </button>
+        </div>
       </form>
     </div>
   );

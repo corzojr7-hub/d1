@@ -297,8 +297,8 @@ export default function ClientQuadrants({
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -320,10 +320,10 @@ export default function ClientQuadrants({
         </div>
       </header>
 
-      <div className="space-y-6 p-4">
+      <div className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-6 lg:space-y-0 lg:py-6">
         <form
           onSubmit={handleAssign}
-          className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm"
+          className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:sticky lg:top-28 lg:self-start lg:p-6"
         >
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
             <UserPlus className="h-4 w-4 text-blue-500" />

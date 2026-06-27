@@ -27,8 +27,8 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)]">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
         <div className="flex items-center gap-3">
           <Link
             href="/"
@@ -50,8 +50,11 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
         </div>
       </header>
 
-      <form onSubmit={handleSubmit} className="p-4 space-y-6">
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm">
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-6 lg:space-y-0 lg:py-6"
+      >
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm lg:p-6">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Target className="h-4 w-4 text-amber-500" />
             Metas de Venta
@@ -74,7 +77,7 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm">
+        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm lg:p-6">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-emerald-500" />
             Foco Operativo
@@ -109,13 +112,15 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isPending}
-          className="w-full flex items-center justify-center gap-2 bg-[#0a3875] text-white py-3.5 rounded-full font-bold text-sm hover:bg-[#072a59] transition-colors disabled:opacity-50"
-        >
-          {isPending ? "Guardando..." : "Registrar Pre-Turno"}
-        </button>
+        <div className="lg:col-span-2">
+          <button
+            type="submit"
+            disabled={isPending}
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a3875] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#072a59] disabled:opacity-50 lg:mx-auto lg:max-w-md"
+          >
+            {isPending ? "Guardando..." : "Registrar Pre-Turno"}
+          </button>
+        </div>
       </form>
     </div>
   );
