@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
-import BudgetEditModal from "@/components/dashboard/BudgetEditModal";
 import HomeStartupAlerts from "@/components/dashboard/HomeStartupAlerts";
 import TruckArrivalReportCard from "@/components/dashboard/TruckArrivalReportCard";
 import InstructionCard from "@/components/instructions/InstructionCard";
@@ -518,240 +517,243 @@ export default async function Home() {
           />
         </div>
 
-        <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
-          <div className="mb-3 flex items-center justify-between">
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                Presupuesto
-              </p>
-              <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-                Control de Ventas
-              </h2>
-            </div>
-            <BudgetEditModal
-              storeCode={storeCode || ""}
-              currentBudget={monthlyBudget}
-              currentAccumulated={accumulatedSales}
-            />
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                Objetivo Mes
-              </p>
-              <p className="mt-1 text-sm font-bold leading-snug text-slate-800">
-                {new Intl.NumberFormat("es-CO", {
-                  style: "currency",
-                  currency: "COP",
-                  maximumFractionDigits: 0,
-                }).format(monthlyBudget)}
-              </p>
-            </div>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
-                Venta Acumulada
-              </p>
-              <p className="mt-1 text-sm font-bold leading-snug text-[#0a58ca]">
-                {new Intl.NumberFormat("es-CO", {
-                  style: "currency",
-                  currency: "COP",
-                  maximumFractionDigits: 0,
-                }).format(accumulatedSales)}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-4 rounded-2xl bg-slate-50 p-3">
-            <div className="mb-2 h-2 w-full rounded-full bg-slate-200">
-              <div
-                className="h-2 rounded-full bg-[#0a58ca]"
-                style={{
-                  width: `${Math.min(
-                    100,
-                    (accumulatedSales / (monthlyBudget || 1)) * 100,
-                  )}%`,
-                }}
-              />
-            </div>
-            <div className="flex justify-between text-[10px] font-bold text-slate-500">
-              <span>0%</span>
-              <span>
-                {Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}%
-                {" "}Cumplimiento
-              </span>
-            </div>
-          </div>
-        </div>
       </div>
 
       <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Navegacion del dia
-            </p>
-            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              Operacion principal
-            </h2>
-            <p className="mt-1 text-[12px] leading-snug text-slate-500">
-              Deja arriba lo que si se usa durante el turno y manda lo complementario a un segundo nivel mas limpio.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href="/dashboard"
-              className="rounded-full border border-[#e51d2e]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#e51d2e] shadow-sm transition-transform active:scale-95"
-            >
-              Ver indicadores
-            </Link>
-            <Link
-              href="/instructions"
-              className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 shadow-sm transition-transform active:scale-95"
-            >
-              Manual encargado
-            </Link>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <QuickAccessCard
-            href="/preshift"
-            title="Pre-Turno"
-            subtitle="Objetivos y enfoque del dia"
-            iconBg="bg-amber-50"
-            iconTone="text-amber-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-            }
-          />
-          <QuickAccessCard
-            href="/logbook"
-            title="Bitacora"
-            subtitle="Novedades y seguimiento"
-            iconBg="bg-fuchsia-50"
-            iconTone="text-fuchsia-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-            }
-          />
-          <QuickAccessCard
-            href="/quadrants"
-            title="Cuadrantes"
-            subtitle="Pasillos y responsables"
-            iconBg="bg-orange-50"
-            iconTone="text-orange-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            }
-          />
-          <QuickAccessCard
-            href="/handover"
-            title="Entrega"
-            subtitle="Cierre y foto de bodega"
-            iconBg="bg-blue-50"
-            iconTone="text-blue-600"
-            icon={
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-            }
-          />
-        </div>
-
-        <details className="group mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
-          <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                Herramientas complementarias
-              </p>
-              <p className="mt-1 text-[13px] font-bold text-slate-900">
-                Impulso, mensajes, diferencias y horarios
-              </p>
-            </div>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-600 transition group-open:bg-slate-900 group-open:text-white">
-              Ver mas
-            </span>
-          </summary>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <QuickAccessCard
-              href="/impulses"
-              title="Impulso"
-              subtitle="Ventas por asistente"
-              iconBg="bg-emerald-50"
-              iconTone="text-emerald-600"
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-              }
-            />
-            <QuickAccessCard
-              href="/instructions/feedback/new?mode=whatsapp"
-              title="Mensaje IA"
-              subtitle="WhatsApp y retroalimentacion"
-              iconBg="bg-rose-50"
-              iconTone="text-rose-600"
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
-              }
-            />
-            <QuickAccessCard
-              href="/dispatches"
-              title="Diferencias"
-              subtitle="Despachos C1 y OTC"
-              iconBg="bg-indigo-50"
-              iconTone="text-indigo-600"
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-              }
-            />
-            <QuickAccessCard
-              href="/schedule"
-              title="Horarios IA"
-              subtitle="Planeacion semanal"
-              iconBg="bg-cyan-50"
-              iconTone="text-cyan-700"
-              icon={
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-              }
-            />
-          </div>
-        </details>
-      </section>
-
-      <div className="mx-4 mt-6 rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm lg:mx-6 xl:mx-8">
-        <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-blue-100 p-2.5 text-blue-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
-          <div>
-            <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
-              Encargado de Aseo Hoy
-            </span>
-            <h3 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              {todayAseoPerson}
-            </h3>
-            <p className="mt-1 text-[11px] font-medium text-slate-500">
-              Bano, Cafetin y Aforo
-            </p>
-          </div>
-        </div>
-        {Object.keys(aseoSchedule).length > 0 && (
-          <div className="mt-4 flex flex-wrap justify-center gap-2">
-            {dayNames.map((day) => (
-              <div
-                key={day}
-                className="w-[calc(50%-4px)] rounded-2xl border border-blue-100 bg-white/80 px-3 py-2 shadow-sm sm:w-[calc(25%-6px)]"
-              >
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
-                  {day}
+        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
+          <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  Navegacion del dia
                 </p>
-                <p className="mt-1 text-[11px] font-bold leading-snug text-slate-700">
-                  {aseoSchedule[day] || "Sin asignar"}
+                <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+                  Operacion principal
+                </h2>
+                <p className="mt-1 text-[12px] leading-snug text-slate-500">
+                  Menos opciones arriba, mas claridad para abrir, seguir y cerrar el turno.
                 </p>
               </div>
-            ))}
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href="/dashboard"
+                  className="rounded-full border border-[#e51d2e]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#e51d2e] shadow-sm transition-transform active:scale-95"
+                >
+                  Ver indicadores
+                </Link>
+                <Link
+                  href="/sales"
+                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 shadow-sm transition-transform active:scale-95"
+                >
+                  Ver ventas
+                </Link>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+              <QuickAccessCard
+                href="/logbook"
+                title="Bitacora"
+                subtitle="Novedades y seguimiento del turno"
+                iconBg="bg-fuchsia-50"
+                iconTone="text-fuchsia-600"
+                icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+                }
+              />
+              <QuickAccessCard
+                href="/quadrants"
+                title="Cuadrantes"
+                subtitle="Pasillos, responsables y control"
+                iconBg="bg-orange-50"
+                iconTone="text-orange-600"
+                icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                }
+              />
+              <QuickAccessCard
+                href="/handover"
+                title="Entrega"
+                subtitle="Cierre de turno y evidencia"
+                iconBg="bg-blue-50"
+                iconTone="text-blue-600"
+                icon={
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                }
+              />
+            </div>
+
+            <details className="group mt-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                    Herramientas complementarias
+                  </p>
+                  <p className="mt-1 text-[13px] font-bold text-slate-900">
+                    Pre-turno, impulso, mensajes, diferencias y horarios
+                  </p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-slate-600 transition group-open:bg-slate-900 group-open:text-white">
+                  Ver mas
+                </span>
+              </summary>
+
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <QuickAccessCard
+                  href="/preshift"
+                  title="Pre-Turno"
+                  subtitle="Objetivos y enfoque del dia"
+                  iconBg="bg-amber-50"
+                  iconTone="text-amber-600"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                  }
+                />
+                <QuickAccessCard
+                  href="/impulses"
+                  title="Impulso"
+                  subtitle="Ventas por asistente"
+                  iconBg="bg-emerald-50"
+                  iconTone="text-emerald-600"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+                  }
+                />
+                <QuickAccessCard
+                  href="/instructions/feedback/new?mode=whatsapp"
+                  title="Mensaje IA"
+                  subtitle="WhatsApp y retroalimentacion"
+                  iconBg="bg-rose-50"
+                  iconTone="text-rose-600"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
+                  }
+                />
+                <QuickAccessCard
+                  href="/dispatches"
+                  title="Diferencias"
+                  subtitle="Despachos C1 y OTC"
+                  iconBg="bg-indigo-50"
+                  iconTone="text-indigo-600"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
+                  }
+                />
+                <QuickAccessCard
+                  href="/schedule"
+                  title="Horarios IA"
+                  subtitle="Planeacion semanal"
+                  iconBg="bg-cyan-50"
+                  iconTone="text-cyan-700"
+                  icon={
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
+                  }
+                />
+              </div>
+            </details>
           </div>
-        )}
-      </div>
+
+          <div className="rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="rounded-2xl bg-blue-100 p-2.5 text-blue-600">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <div>
+                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
+                  Responsable de aseo
+                </span>
+                <h3 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
+                  {todayAseoPerson}
+                </h3>
+                <p className="mt-1 text-[11px] font-medium text-slate-500">
+                  Bano, cafetin y aforo del dia.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 rounded-2xl bg-white/80 p-4 shadow-sm ring-1 ring-blue-100">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                Resumen comercial
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Objetivo mes
+                  </p>
+                  <p className="mt-1 text-[13px] font-black leading-snug text-slate-900">
+                    {new Intl.NumberFormat("es-CO", {
+                      style: "currency",
+                      currency: "COP",
+                      maximumFractionDigits: 0,
+                    }).format(monthlyBudget)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
+                    Venta acumulada
+                  </p>
+                  <p className="mt-1 text-[13px] font-black leading-snug text-[#0a58ca]">
+                    {new Intl.NumberFormat("es-CO", {
+                      style: "currency",
+                      currency: "COP",
+                      maximumFractionDigits: 0,
+                    }).format(accumulatedSales)}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mt-3 h-2 w-full rounded-full bg-slate-200">
+                <div
+                  className="h-2 rounded-full bg-[#0a58ca]"
+                  style={{
+                    width: `${Math.min(
+                      100,
+                      (accumulatedSales / (monthlyBudget || 1)) * 100,
+                    )}%`,
+                  }}
+                />
+              </div>
+              <p className="mt-2 text-[10px] font-bold text-slate-500">
+                {Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}% de cumplimiento
+              </p>
+            </div>
+
+            {Object.keys(aseoSchedule).length > 0 && (
+              <details className="group mt-4 rounded-[22px] border border-blue-100 bg-white/80 p-4 shadow-sm">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                      Programacion semanal
+                    </p>
+                    <p className="mt-1 text-[13px] font-bold text-slate-900">
+                      Ver responsables de aseo de la semana
+                    </p>
+                  </div>
+                  <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700 transition group-open:bg-blue-600 group-open:text-white">
+                    Ver
+                  </span>
+                </summary>
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {dayNames.map((day) => (
+                    <div
+                      key={day}
+                      className="rounded-2xl border border-blue-100 bg-white px-3 py-2"
+                    >
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
+                        {day}
+                      </p>
+                      <p className="mt-1 text-[11px] font-bold leading-snug text-slate-700">
+                        {aseoSchedule[day] || "Sin asignar"}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </details>
+            )}
+          </div>
+        </div>
+      </section>
 
       {recentInstructions && recentInstructions.length > 0 && (
         <section className="mx-4 mt-8 lg:mx-6 xl:mx-8">
