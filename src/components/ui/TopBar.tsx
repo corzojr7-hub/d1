@@ -7,24 +7,20 @@ import { logout } from "@/app/login/actions";
 import { useProfile } from "./ProfileContext";
 
 const DAILY_MESSAGES: Record<string, string> = {
-  domingo: "Revisión de productos abandonados, reintegros y validación general de precios",
-  lunes:
-    "Restaurar la tienda después de la venta del fin de semana, recuperando orden, limpieza e imagen comercial",
-  martes: "Limpieza de polvo y revisión de fechas para fortalecer el control FEFO",
-  miércoles: "Limpieza de porta precios y cambio de piezas dañadas o en mal estado",
-  jueves: "Limpieza de góndolas y rotación de mercancía para mejorar orden y frescura",
-  viernes: "Restregado de piso y retiro de chicles para cuidar la imagen de la tienda",
-  sábado: "Organización de exhibiciones adicionales para reforzar la presentación comercial",
+  domingo: "Puesta a punto de la tienda",
+  lunes: "Recuperacion de la tienda tras el fin de semana",
+  martes: "Limpieza de polvo y revision FEFO",
+  miercoles: "Ajuste de porta precios y piezas",
+  jueves: "Limpieza de gondolas y rotacion de mercancia",
+  viernes: "Restregado de piso y retiro de chicles",
+  sabado: "Organizacion de exhibiciones adicionales",
 };
 
 function normalizeDayKey(value: string) {
   return value
     .toLowerCase()
-    .replace(/á/g, "a")
-    .replace(/é/g, "e")
-    .replace(/í/g, "i")
-    .replace(/ó/g, "o")
-    .replace(/ú/g, "u");
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export default function TopBar() {
@@ -59,7 +55,7 @@ export default function TopBar() {
       const now = new Date();
       const weekday = weekdayFormatter.format(now).toLowerCase();
       const label = weekday.charAt(0).toUpperCase() + weekday.slice(1);
-      const priority = DAILY_MESSAGES[weekday] || "";
+      const priority = DAILY_MESSAGES[normalizeDayKey(weekday)] || "";
       const normalizedDay = normalizeDayKey(weekday);
       const aseoTask = Array.isArray(profile.basic_tasks)
         ? profile.basic_tasks.find(
@@ -81,9 +77,7 @@ export default function TopBar() {
           ? aseoTask.schedule[normalizedDay as keyof typeof aseoTask.schedule]
           : "Sin asignar";
 
-      setTodayMessage(
-        `Hoy es ${label} | Prioridad del día: ${priority} | Aseo de hoy: ${aseoToday}`,
-      );
+      setTodayMessage(`Hoy es ${label} · ${priority} · Aseo: ${aseoToday}`);
       setCurrentDateTime(dateTimeFormatter.format(now));
     }
 
@@ -154,15 +148,11 @@ export default function TopBar() {
       </div>
 
       {todayMessage && (
-        <div className="relative flex items-center overflow-hidden border-t border-white/10 bg-[#c41525] py-1.5 shadow-inner lg:mx-auto lg:max-w-7xl lg:px-6 xl:px-8">
-          <div className="absolute bottom-0 left-0 top-0 z-10 w-8 bg-gradient-to-r from-[#c41525] to-transparent" />
-          <div className="absolute bottom-0 right-0 top-0 z-10 w-8 bg-gradient-to-l from-[#c41525] to-transparent" />
-          <div className="animate-marquee whitespace-nowrap text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
-            <span className="mx-8">{todayMessage}</span>
-            <span className="mx-8 opacity-50">|</span>
-            <span className="mx-8">{todayMessage}</span>
-            <span className="mx-8 opacity-50">|</span>
-            <span className="mx-8">{todayMessage}</span>
+        <div className="border-t border-white/10 bg-[#c41525] px-4 py-2 shadow-inner lg:px-6 xl:px-8">
+          <div className="mx-auto lg:max-w-7xl">
+            <p className="truncate text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
+              {todayMessage}
+            </p>
           </div>
         </div>
       )}

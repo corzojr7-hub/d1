@@ -174,71 +174,75 @@ export default function NewFeedbackPage() {
   ];
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8 lg:max-w-3xl lg:px-6 xl:max-w-4xl">
-      <Link
-        href={isWhatsappMode ? "/" : "/instructions/feedback"}
-        className="text-xs text-zinc-400 underline-offset-2 hover:underline"
-      >
-        Volver
-      </Link>
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 pt-8 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:p-6">
+        <Link
+          href={isWhatsappMode ? "/" : "/instructions/feedback"}
+          className="text-xs text-zinc-400 underline-offset-2 hover:underline"
+        >
+          Volver
+        </Link>
 
-      <h1 className="mt-4 text-2xl font-extrabold text-slate-800">
-        {isWhatsappMode ? "Mensaje IA" : "Nuevo Registro"}
-      </h1>
-      <p className="mt-1 text-sm text-slate-500">
-        {isWhatsappMode
-          ? "Escribe la idea como salga y la IA la baja a un mensaje corto, natural y listo para WhatsApp."
-          : "Documenta retroalimentaciones, llamados de atencion o actas de compromiso"}
-      </p>
+        <h1 className="mt-4 text-2xl font-extrabold text-slate-800">
+          {isWhatsappMode ? "Mensaje IA" : "Nuevo Registro"}
+        </h1>
+        <p className="mt-1 text-sm text-slate-500">
+          {isWhatsappMode
+            ? "Escribe la idea como salga y la IA la baja a un mensaje corto, natural y listo para WhatsApp."
+            : "Documenta retroalimentaciones, llamados de atencion o actas de compromiso"}
+        </p>
+      </div>
 
       <form
         onSubmit={handleSubmit}
-        className="mt-6 space-y-5 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm"
+        className="mt-6 space-y-5 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:space-y-6 lg:p-7"
       >
-        <label className="block">
-          <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
-            <User className="h-4 w-4 text-slate-400" /> Para quien
-          </span>
-          <AppSelect
-            value={formData.directed_to}
-            onChange={(value) => setFormData((current) => ({ ...current, directed_to: value }))}
-            options={[
-              { value: "", label: "Selecciona al destinatario..." },
-              ...recipientOptions.map((name) => ({ value: name, label: name })),
-            ]}
-            buttonClassName="py-3.5 text-base"
-          />
-        </label>
+        <div className="grid gap-5 lg:grid-cols-2">
+          <label className="block">
+            <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
+              <User className="h-4 w-4 text-slate-400" /> Para quien
+            </span>
+            <AppSelect
+              value={formData.directed_to}
+              onChange={(value) => setFormData((current) => ({ ...current, directed_to: value }))}
+              options={[
+                { value: "", label: "Selecciona al destinatario..." },
+                ...recipientOptions.map((name) => ({ value: name, label: name })),
+              ]}
+              buttonClassName="py-3.5 text-base"
+            />
+          </label>
 
-        <label className="block">
-          <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
-            <MessageSquareWarning className="h-4 w-4 text-slate-400" /> Tipo
-          </span>
-          <AppSelect
-            value={formData.type}
-            onChange={(value) =>
-              setFormData((current) => ({
-                ...current,
-                type: value as FeedbackType,
-                acta_template: value === "acta_compromiso" ? current.acta_template : "",
-              }))
-            }
-            options={[
-              ...(isWhatsappMode ? [{ value: "mensaje_normal", label: "Mensaje normal" }] : []),
-              { value: "retroalimentacion", label: "Retroalimentación" },
-              { value: "llamado_atencion", label: "Llamado de atención" },
-              { value: "acta_compromiso", label: "Acta de compromiso" },
-            ]}
-            buttonClassName={`py-3.5 text-base ${
-              formData.type === "llamado_atencion" || formData.type === "acta_compromiso"
-                ? "border-red-200 bg-red-50 text-red-700"
-                : "border-amber-200 bg-amber-50 text-amber-700"
-            }`}
-          />
-        </label>
+          <label className="block">
+            <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
+              <MessageSquareWarning className="h-4 w-4 text-slate-400" /> Tipo
+            </span>
+            <AppSelect
+              value={formData.type}
+              onChange={(value) =>
+                setFormData((current) => ({
+                  ...current,
+                  type: value as FeedbackType,
+                  acta_template: value === "acta_compromiso" ? current.acta_template : "",
+                }))
+              }
+              options={[
+                ...(isWhatsappMode ? [{ value: "mensaje_normal", label: "Mensaje normal" }] : []),
+                { value: "retroalimentacion", label: "RetroalimentaciÃ³n" },
+                { value: "llamado_atencion", label: "Llamado de atenciÃ³n" },
+                { value: "acta_compromiso", label: "Acta de compromiso" },
+              ]}
+              buttonClassName={`py-3.5 text-base ${
+                formData.type === "llamado_atencion" || formData.type === "acta_compromiso"
+                  ? "border-red-200 bg-red-50 text-red-700"
+                  : "border-amber-200 bg-amber-50 text-amber-700"
+              }`}
+            />
+          </label>
+        </div>
 
         {isActaType && (
-          <label className="block">
+          <label className="block lg:max-w-xl">
             <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
               <FileText className="h-4 w-4 text-slate-400" /> Tipo de acta
             </span>
@@ -388,7 +392,7 @@ export default function NewFeedbackPage() {
 
         {!isWhatsappMode && (
           <>
-            <label className="block">
+            <label className="block lg:max-w-xl">
               <span className="mb-2 flex items-center gap-2 text-sm font-bold text-slate-700">
                 <FileText className="h-4 w-4 text-slate-400" /> Motivo
               </span>
@@ -435,7 +439,7 @@ export default function NewFeedbackPage() {
             <button
               type="submit"
               disabled={isPending}
-              className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-5 text-base font-bold text-white shadow-md transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-full bg-slate-900 px-5 text-base font-bold text-white shadow-md transition-all hover:bg-slate-800 hover:shadow-lg active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 lg:mx-auto lg:max-w-md"
             >
               {isPending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {isPending ? "Guardando..." : "Guardar Registro"}

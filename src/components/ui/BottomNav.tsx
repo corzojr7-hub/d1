@@ -2,13 +2,18 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, ClipboardList, Trash2, UsersRound, BarChart3 } from "lucide-react";
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Trash2,
+  UsersRound,
+  ChartColumnBig,
+} from "lucide-react";
 import { useProfile } from "./ProfileContext";
 
 const allNavItems = [
   { href: "/", label: "Panel", icon: LayoutDashboard },
-  { href: "/sales", label: "Ventas", icon: BarChart3 },
-  { href: "/dashboard", label: "KPIs", icon: BarChart3 },
+  { href: "/dashboard", label: "Indicadores", icon: ChartColumnBig },
   { href: "/instructions", label: "Tareas", icon: ClipboardList },
   { href: "/waste", label: "Merma", icon: Trash2 },
   { href: "/team", label: "Equipo", icon: UsersRound },
@@ -36,7 +41,7 @@ export default function BottomNav() {
 
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:bottom-4 lg:border-0 lg:bg-transparent lg:px-6 lg:pb-0 lg:shadow-none">
-      <div className="flex items-center justify-around px-2 pt-2 pb-2 lg:mx-auto lg:max-w-4xl lg:justify-between lg:rounded-full lg:border lg:border-slate-200/90 lg:bg-white/95 lg:px-4 lg:py-3 lg:shadow-[0_16px_36px_rgba(15,23,42,0.12)] lg:backdrop-blur-sm">
+      <div className="flex items-center justify-around gap-1 px-2 pt-2 pb-2 lg:mx-auto lg:max-w-4xl lg:justify-between lg:rounded-full lg:border lg:border-slate-200/90 lg:bg-white/95 lg:px-4 lg:py-3 lg:shadow-[0_16px_36px_rgba(15,23,42,0.12)] lg:backdrop-blur-sm">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === "/"
@@ -48,10 +53,10 @@ export default function BottomNav() {
               key={href}
               href={href}
               prefetch={false}
-              className="flex min-w-[70px] flex-col items-center gap-1 rounded-2xl px-1 py-0.5"
+              className="flex min-w-[66px] flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-0.5 lg:min-w-[86px] lg:flex-none"
             >
               <div
-                className={`flex h-9 px-5 items-center justify-center transition-all duration-200 ${
+                className={`flex h-9 min-w-[48px] px-4 items-center justify-center transition-all duration-200 lg:min-w-[56px] lg:px-5 ${
                   isActive
                     ? "rounded-full bg-[#fdecef] shadow-[inset_0_0_0_1px_rgba(229,29,46,0.1)]"
                     : "bg-transparent"
@@ -65,7 +70,7 @@ export default function BottomNav() {
                 />
               </div>
               <span
-                className={`mt-0.5 text-[11px] font-bold transition-colors duration-200 ${
+                className={`mt-0.5 text-center text-[10px] font-bold leading-tight transition-colors duration-200 lg:text-[11px] ${
                   isActive ? "text-slate-900" : "text-slate-500"
                 }`}
               >

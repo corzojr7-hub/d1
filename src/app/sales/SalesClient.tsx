@@ -305,12 +305,12 @@ export default function SalesClient({
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Registro comercial</p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Ventas y presupuesto</h1>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Carga diaria de ventas</h1>
           <p className="mt-1 text-sm font-medium capitalize text-slate-500">
             {format(currentDate, "MMMM yyyy", { locale: es })}
           </p>
           <p className="mt-1 text-[11px] font-medium text-slate-400">
-            Aqui registras ventas, ajustas presupuesto y sigues el corte real del mes con una lectura mas clara para movil y escritorio.
+            Aqui registras la venta del dia, ajustas presupuesto y sigues el corte mensual sin mezclar lectura analitica.
           </p>
         </div>
         <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -335,7 +335,7 @@ export default function SalesClient({
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] 2xl:items-start">
       <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm lg:p-6 xl:p-7">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <Target className="h-4 w-4" /> Planeacion del mes
+          <Target className="h-4 w-4" /> Presupuesto del mes
         </h2>
         {isSupervisor ? (
           currentBudget > 0 && !isEditingBudget ? (
@@ -512,7 +512,7 @@ export default function SalesClient({
         ) : (
           <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-center">
             <p className="text-[11px] font-bold text-slate-400">
-              Solo supervisor, segunda o tercera encargada pueden registrar ventas
+              Solo supervisor, segunda o tercera encargada pueden cargar ventas
             </p>
           </div>
         )}
@@ -521,7 +521,7 @@ export default function SalesClient({
 
       <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/30 p-5 shadow-sm lg:p-6">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <AlertCircle className="h-4 w-4" /> Corte semanal e impacto de merma
+          <AlertCircle className="h-4 w-4" /> Merma semanal e impacto
         </h2>
 
         <div className="grid gap-4 lg:grid-cols-2">

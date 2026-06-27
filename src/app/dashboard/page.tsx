@@ -402,15 +402,15 @@ export default async function DashboardPage(props: {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
-              Frente comercial
+              Centro ejecutivo
             </p>
             <h2 className="mt-1 text-xl font-black text-slate-900">Explora ventas, impulso y productividad sin salirte del hilo</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Esta vista queda como centro de lectura. Desde aqui puedes bajar al detalle comercial o saltar directo al modulo que necesites.
+              Esta vista queda como centro de lectura. Desde aqui puedes bajar al detalle analitico o saltar directo al modulo que necesites.
             </p>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">
-            Resumen rapido arriba, detalle operativo abajo.
+            Resumen ejecutivo arriba, detalle analitico abajo.
           </div>
         </div>
 
@@ -428,7 +428,7 @@ export default async function DashboardPage(props: {
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
             <h3 className="mt-1 text-lg font-black text-slate-900">Ventas y merma</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Revisa el life for life y el pulso acumulado del mes.
+              Revisa el comportamiento mensual y el corte comparativo.
             </p>
           </Link>
 
@@ -445,7 +445,7 @@ export default async function DashboardPage(props: {
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
             <h3 className="mt-1 text-lg font-black text-slate-900">Control de ventas</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Abre presupuesto, venta diaria y seguimiento comercial completo.
+              Entra al registro diario y al presupuesto sin mezclar la lectura.
             </p>
           </Link>
 
@@ -462,7 +462,7 @@ export default async function DashboardPage(props: {
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
             <h3 className="mt-1 text-lg font-black text-slate-900">Impulso</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Registra la venta sugerida y consulta el comportamiento por colaborador.
+              Consulta el comportamiento por colaborador y la tendencia del mes.
             </p>
           </Link>
 
@@ -479,7 +479,7 @@ export default async function DashboardPage(props: {
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Detalle</p>
             <h3 className="mt-1 text-lg font-black text-slate-900">Productividad POS</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Baja directo a escaneo, articulos por minuto, anulaciones y cancelaciones.
+              Compara escaneo, articulos por minuto, anulaciones y cancelaciones.
             </p>
           </Link>
         </div>
