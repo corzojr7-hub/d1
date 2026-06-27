@@ -224,8 +224,8 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       : schedules;
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
-      <header className="sticky top-0 z-40 bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] md:px-6 lg:px-8">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 rounded-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] md:px-6 lg:px-8 lg:rounded-[36px]">
         <div className="flex items-start gap-3">
           <Link
             href="/"
@@ -250,7 +250,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
         </div>
       </header>
 
-      <div className="space-y-4 px-4 pt-4 md:px-6 lg:px-8">
+      <div className="space-y-4 px-0 pt-4 lg:pt-6">
         {taskSnapshot.status === "running" && (
           <div className="rounded-[24px] border border-blue-200 bg-blue-50 p-4 text-blue-800 shadow-sm">
             <div className="flex items-start gap-3">
