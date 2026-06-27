@@ -230,8 +230,8 @@ export default function FefoClient({ records }: { records: FefoRecord[]; profile
   };
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl px-4 sm:px-6">
-      <div className="mb-2 mt-6">
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <div className="mb-2 mt-6 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:mt-0 lg:p-6">
         <div className="flex items-center justify-between">
           <div className="flex flex-col">
             <Link
@@ -255,9 +255,9 @@ export default function FefoClient({ records }: { records: FefoRecord[]; profile
         </div>
       </div>
 
-      <div className="p-4">
+      <div className={`px-0 py-4 lg:py-6 ${isAdding ? "lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-6 lg:items-start" : ""}`}>
         {isAdding && (
-          <form onSubmit={handleAdd} className="bg-white p-5 rounded-3xl shadow-sm border border-zinc-100 mb-6">
+          <form onSubmit={handleAdd} className="mb-6 rounded-3xl border border-zinc-100 bg-white p-5 shadow-sm lg:sticky lg:top-28 lg:mb-0 lg:p-6">
             <h2 className="font-bold text-slate-800 mb-4">Rastrear Nuevo Vencimiento</h2>
             <div className="space-y-3">
               <div className="relative">
@@ -365,7 +365,7 @@ export default function FefoClient({ records }: { records: FefoRecord[]; profile
           </form>
         )}
 
-        <div className="space-y-4 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3 md:space-y-0">
+        <div className={`space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0 ${isAdding ? "lg:grid-cols-2 xl:grid-cols-3" : "lg:grid-cols-3"}`}>
           {records.length > 0 && !isAdding && (
             <div className="flex items-center justify-between px-2 mb-4 col-span-full">
               <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">

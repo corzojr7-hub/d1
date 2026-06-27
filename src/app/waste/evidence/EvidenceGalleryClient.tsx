@@ -42,8 +42,6 @@ export default function EvidenceGalleryClient() {
     setDownloadProgress(0);
 
     try {
-      // 1. Fetch records for the selected date
-      // We use start of day and end of day in local time for the selected date
       const startOfDay = new Date(`${selectedDate}T00:00:00`).toISOString();
       const endOfDay = new Date(`${selectedDate}T23:59:59.999`).toISOString();
 
@@ -61,7 +59,6 @@ export default function EvidenceGalleryClient() {
 
       toast.loading("Recopilando evidencias...");
 
-      // 2. Extract all images and organize by product
       const zip = new JSZip();
       let totalFiles = 0;
       let downloadedFiles = 0;
@@ -77,7 +74,7 @@ export default function EvidenceGalleryClient() {
 
       for (const record of records as EvidenceRecord[]) {
         const productData = Array.isArray(record.products) ? record.products[0] : record.products;
-        const productName = productData?.name?.replace(/[^a-zA-Z0-9]/g, '_').toUpperCase() || "PRODUCTO";
+        const productName = productData?.name?.replace(/[^a-zA-Z0-9]/g, "_").toUpperCase() || "PRODUCTO";
         const folderName = `${productName}/${record.id.substring(0, 8)}`;
         const folder = zip.folder(folderName);
 
@@ -116,30 +113,28 @@ export default function EvidenceGalleryClient() {
           }
 
           txtLines.push(
-            `Descripcion de la novedad: ${record.transport_comment || evidences.novedad_texto || record.observation || "Sin descripcion"}`
+            `Descripcion de la novedad: ${record.transport_comment || evidences.novedad_texto || record.observation || "Sin descripcion"}`,
           );
 
           folder?.file("DETALLE.txt", txtLines.join("\r\n"));
         }
 
         if (record.transport_evidence) {
-          // Multiple evidences (transport/quality)
           const evidences = record.transport_evidence as Record<string, string>;
           for (const [type, url] of Object.entries(evidences)) {
             if (evidenceImageKeys.has(type) && url) {
               tasks.push({
                 folder: folderName,
                 fileName: `${type.toUpperCase()}.jpg`,
-                url
+                url,
               });
             }
           }
         } else if (record.image_url) {
-          // Single evidence
           tasks.push({
             folder: folderName,
             fileName: `EVIDENCIA_${record.id.substring(0, 8)}.jpg`,
-            url: record.image_url
+            url: record.image_url,
           });
         }
       }
@@ -153,32 +148,28 @@ export default function EvidenceGalleryClient() {
         return;
       }
 
-      // 3. Download all files
       for (const task of tasks) {
         try {
           const response = await fetch(task.url);
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
           const blob = await response.blob();
-          
+
           zip.folder(task.folder)?.file(task.fileName, blob);
           downloadedFiles++;
           setDownloadProgress(Math.round((downloadedFiles / totalFiles) * 100));
         } catch (e) {
           console.error(`Failed to download ${task.url}`, e);
-          // We continue with other files even if one fails
         }
       }
 
       toast.dismiss();
       toast.loading("Empaquetando ZIP...");
 
-      // 4. Generate ZIP
       const zipBlob = await zip.generateAsync({ type: "blob" });
       saveAs(zipBlob, `Evidencias_${selectedDate}.zip`);
 
       toast.dismiss();
       toast.success(`¡Descarga completada! (${downloadedFiles} fotos)`);
-
     } catch (err: unknown) {
       toast.dismiss();
       toast.error(err instanceof Error ? err.message : "Error al descargar las evidencias");
@@ -190,56 +181,81 @@ export default function EvidenceGalleryClient() {
   }
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
-      <div className="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100">
-        <div className="p-3 bg-red-50 text-red-600 rounded-xl">
-          <ImageIcon className="w-6 h-6" />
+    <div className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm lg:p-7">
+      <div className="mb-6 flex items-center gap-4 border-b border-slate-100 pb-4">
+        <div className="rounded-xl bg-red-50 p-3 text-red-600">
+          <ImageIcon className="h-6 w-6" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-slate-800">Galería de Evidencias</h2>
-          <p className="text-xs text-slate-500 font-medium">Descarga las fotos de Avería y Calidad organizadas por producto.</p>
+          <h2 className="text-lg font-bold text-slate-800">Galería de evidencias</h2>
+          <p className="text-xs font-medium text-slate-500">
+            Descarga las fotos de avería y calidad organizadas por producto.
+          </p>
         </div>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-bold text-slate-700 mb-2">Selecciona una fecha</label>
-          <div className="relative">
-            <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 font-medium focus:ring-2 focus:ring-red-500 focus:border-transparent outline-none transition-all"
-            />
+      <div className="space-y-6 lg:grid lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-6 lg:space-y-0">
+        <div className="space-y-6">
+          <div>
+            <label className="mb-2 block text-sm font-bold text-slate-700">Selecciona una fecha</label>
+            <div className="relative">
+              <CalendarIcon className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pl-12 pr-4 font-medium text-slate-700 outline-none transition-all focus:border-transparent focus:ring-2 focus:ring-red-500"
+              />
+            </div>
           </div>
+
+          <button
+            onClick={handleDownload}
+            disabled={isDownloading || !selectedDate}
+            className="relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-gradient-to-r from-red-600 to-red-500 px-4 py-3.5 font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:from-red-500 hover:to-red-400"
+          >
+            {isDownloading ? (
+              <>
+                <div
+                  className="absolute bottom-0 left-0 top-0 bg-black/10 transition-all duration-300"
+                  style={{ width: `${downloadProgress}%` }}
+                />
+                <Loader2 className="relative z-10 h-5 w-5 animate-spin" />
+                <span className="relative z-10">Descargando {downloadProgress}%...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-5 w-5" />
+                <span>Descargar evidencias (ZIP)</span>
+              </>
+            )}
+          </button>
         </div>
 
-        <button
-          onClick={handleDownload}
-          disabled={isDownloading || !selectedDate}
-          className="w-full relative flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-red-500 hover:from-red-500 hover:to-red-400 text-white font-bold py-3.5 px-4 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm active:scale-[0.98] overflow-hidden"
-        >
-          {isDownloading ? (
-            <>
-              <div 
-                className="absolute left-0 top-0 bottom-0 bg-black/10 transition-all duration-300"
-                style={{ width: `${downloadProgress}%` }}
-              />
-              <Loader2 className="w-5 h-5 animate-spin relative z-10" />
-              <span className="relative z-10">Descargando {downloadProgress}%...</span>
-            </>
-          ) : (
-            <>
-              <Download className="w-5 h-5" />
-              <span>Descargar Evidencias (ZIP)</span>
-            </>
-          )}
-        </button>
-
-        <p className="text-xs text-slate-400 text-center">
-          El archivo .zip contendrá carpetas por cada producto reportado con sus respectivas fotos de evidencia (Rotulo, Proveedor, Cantidades, etc.).
-        </p>
+        <div className="rounded-[28px] border border-slate-200 bg-slate-50/80 p-5 lg:p-6">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+            Resumen de descarga
+          </p>
+          <h3 className="mt-2 text-lg font-black text-slate-900">
+            Evidencias organizadas por producto y fecha
+          </h3>
+          <p className="mt-3 text-sm leading-6 text-slate-600">
+            El ZIP conserva la trazabilidad del reporte y agrupa las fotos por producto,
+            dejando a mano la evidencia visual y el detalle operativo del registro.
+          </p>
+          <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-sm font-bold text-slate-700">Incluye:</p>
+            <ul className="mt-3 space-y-2 text-sm text-slate-600">
+              <li>Fotos por producto y por registro.</li>
+              <li>Archivo `DETALLE.txt` cuando aplica transporte, calidad o fecha corta.</li>
+              <li>Nombre de archivo listo para auditoría y consulta posterior.</li>
+            </ul>
+          </div>
+          <p className="mt-4 text-xs text-slate-400">
+            El archivo `.zip` contendrá carpetas por cada producto reportado con sus respectivas
+            fotos de evidencia (Rótulo, Proveedor, Cantidades, etc.).
+          </p>
+        </div>
       </div>
     </div>
   );

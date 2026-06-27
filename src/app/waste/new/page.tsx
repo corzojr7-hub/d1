@@ -173,20 +173,22 @@ export default function NewWastePage() {
     "w-full bg-slate-50 border-0 ring-1 ring-slate-200 rounded-2xl px-4 py-3.5 text-base transition-shadow placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500 focus:outline-none";
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8">
-      <Link
-        href="/waste"
-        className="text-xs text-zinc-400 underline-offset-2 hover:underline"
-      >
-        Volver a merma
-      </Link>
+    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 pt-8 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:p-6">
+        <Link
+          href="/waste"
+          className="text-xs font-medium text-slate-500 underline-offset-2 hover:text-slate-700 hover:underline"
+        >
+          Volver a merma
+        </Link>
 
-      <h1 className="mt-4 text-2xl font-extrabold text-slate-800">
-        Registrar Merma
-      </h1>
+        <h1 className="mt-4 text-2xl font-extrabold text-slate-800 lg:text-[2rem]">
+          Registrar Merma
+        </h1>
+      </section>
 
       {!showForm ? (
-        <div className="mt-6 rounded-3xl bg-white p-6 shadow-sm border border-zinc-100">
+        <div className="mt-6 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:p-7">
           <form onSubmit={handleManualSearch} className="space-y-4">
             <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
@@ -211,11 +213,11 @@ export default function NewWastePage() {
               </div>
             </label>
 
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
               <button
                 type="submit"
                 disabled={isPending}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-blue-600 px-5 text-base font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-blue-600 px-5 text-base font-bold text-white shadow-md shadow-blue-600/20 transition-all hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/30 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60 sm:flex-1"
               >
                 <Search aria-hidden="true" className="h-5 w-5" />
                 {isPending ? "Buscando..." : "Buscar"}
@@ -223,7 +225,7 @@ export default function NewWastePage() {
               <button
                 type="button"
                 onClick={() => setShowScanner(true)}
-                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-white px-5 text-base font-bold text-slate-700 ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95"
+                className="inline-flex min-h-14 items-center justify-center gap-2 rounded-full bg-white px-5 text-base font-bold text-slate-700 ring-1 ring-slate-200 transition-all hover:bg-slate-50 active:scale-95 sm:flex-1"
               >
                 <Camera aria-hidden="true" className="h-5 w-5" />
                 Escanear con Camara
@@ -383,7 +385,7 @@ export default function NewWastePage() {
               qty: (form.elements.namedItem("qty") as HTMLInputElement)?.value,
             }).catch(console.error);
           }}
-          className="mt-6 rounded-3xl bg-white p-6 shadow-sm border border-zinc-100"
+          className="mt-6 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:p-7"
         >
           <input type="hidden" name="barcode_id" value={activeBarcode} />
           <input type="hidden" name="product_name" value={product?.name || "DESCONOCIDO"} />
@@ -404,8 +406,9 @@ export default function NewWastePage() {
             </p>
           </div>
 
-          <div className="mt-6 space-y-5">
-            <label className="block">
+          <div className="mt-6 space-y-5 lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-6 lg:space-y-0">
+            <div className="space-y-5">
+              <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Cantidad (Unidades)
               </span>
@@ -419,9 +422,9 @@ export default function NewWastePage() {
                 className={inputBase}
               />
               <input type="hidden" name="unit" value="Unidad" />
-            </label>
+              </label>
 
-            <label className="block">
+              <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Motivo de merma
               </span>
@@ -437,10 +440,10 @@ export default function NewWastePage() {
                   label: r.label,
                 }))}
               />
-            </label>
+              </label>
 
-            <div className="grid grid-cols-2 gap-4">
-              <label className="block">
+              <div className="grid grid-cols-2 gap-4">
+                <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-700">
                   Depositado por
                 </span>
@@ -469,9 +472,9 @@ export default function NewWastePage() {
                     placeholder="Escribe el nombre"
                   />
                 )}
-              </label>
+                </label>
 
-              <label className="block">
+                <label className="block">
                 <span className="mb-2 block text-sm font-semibold text-slate-700">
                   Area / Cuadrante
                 </span>
@@ -499,10 +502,10 @@ export default function NewWastePage() {
                     placeholder="Escribe el area"
                   />
                 )}
-              </label>
-            </div>
+                </label>
+              </div>
 
-            <label className="block">
+              <label className="block">
               <span className="mb-2 block text-sm font-semibold text-slate-700">
                 Observacion
               </span>
@@ -511,10 +514,10 @@ export default function NewWastePage() {
                 rows={4}
                 className={`${inputBase} resize-none`}
               />
-            </label>
+              </label>
 
-            {isTransportReason && (
-              <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
+              {isTransportReason && (
+                <div className="space-y-5 rounded-2xl border border-amber-200 bg-amber-50/60 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-amber-700">
                   Datos del transporte
                 </p>
@@ -558,11 +561,11 @@ export default function NewWastePage() {
                     placeholder="Describe brevemente el dano o la novedad detectada."
                   />
                 </label>
-              </div>
-            )}
+                </div>
+              )}
 
-            {isQualityReason && (
-              <div className="space-y-5 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
+              {isQualityReason && (
+                <div className="space-y-5 rounded-2xl border border-violet-200 bg-violet-50/60 p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.14em] text-violet-700">
                   Datos obligatorios de calidad
                 </p>
@@ -620,46 +623,58 @@ export default function NewWastePage() {
                     placeholder="Describe brevemente la novedad detectada."
                   />
                 </label>
-              </div>
-            )}
+                </div>
+              )}
+            </div>
 
-            {photoRequirements.map(req => (
-              <label key={req.id} className="block mb-4">
-                <span className="mb-2 block text-sm font-semibold text-slate-700">
-                  {req.label}
-                </span>
-                <input
-                  id={req.id}
-                  name={req.id}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => handleFileChange(e, req.id)}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleFileClick(req.id)}
-                  className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-slate-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
-                >
-                  <Camera className="mb-2 h-8 w-8" />
-                  {fileNames[req.id] ? (
-                    <span className="text-sm font-semibold text-slate-700 break-all px-4 text-center">
-                      {fileNames[req.id]}
-                    </span>
-                  ) : (
-                    <>
-                      <span className="text-sm font-semibold">
-                        Toca para tomar foto
+            <div className="space-y-4">
+              <div className="rounded-[26px] border border-slate-200 bg-slate-50/80 p-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  Evidencia requerida
+                </p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">
+                  Toma primero la evidencia del caso y luego confirma la merma. En escritorio esta columna queda separada para revisar más fácil qué foto falta.
+                </p>
+              </div>
+
+              {photoRequirements.map(req => (
+                <label key={req.id} className="block mb-4">
+                  <span className="mb-2 block text-sm font-semibold text-slate-700">
+                    {req.label}
+                  </span>
+                  <input
+                    id={req.id}
+                    name={req.id}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={(e) => handleFileChange(e, req.id)}
+                    className="hidden"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleFileClick(req.id)}
+                    className="flex w-full flex-col items-center justify-center rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-slate-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                  >
+                    <Camera className="mb-2 h-8 w-8" />
+                    {fileNames[req.id] ? (
+                      <span className="text-sm font-semibold text-slate-700 break-all px-4 text-center">
+                        {fileNames[req.id]}
                       </span>
-                      <span className="mt-1 text-xs text-slate-400">
-                        JPG, PNG o captura directa
-                      </span>
-                    </>
-                  )}
-                </button>
-              </label>
-            ))}
+                    ) : (
+                      <>
+                        <span className="text-sm font-semibold">
+                          Toca para tomar foto
+                        </span>
+                        <span className="mt-1 text-xs text-slate-400">
+                          JPG, PNG o captura directa
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="mt-8 flex flex-col gap-3">
