@@ -12,13 +12,13 @@ export default function ChecklistWizardWrapper({ operatorName }: { operatorName:
   }
 
   return (
-    <div className="mx-auto w-full max-w-md p-6 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
+    <div className="mx-auto w-full max-w-md px-0 py-6 sm:max-w-2xl md:max-w-4xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-7xl">
       <h2 className="text-xl font-black text-slate-800 mb-2">Selecciona la Rutina</h2>
       <p className="text-sm font-medium text-slate-500 mb-8">
         ¿Qué checklist vas a diligenciar en este momento?
       </p>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 lg:max-w-2xl">
         <button
           onClick={() => setAuditType("apertura")}
           className="flex flex-col items-center justify-center gap-3 bg-white p-6 rounded-3xl border border-zinc-100 shadow-sm hover:ring-2 hover:ring-blue-500 transition-all"

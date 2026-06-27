@@ -16,6 +16,15 @@ type Step = {
   requiresPhoto?: boolean;
 };
 
+type OfflineAuditPayload = {
+  idempotency_key: string;
+  auditType: "apertura" | "cierre";
+  operator: string;
+  answers: string;
+  photo_base64: string | null;
+  timestamp: number;
+};
+
 const STEPS: Step[] = [
   { id: "exterior", title: "Exterior y Vidrios", question: "¿Los vidrios están limpios y no hay basura o reguero en la entrada?" },
   { id: "neveras", title: "Neveras y Congeladores", question: "¿Las temperaturas están en rango y el surtido es óptimo?" },
@@ -48,7 +57,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
       try {
         const compressed = await compressImage(file);
         setPhotos({ ...photos, [step.id]: compressed });
-      } catch (err) {
+      } catch {
         setPhotos({ ...photos, [step.id]: file });
       }
     }
@@ -86,7 +95,8 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
         timestamp: Date.now()
       };
 
-      const queue: any = (await get("auditsOfflineQueue")) || [];
+      const queue =
+        ((await get("auditsOfflineQueue")) as OfflineAuditPayload[] | undefined) || [];
       queue.push(payload);
       await set("auditsOfflineQueue", queue);
 
@@ -112,18 +122,17 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
         } else {
           toast.error(res.error || "Error al guardar");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (isRedirectError(err)) {
           throw err;
         }
-        console.error("Submit error:", err);
         toast.error("Ocurrió un error inesperado al enviar");
       }
     });
   };
 
   return (
-    <div className="mx-auto max-w-md p-4">
+    <div className="mx-auto w-full max-w-4xl px-0 py-4 lg:py-6">
       {/* Progress Bar */}
       <div className="mb-8">
         <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
@@ -139,7 +148,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
       </div>
 
       {/* Card */}
-      <div className="bg-white rounded-3xl p-6 shadow-sm border border-zinc-100">
+      <div className="rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:p-7">
         <h2 className="text-xl font-black text-slate-800 mb-2">{step.title}</h2>
         <p className="text-slate-600 font-medium mb-6">{step.question}</p>
 
