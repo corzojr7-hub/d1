@@ -44,13 +44,13 @@ export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) 
           </Link>
           <div className="flex flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Seguimiento diario
+              Operación diaria
             </p>
             <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-white">
-              Bitácora Diaria
+              Registro del día
             </h1>
             <p className="text-[10px] text-white/90">
-              Novedades e incidencias de la tienda
+              Lo que ocurrió durante el turno queda aquí
             </p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) 
             <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-white px-4 py-16 text-center shadow-sm">
               <BookOpen className="h-10 w-10 text-zinc-300 mb-3" />
               <p className="text-sm font-medium text-zinc-500">
-                Aún no hay novedades registradas hoy.
+                Aún no hay registro de lo ocurrido hoy.
               </p>
             </div>
           )}
