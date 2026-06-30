@@ -1,6 +1,11 @@
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import ChecklistsClient from "./ChecklistsClient";
+
+export const metadata: Metadata = {
+  title: "Operación Diaria - Verificación",
+};
 
 export default async function AuditsPage() {
   const supabase = await createClient();
@@ -69,12 +74,26 @@ export default async function AuditsPage() {
     .eq("date", today);
 
   return (
-    <ChecklistsClient
-      initialTasks={dailyBasics || []}
-      configuredBasics={profile.basic_tasks || []}
-      assistants={profile.assistants || []}
-      today={today}
-      isSupervisor={profile.role === "supervisor" || profile.role === "admin"}
-    />
+    <>
+      <section className="mx-auto mb-4 w-full max-w-[1600px] rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+          Operación diaria
+        </p>
+        <h1 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+          Verificación del turno
+        </h1>
+        <p className="mt-1 text-sm leading-relaxed text-slate-500">
+          Aquí se revisa lo que quedó instruido y lo que todavía falta por cumplir.
+        </p>
+      </section>
+
+      <ChecklistsClient
+        initialTasks={dailyBasics || []}
+        configuredBasics={profile.basic_tasks || []}
+        assistants={profile.assistants || []}
+        today={today}
+        isSupervisor={profile.role === "supervisor" || profile.role === "admin"}
+      />
+    </>
   );
 }

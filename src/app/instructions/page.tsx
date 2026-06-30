@@ -6,7 +6,7 @@ import InstructionCard from "@/components/instructions/InstructionCard";
 import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const metadata: Metadata = {
-  title: "Bitácora de Instrucciones - Sistema de Control Operativo de Tienda",
+  title: "Operación Diaria - Instrucciones",
 };
 
 export default async function InstructionsIndex() {
@@ -61,14 +61,14 @@ export default async function InstructionsIndex() {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
           <div className="max-w-3xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-              Centro de control
+              Operación diaria
             </p>
             <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-              Bitácora de Instrucciones
+              Instrucciones del turno
             </h1>
             <p className="mt-2 max-w-[420px] text-[13px] leading-relaxed text-white/82 sm:text-sm">
-              Revisa tareas activas, organiza el seguimiento del turno y entra rápido
-              a los flujos clave.
+              Comunica lo que se debe hacer, sigue lo pendiente y deja listo lo que
+              luego se va a verificar.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
@@ -108,10 +108,10 @@ export default async function InstructionsIndex() {
           <div className="mb-3 flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                Flujos del turno
+                Flujo diario
               </p>
               <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
-                Centro operativo
+                Qué se debe seguir hoy
               </h2>
             </div>
             <p className="max-w-[240px] text-right text-[11px] font-medium leading-snug text-slate-400">
@@ -129,9 +129,9 @@ export default async function InstructionsIndex() {
                   <ClipboardList className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-sm font-bold">Tablero de Básicos</h2>
+                  <h2 className="text-sm font-bold">Básicos del turno</h2>
                   <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                    Asignación y verificación diaria
+                    Asignación y seguimiento diario
                   </p>
                 </div>
               </div>
@@ -160,7 +160,7 @@ export default async function InstructionsIndex() {
                   <CheckCircle2 className="h-6 w-6" />
                 </div>
                 <div className="text-left">
-                  <h2 className="text-sm font-bold">Checklist operativo</h2>
+                  <h2 className="text-sm font-bold">Checklist del turno</h2>
                   <p className="mt-0.5 text-[11px] font-medium text-slate-500">
                     Aseo, baño, cafetín y puntos clave
                   </p>
@@ -251,10 +251,10 @@ export default async function InstructionsIndex() {
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Listado reciente
+              Seguimiento de hoy
             </p>
             <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
-              Instrucciones del turno
+              Instrucciones activas
             </h2>
             <p className="mt-1 text-[12px] leading-snug text-slate-500">
               Baja directo al historial reciente y revisa primero lo que sigue abierto o con prioridad alta.
