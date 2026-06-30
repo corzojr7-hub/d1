@@ -13,7 +13,6 @@ export default async function AuditsPage() {
     return null;
   }
 
-  // Get current store profile to get the id
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("id, role, basic_tasks, assistants, store_code")
@@ -22,7 +21,7 @@ export default async function AuditsPage() {
 
   if (error) {
     return (
-      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl xl:max-w-6xl">
+      <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 lg:pt-8 xl:max-w-6xl xl:px-8 2xl:max-w-7xl 2xl:px-10">
         <div className="rounded-[28px] border border-red-100 bg-white px-5 py-10 text-center shadow-sm">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-red-400">
             Error de carga
@@ -40,7 +39,7 @@ export default async function AuditsPage() {
 
   if (!profile) {
     return (
-      <div className="mx-auto min-h-screen max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl xl:max-w-6xl">
+      <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 lg:pt-8 xl:max-w-6xl xl:px-8 2xl:max-w-7xl 2xl:px-10">
         <div className="rounded-[28px] border border-dashed border-slate-200 bg-white px-5 py-10 text-center text-slate-500 shadow-sm">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
             Sin perfil
@@ -56,12 +55,11 @@ export default async function AuditsPage() {
     );
   }
 
-  // Fetch today's tasks
   const today = new Date().toISOString().split("T")[0];
 
   const adminClient = createAdminClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
   );
 
   const { data: dailyBasics } = await adminClient
