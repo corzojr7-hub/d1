@@ -8,7 +8,7 @@ import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton"
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export const metadata: Metadata = {
-  title: "Control e Historial de Merma — Sistema de Control Operativo de Tienda",
+  title: "Prevención y Pérdida — Sistema de Control Operativo de Tienda",
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -157,13 +157,13 @@ export default async function WasteIndex({
 
       <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0a4aa8] via-[#0a58ca] to-[#3b82f6] px-5 py-5 text-white shadow-[0_18px_36px_rgba(10,88,202,0.16)]">
         <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-          Control de Perdidas
+          Prevención y pérdida
         </p>
         <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-          Control e Historial de Merma
+          Prevención y Pérdida
         </h1>
         <p className="mt-2 max-w-[250px] text-[13px] leading-relaxed text-white/82">
-          Consulta registros, evidencia y seguimiento operativo de merma.
+          Registra pérdidas, revisa vencimientos y soportes, y cierra la semana desde un mismo flujo.
         </p>
         <div className="mt-4 inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
           {totalRecords ?? 0} registros totales (Página {page})
@@ -174,14 +174,14 @@ export default async function WasteIndex({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Accesos ápidos
+              Accesos rápidos
             </p>
             <h2 className="mt-1 text-xl font-black text-slate-950">
               Lo principal de Merma
             </h2>
           </div>
           <p className="max-w-sm text-right text-[11px] font-medium leading-relaxed text-slate-500">
-            La ruta principal para registrar pérdidas; FEFO y evidencias quedan como apoyo.
+            La ruta principal para registrar pérdida; FEFO, evidencias y corte semanal quedan como apoyo.
           </p>
         </div>
 
@@ -210,7 +210,7 @@ export default async function WasteIndex({
               <div className="text-left">
                 <h2 className="text-sm font-bold">Registrar Merma</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-white/85">
-                  Abre el flujo principal de merma
+                  Abre el flujo principal de pérdida
                 </p>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default async function WasteIndex({
                   Radar de Vencimientos (FEFO)
                 </h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                  Revisa lo que debe salir antes de vencer
+                  Previene merma por vencimiento antes de que toque salir
                 </p>
               </div>
             </div>
@@ -304,7 +304,7 @@ export default async function WasteIndex({
               <div className="text-left">
                 <h2 className="text-sm font-bold">Descargar Evidencias (ZIP)</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                  Reúne las fotos de averías y calidad por producto
+                  Reúne los soportes de transporte y calidad por producto
                 </p>
               </div>
             </div>
@@ -334,8 +334,8 @@ export default async function WasteIndex({
             </p>
             <h2 className="mt-1 text-sm font-black text-slate-900">
               {selectedCutIsValid
-                ? "Consultando semana cerrada"
-                : "Semana activa de merma"}
+                ? "Semana cerrada en Revisión"
+                : "Semana activa de prevención y pérdida"}
             </h2>
             <p className="mt-1 text-[11px] text-slate-500">
               {selectedCutIsValid

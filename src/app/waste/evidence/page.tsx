@@ -5,7 +5,7 @@ import EvidenceGalleryClient from "./EvidenceGalleryClient";
 import { requireAuth } from "@/lib/supabase/require-auth";
 
 export const metadata: Metadata = {
-  title: "Galería de Evidencias — Sistema de Control Operativo de Tienda",
+  title: "Soportes de Merma — Sistema de Control Operativo de Tienda",
 };
 
 export default async function EvidenceGalleryPage() {
@@ -22,9 +22,9 @@ export default async function EvidenceGalleryPage() {
           Volver a Merma
         </Link>
         <div className="mt-4">
-          <h1 className="text-2xl font-black tracking-tight text-slate-900">Galería de Evidencias</h1>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900">Soportes de Merma</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Descarga y revisa las evidencias por fecha sin dejar la trazabilidad atrás.
+            Descarga y revisa los soportes de transporte y calidad por fecha sin perder trazabilidad.
           </p>
         </div>
       </div>
