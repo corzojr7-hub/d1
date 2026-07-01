@@ -60,13 +60,13 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </Link>
           <div className="flex flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Relevo operativo
+              Cierre de turno
             </p>
             <h1 className="text-lg font-black leading-tight text-white">
               Entrega de Turno
             </h1>
             <p className="text-[10px] text-white/90">
-              Registro fotográfico de bodega
+              Relevo y pendientes del dia
             </p>
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
         </div>
 
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm lg:p-6">
-          <h2 className="mb-4 text-sm font-bold text-slate-800">Estado de la Bodega</h2>
+          <h2 className="mb-4 text-sm font-bold text-slate-800">Cierre del turno</h2>
 
           <div
             onClick={() => fileInputRef.current?.click()}
@@ -126,7 +126,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
             ) : (
               <div className="flex flex-col items-center gap-2 text-slate-500">
                 <Camera className="h-8 w-8" />
-                <span className="text-xs font-semibold">Tomar foto de la bodega</span>
+                <span className="text-xs font-semibold">Tomar foto del cierre</span>
               </div>
             )}
             <input
@@ -141,7 +141,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
 
           <div className="mt-4">
             <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
-              Observaciones (Opcional)
+              Pendientes del relevo (Opcional)
             </label>
             <textarea
               name="observations"
@@ -161,12 +161,12 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
             {isPending ? (
               <>
                 <UploadCloud className="h-5 w-5 animate-pulse" />
-                Subiendo registro...
+                Cerrando turno...
               </>
             ) : (
               <>
                 <CheckCircle2 className="h-5 w-5" />
-                Confirmar Entrega
+                Cerrar turno
               </>
             )}
           </button>

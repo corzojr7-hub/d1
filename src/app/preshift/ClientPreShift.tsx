@@ -38,13 +38,13 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
           </Link>
           <div className="flex flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Apertura
+              Inicio de turno
             </p>
             <h1 className="text-lg font-black leading-tight text-white">
-              Pre-Turno
+              Arranque del dia
             </h1>
             <p className="text-[10px] text-white/90">
-              Objetivos diarios
+              Foco, metas y preparacion
             </p>
           </div>
         </div>
@@ -57,13 +57,13 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-amber-50/30 p-5 shadow-sm lg:p-6">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <Target className="h-4 w-4 text-amber-500" />
-            Metas de Venta
+            Meta del dia
           </h2>
           
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Meta de Venta Diaria ($)
+                Meta del dia ($)
               </label>
               <input
                 type="number"
@@ -80,13 +80,13 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
         <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm lg:p-6">
           <h2 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-emerald-500" />
-            Foco Operativo
+            Pendientes del turno
           </h2>
 
           <div className="space-y-4">
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Foco de Impulso
+                Foco del turno
               </label>
               <textarea
                 name="impulse_focus"
@@ -99,7 +99,7 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
 
             <div>
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wide mb-1.5">
-                Prioridad de Tareas
+                Prioridad de tareas
               </label>
               <textarea
                 name="priority"
@@ -118,7 +118,7 @@ export default function ClientPreShift({ defaultDailyGoal }: { defaultDailyGoal:
             disabled={isPending}
             className="flex w-full items-center justify-center gap-2 rounded-full bg-[#0a3875] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#072a59] disabled:opacity-50 lg:mx-auto lg:max-w-md"
           >
-            {isPending ? "Guardando..." : "Registrar Pre-Turno"}
+            {isPending ? "Guardando..." : "Registrar inicio de turno"}
           </button>
         </div>
       </form>
