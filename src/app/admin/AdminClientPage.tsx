@@ -121,12 +121,12 @@ export default function AdminClientPage({
 
   const adminHighlights = [
     {
-      label: "Tiendas activas",
+      label: "Tiendas con estructura",
       value: realStores.length,
       tone: "bg-white/16 text-white ring-white/15",
     },
     {
-      label: "Uso IA del mes",
+      label: "Uso IA operativo",
       value: aiUsageSummary.scheduleCount + aiUsageSummary.feedbackCount,
       tone: "bg-white/12 text-white/90 ring-white/10",
     },
@@ -153,21 +153,20 @@ export default function AdminClientPage({
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-rose-200/80">
-              Control central
+              Estructura de tienda
             </p>
             <h1 className="mt-2 text-2xl font-black leading-tight text-white lg:text-[2.25rem]">
-              Backoffice Central
+              Estructura de tienda
             </h1>
             <p className="mt-2 max-w-xl text-sm text-zinc-300">
-              Gestión maestra de tiendas, rendimiento global y consumo operativo
-              de IA.
+              Visión administrativa de tiendas, equipo, horarios y cuadrantes.
             </p>
           </div>
           <Link
             href="/"
             className="inline-flex min-h-11 items-center justify-center rounded-full bg-white/10 px-5 text-sm font-bold text-white transition hover:bg-white/16"
           >
-            Volver a mi tienda
+            Volver al panel
           </Link>
         </div>
 
@@ -196,7 +195,7 @@ export default function AdminClientPage({
           }`}
         >
           <BarChart3 className="h-4 w-4" />
-          Indicadores globales
+          Lectura global
         </button>
         <button
           onClick={() => setActiveTab("tiendas")}
@@ -207,7 +206,7 @@ export default function AdminClientPage({
           }`}
         >
           <Store className="h-4 w-4" />
-          Gestión de tiendas
+          Estructura de tienda
         </button>
       </div>
 
@@ -362,7 +361,7 @@ export default function AdminClientPage({
               <div className="rounded-[30px] bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:p-6">
                 <h3 className="mb-4 flex items-center gap-2 text-sm font-extrabold uppercase tracking-wide text-slate-800">
                   <AlertCircle className="h-4 w-4 text-red-500" />
-                  Alerta Merma (Más Altas)
+                  Alertas operativas
                 </h3>
                 <div className="space-y-3">
                   {kpiData.sortedByWaste.map((stat, idx) => {

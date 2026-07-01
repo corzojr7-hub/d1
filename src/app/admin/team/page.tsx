@@ -55,7 +55,7 @@ export default async function AdminTeamPage() {
               className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 transition hover:text-white"
             >
               <ArrowLeft className="h-4 w-4" />
-              Volver a admin
+              Volver al panel
             </Link>
             <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.32em] text-white/70">
               Directorio maestro
@@ -118,7 +118,7 @@ export default async function AdminTeamPage() {
               <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div>
                   <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Estructura de Mando
+                    Mando operativo
                   </h3>
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-3">
@@ -128,7 +128,7 @@ export default async function AdminTeamPage() {
                           {storeProfile.display_name}
                         </p>
                         <p className="text-[10px] font-bold uppercase text-blue-600">
-                          Supervisor(a)
+                          Supervisor
                         </p>
                       </div>
                     </div>
@@ -161,7 +161,7 @@ export default async function AdminTeamPage() {
 
                 <div>
                   <h3 className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
-                    <span>Plantilla de Asistentes</span>
+                    <span>Equipo de tienda</span>
                     <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
                       {assistants.length}
                     </span>
@@ -169,7 +169,7 @@ export default async function AdminTeamPage() {
 
                   {assistants.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-4 text-center text-xs text-slate-400">
-                      Sin asistentes registrados en esta tienda
+                      Aún no hay asistentes en esta tienda
                     </div>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">

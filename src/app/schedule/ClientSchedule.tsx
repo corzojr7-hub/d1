@@ -235,17 +235,17 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           </Link>
           <div className="min-w-0 flex-1">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Planificacion operativa
+              Estructura de tienda
             </p>
             <h1 className="mt-1 text-lg font-black leading-tight text-white">
-              Malla de Horarios
+              Programación de turnos
             </h1>
             <p className="mt-1 text-[12px] leading-tight text-white/88">
-              Generador semanal con IA
+              Vista semanal de turnos
             </p>
           </div>
           <span className="rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-white/90">
-            {visibleSchedules.length} mallas
+            {visibleSchedules.length} programaciones
           </span>
         </div>
       </header>
@@ -259,10 +259,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               </div>
               <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
-                  Generacion en segundo plano
+                  Generación en segundo plano
                 </p>
                 <p className="mt-1 text-sm font-bold">
-                  La malla de la semana {taskSnapshot.weekStart} sigue corriendo aunque cambies de panel.
+                  La programación de la semana {taskSnapshot.weekStart} sigue corriendo aunque cambies de panel.
                 </p>
                 <p className="mt-1 text-[12px] leading-relaxed text-blue-700/90">
                   Cuando termine te avisamos y quedara listada aqui.
@@ -275,7 +275,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
         {taskSnapshot.status === "error" && taskSnapshot.error && (
           <div className="rounded-[24px] border border-rose-200 bg-rose-50 p-4 text-rose-700 shadow-sm">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
-              Ultimo error de generacion
+              Último error de generación
             </p>
             <p className="mt-1 whitespace-pre-wrap text-sm leading-6">{taskSnapshot.error}</p>
           </div>
@@ -297,10 +297,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/72">
-                Generacion asistida
+                Planificación asistida
               </p>
               <h2 className="mt-1 text-[18px] font-black leading-tight">
-                Generar Malla con IA
+                Generar turnos con IA
               </h2>
               <p className="mt-1 max-w-[220px] text-[12px] leading-relaxed text-white/84">
                 Arma automaticamente los turnos de la semana sin pelearte con la planilla.
@@ -314,7 +314,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
         <div className="flex items-center justify-between pt-2">
           <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">
-            Horarios generados
+            Turnos generados
           </h3>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
             {visibleSchedules.length} recientes
@@ -327,10 +327,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               <CalendarIcon className="h-7 w-7" />
             </div>
             <p className="text-sm font-bold text-slate-700">
-              Aun no has generado ninguna malla.
+              Aún no has generado ninguna programación.
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              Crea la primera semana desde el generador IA para empezar.
+              Crea la primera semana desde el planificador IA para empezar.
             </p>
           </div>
         ) : (
@@ -358,7 +358,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
                   <p className="text-[12px] font-medium text-slate-500">
-                    Toca el chevron para ver la malla completa.
+                    Toca el chevron para ver la programación completa.
                   </p>
                   <div className="flex items-center gap-2">
                     <button
@@ -385,23 +385,23 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/40 backdrop-blur-sm p-4 md:items-center">
           <div className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl animate-in slide-in-from-bottom-10 md:max-w-xl lg:max-w-2xl">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-              Configuracion
+              Configuración
             </p>
             <h2 className="mt-1 text-[18px] font-black text-slate-900">
-              Nueva Malla Semanal
+              Nueva programación semanal
             </h2>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              La IA tomara las reglas de tu tienda y las aplicara a esta semana.
+              La IA tomará las reglas de tu tienda y las aplicará a esta semana.
             </p>
 
             {generationError && (
               <div className="mt-4 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-rose-700 shadow-sm" role="alert">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-rose-500">
-                  Error de generacion
+                  Error de generación
                 </p>
                 <p className="mt-1 whitespace-pre-wrap text-sm leading-6">{generationError}</p>
                 <p className="mt-2 text-[11px] text-rose-500">
-                  Este error queda visible hasta cerrar el modal o generar una malla valida.
+                  Este error queda visible hasta cerrar el modal o generar una programación válida.
                 </p>
               </div>
             )}
@@ -409,7 +409,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             <div className="mb-6 space-y-4 pt-5">
               <div>
                 <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Inicio de semana (lunes)
+                  Inicio de semana
                 </label>
                 <input
                   type="date"
@@ -420,7 +420,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               </div>
               <div>
                 <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Dias festivos (opcional)
+                  Días festivos (opcional)
                 </label>
                 <input
                   type="text"
@@ -430,7 +430,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                   className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
                 />
                 <p className="mt-1 text-[10px] text-slate-400">
-                  Separados por comas si hay mas de uno.
+                  Separados por comas si hay más de uno.
                 </p>
               </div>
             </div>
@@ -451,7 +451,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 disabled={isGenerating}
                 className="flex flex-1 items-center justify-center gap-2 rounded-full bg-[#e51d2e] py-3 text-sm font-bold text-white transition-colors hover:bg-[#c71a29] disabled:opacity-70"
               >
-                {isGenerating ? "Generando..." : "Crear malla"}
+                {isGenerating ? "Generando..." : "Crear programación"}
               </button>
             </div>
           </div>
@@ -470,10 +470,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               </button>
               <div className="min-w-0">
                 <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-                  Malla abierta
+                  Programación abierta
                 </p>
                 <h2 className="mt-0.5 text-sm font-black text-slate-900">
-                  Malla de Horarios
+                  Programación de turnos
                 </h2>
                 <p className="text-[10px] text-slate-500">
                   {selectedSchedule.week_start} al {selectedSchedule.week_end}

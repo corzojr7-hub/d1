@@ -230,8 +230,8 @@ export default function ClientQuadrants({
         </head>
         <body>
           <div class="sheet">
-            <div class="eyebrow">Control de Cuadrantes</div>
-            <h1>Acta Operativa de Pasillo</h1>
+            <div class="eyebrow">Estructura de tienda</div>
+            <h1>Acta Operativa de Cuadrante</h1>
             <p class="intro">
               En la tienda <strong>${storeName}</strong> se deja registrada la asignación operativa del pasillo
               <strong> ${assignment.quadrant_name}</strong>, bajo responsabilidad de <strong>${assignment.assigned_to}</strong>,
@@ -257,7 +257,7 @@ export default function ClientQuadrants({
               </div>
             </div>
 
-            <div class="section-title">Resumen de asignación</div>
+            <div class="section-title">Resumen operativo</div>
             <table class="mini-table">
               <thead>
                 <tr>
@@ -277,7 +277,7 @@ export default function ClientQuadrants({
               </tbody>
             </table>
 
-            <div class="section-title">Responsabilidades del pasillo</div>
+            <div class="section-title">Responsabilidades del cuadrante</div>
             <ol>
               ${responsibilities.map((item) => `<li>${item}</li>`).join("")}
             </ol>
@@ -308,13 +308,13 @@ export default function ClientQuadrants({
           </Link>
           <div className="flex flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Pasillos
+              Estructura de tienda
             </p>
             <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-white">
-              Control de Cuadrantes
+              Responsabilidades operativas
             </h1>
             <p className="text-[10px] text-white/90">
-              Asignación y aceptación de responsabilidades
+              Asignación y seguimiento de responsabilidades
             </p>
           </div>
         </div>
@@ -327,7 +327,7 @@ export default function ClientQuadrants({
         >
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
             <UserPlus className="h-4 w-4 text-blue-500" />
-            Nueva Asignación
+            Nueva responsabilidad
           </h2>
 
           <div className="space-y-4">
@@ -351,7 +351,7 @@ export default function ClientQuadrants({
 
             <div>
               <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
-                Cuadrante / Pasillo
+                Cuadrante / pasillo
               </label>
               {areas.length > 0 ? (
                 <AppSelect
@@ -379,7 +379,7 @@ export default function ClientQuadrants({
               disabled={isPending}
               className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#1d1b20] py-3 text-sm font-bold text-white transition-colors hover:bg-black disabled:opacity-50"
             >
-              Asignar cuadrante
+              Asignar responsabilidad
             </button>
           </div>
         </form>
@@ -387,7 +387,7 @@ export default function ClientQuadrants({
         <div className="space-y-4">
           <h2 className="flex items-center gap-2 px-1 text-sm font-bold text-slate-800">
             <FileSignature className="h-4 w-4 text-orange-500" />
-            Responsabilidades asignadas
+            Responsabilidades operativas
           </h2>
 
           {assignments && assignments.length > 0 ? (
@@ -406,7 +406,7 @@ export default function ClientQuadrants({
                     </span>
                   ) : (
                     <span className="rounded-md bg-amber-50 px-2 py-1 text-[10px] font-bold text-amber-600">
-                      Pendiente aceptación
+                      Pendiente de aceptación
                     </span>
                   )}
                 </div>
@@ -430,7 +430,7 @@ export default function ClientQuadrants({
                     </label>
                     <label className="block">
                       <span className="mb-1 block text-[10px] font-bold uppercase tracking-wide text-slate-500">
-                        Cuadrante / Pasillo
+                        Cuadrante / pasillo
                       </span>
                       <AppSelect
                         name="quadrant_name"
@@ -527,7 +527,7 @@ export default function ClientQuadrants({
           ) : (
             <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm">
               <p className="text-sm font-medium text-zinc-500">
-                No hay cuadrantes asignados.
+                No hay responsabilidades asignadas.
               </p>
             </div>
           )}
