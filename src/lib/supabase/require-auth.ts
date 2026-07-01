@@ -1,7 +1,7 @@
 import { createClient } from "./server";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getHydratedProfile(supabase: any, userId: string) {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
@@ -74,6 +74,24 @@ export async function requireSupervisor() {
   return authContext;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function validateOperatorName(profile: any, operatorName: string) {
-  return;
+  const normalizeName = (value: unknown) =>
+    typeof value === "string" ? value.trim().replace(/\s+/g, " ").toLowerCase() : "";
+
+  const submittedName = normalizeName(operatorName);
+
+  if (!submittedName) {
+    throw new Error("El nombre del operador es obligatorio.");
+  }
+
+  const profileName = normalizeName(profile?.display_name || profile?.full_name);
+
+  if (!profileName) {
+    throw new Error("No se pudo validar el operador: el perfil no tiene un nombre válido.");
+  }
+
+  if (submittedName !== profileName) {
+    throw new Error("El operador no coincide con el perfil autenticado.");
+  }
 }
