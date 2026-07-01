@@ -67,7 +67,7 @@ export default function ClientImpulses({
           toast.error(res.error);
           return;
         }
-        toast.success("Registro de impulso guardado con éxito.");
+        toast.success("Registro comercial guardado con éxito.");
         setQuantity(1);
         setSelectedProduct(null);
         setCatalogQuery("");
@@ -93,10 +93,10 @@ export default function ClientImpulses({
           </Link>
           <div className="flex flex-1 flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Impulso
+              Impulso comercial
             </p>
             <h1 className="text-lg font-black leading-tight text-white">
-              Registro de impulso
+              Registro comercial
             </h1>
             <p className="text-[10px] text-white/90">
               Guarda el producto, la persona y las unidades del impulso del día.
@@ -141,7 +141,7 @@ export default function ClientImpulses({
               </div>
               <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-                  Destino
+                  Seguimiento
                 </p>
                 <p className="mt-1 text-sm font-black text-slate-900">
                   Analítica semanal

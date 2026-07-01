@@ -47,7 +47,7 @@ export default async function ImpulsesAnalyticsPage() {
           </Link>
           <div className="flex flex-1 flex-col">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-              Impulso
+              Impulso comercial
             </p>
             <h1 className="text-lg font-black leading-tight text-white">
               Analítica semanal
@@ -72,7 +72,7 @@ export default async function ImpulsesAnalyticsPage() {
               <div className="mb-3 flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-rose-500" />
                 <h2 className="text-lg font-black text-slate-900">
-                  Lectura de impulso
+                  Seguimiento de impulso
                 </h2>
               </div>
               <p className="text-sm text-slate-500">
@@ -84,7 +84,7 @@ export default async function ImpulsesAnalyticsPage() {
             <div className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
               <div className="rounded-2xl border border-rose-200/80 bg-rose-50/80 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-600">
-                  Ventana
+                  Periodo
                 </p>
                 <p className="mt-1 text-sm font-black text-slate-900">
                   Últimos 7 días
@@ -92,7 +92,7 @@ export default async function ImpulsesAnalyticsPage() {
               </div>
               <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
-                  Vista
+                  Agrupación
                 </p>
                 <p className="mt-1 text-sm font-black text-slate-900">
                   Equipo y tipo

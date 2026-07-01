@@ -305,12 +305,12 @@ export default function SalesClient({
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Registro comercial</p>
-          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Carga diaria de ventas</h1>
+          <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Registro operativo de ventas</h1>
           <p className="mt-1 text-sm font-medium capitalize text-slate-500">
             {format(currentDate, "MMMM yyyy", { locale: es })}
           </p>
           <p className="mt-1 text-[11px] font-medium text-slate-400">
-            Aqui registras la venta del dia, ajustas presupuesto y sigues el corte mensual sin mezclar lectura analitica.
+            Aquí registras la venta del día, ajustas el presupuesto operativo y dejas la lectura analítica para Indicadores.
           </p>
         </div>
         <div className="flex items-center gap-2 self-start lg:self-auto">
@@ -335,7 +335,7 @@ export default function SalesClient({
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] 2xl:items-start">
       <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm lg:p-6 xl:p-7">
         <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
-          <Target className="h-4 w-4" /> Presupuesto del mes
+          <Target className="h-4 w-4" /> Presupuesto operativo del mes
         </h2>
         {isSupervisor ? (
           currentBudget > 0 && !isEditingBudget ? (
@@ -400,7 +400,7 @@ export default function SalesClient({
           <div className="mt-6 border-t border-slate-100 pt-4">
             <div className="mb-2 flex items-end justify-between">
               <div>
-                <p className="text-[10px] font-bold uppercase text-slate-400">Venta acumulada</p>
+                <p className="text-[10px] font-bold uppercase text-slate-400">Venta operativa acumulada</p>
                 <p className="text-lg font-black text-slate-800">{formatCurrency(totalSalesMonth)}</p>
               </div>
               <div className="text-right">
@@ -427,7 +427,7 @@ export default function SalesClient({
             <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-3">
               <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
               <div>
-                <p className="text-xs font-bold text-blue-900">Proyeccion del mes</p>
+                <p className="text-xs font-bold text-blue-900">Proyección operativa del mes</p>
                 <p className="mt-1 text-[11px] leading-tight text-blue-700">
                   Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}</b>, cerraras el
                   mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
@@ -441,7 +441,7 @@ export default function SalesClient({
       <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm 2xl:h-full lg:p-6 xl:p-7">
         <h2 className="mb-4 flex flex-col gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4" /> Carga diaria
+            <Calendar className="h-4 w-4" /> Registro operativo
           </div>
           {isSupervisor && (
             <label className="flex cursor-pointer items-center gap-1.5 rounded-full bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-slate-600 transition-colors hover:bg-slate-200">

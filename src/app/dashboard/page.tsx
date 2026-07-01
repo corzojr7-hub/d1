@@ -112,7 +112,7 @@ function getAssistantOptions(profile: {
 }
 
 export const metadata: Metadata = {
-  title: "Indicadores - Sistema Operativo",
+  title: "Indicadores Comerciales - Sistema Operativo",
 };
 
 export default async function DashboardPage(props: {
@@ -372,10 +372,10 @@ export default async function DashboardPage(props: {
       <div className="mb-6 rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
           <div className="max-w-3xl">
-            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Lectura ejecutiva</p>
+            <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Lectura comercial</p>
             <h1 className="mt-1 text-2xl font-black tracking-tight text-[#0a3875] sm:text-[2rem]">Indicadores</h1>
             <p className="mt-1 text-sm font-medium text-slate-500">
-              Lectura analitica de ventas, merma y productividad para revisar el pulso real de la tienda.
+              Lectura de ventas, merma, impulso y productividad para revisar el pulso comercial real de la tienda.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center xl:justify-end">
@@ -402,15 +402,15 @@ export default async function DashboardPage(props: {
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-3xl">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
-              Centro ejecutivo
+              Centro comercial
             </p>
             <h2 className="mt-1 text-xl font-black text-slate-900">Explora ventas, impulso y productividad sin salirte del hilo</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Esta vista queda como centro de lectura. Desde aqui puedes bajar al detalle analitico o saltar directo al modulo que necesites.
+              Esta vista queda como centro de lectura comercial. Desde aquí puedes bajar al detalle operativo o saltar al módulo que necesites.
             </p>
           </div>
           <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">
-            Resumen ejecutivo arriba, detalle analitico abajo.
+            Resumen comercial arriba, detalle analítico abajo.
           </div>
         </div>
 
@@ -443,9 +443,9 @@ export default async function DashboardPage(props: {
               <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-500" />
             </div>
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Control de ventas</h3>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Ventas operativas</h3>
             <p className="mt-1 text-sm text-slate-500">
-              Entra al registro diario y al presupuesto sin mezclar la lectura.
+              Entra al registro diario y al presupuesto operativo sin mezclar la lectura comercial.
             </p>
           </Link>
 
@@ -460,7 +460,7 @@ export default async function DashboardPage(props: {
               <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-amber-500" />
             </div>
             <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Impulso</h3>
+            <h3 className="mt-1 text-lg font-black text-slate-900">Impulso comercial</h3>
             <p className="mt-1 text-sm text-slate-500">
               Consulta el comportamiento por colaborador y la tendencia del mes.
             </p>
