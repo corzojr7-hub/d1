@@ -3,7 +3,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import type { TablesInsert } from "@/lib/supabase/database.types";
-import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
+import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
@@ -313,7 +313,7 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
 const wasteStatusSchema = z.enum(["pendiente_revision", "revisado", "anulado", "recuperado"]);
 
 export async function updateWasteStatus(id: string, newStatus: string) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
 
   const validatedStatus = wasteStatusSchema.parse(newStatus);
 
@@ -335,7 +335,7 @@ export async function updateWasteStatus(id: string, newStatus: string) {
 }
 
 export async function markWasteReportSent(id: string) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
   const adminClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -375,7 +375,7 @@ export async function markWasteReportSent(id: string) {
 }
 
 export async function updateWasteRecord(formData: FormData) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
   const id = getString(formData, "id");
   const qty = Number(getString(formData, "qty"));
   const unit = getString(formData, "unit");
@@ -402,7 +402,7 @@ export async function updateWasteRecord(formData: FormData) {
 }
 
 export async function deleteWasteRecord(id: string) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
 
   const adminClient = createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
