@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
-import type { DailyBasicStatus, DailyBasicFault, TaskType } from "@/lib/domain/types";
+import type { BasicTaskConfig, DailyBasicStatus, DailyBasicFault, TaskType } from "@/lib/domain/types";
 import { z } from "zod";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 
@@ -24,7 +24,7 @@ export async function assignDailyTasks(
   }[],
   operatorName: string = ""
 ) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
   const adminClient = getAdminClient();
 
   const insertData = assignments.map((a) => ({
@@ -80,8 +80,8 @@ export async function updateDailyTaskStatus(
   revalidatePath("/audits/daily");
 }
 
-export async function saveBasicTasksConfig(basic_tasks: any[]) {
-  const { profile } = await requireAuth();
+export async function saveBasicTasksConfig(basic_tasks: BasicTaskConfig[]) {
+  const { profile } = await requireSupervisor();
   const adminClient = getAdminClient();
 
   const { error } = await adminClient
