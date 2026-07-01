@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAuth, validateOperatorName } from "@/lib/supabase/require-auth";
+import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -72,7 +72,7 @@ export async function clearInstructions() {
 }
 
 export async function createInstruction(_prev: unknown, formData: FormData) {
-  const { profile } = await requireAuth();
+  const { profile } = await requireSupervisor();
   const adminClient = getAdminClient();
 
   const responsible = formData.get("responsible") as string;
