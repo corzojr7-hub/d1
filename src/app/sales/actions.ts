@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAuth } from "@/lib/supabase/require-auth";
+import { requireAuth, requireSupervisor } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import type { ProfileRole } from "@/lib/domain/types";
 
@@ -43,7 +43,7 @@ const setWeeklyWasteSchema = z.object({
 
 export async function setMonthlyBudget(monthYear: string, amount: number) {
   try {
-    const { profile } = await requireAuth();
+    const { profile } = await requireSupervisor();
     if (!(await checkRateLimit(profile.id, 50, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setMonthlyBudgetSchema.parse({ monthYear, amount });
@@ -171,7 +171,7 @@ export async function setBulkDailySales(sales: { date: string, amount: number }[
 
 export async function setWeeklyWaste(weekStart: string, weekEnd: string, amount: number) {
   try {
-    const { profile, user } = await requireAuth();
+    const { profile, user } = await requireSupervisor();
     if (!(await checkRateLimit(profile.id, 100, 60000))) throw new Error("Rate limit exceeded");
 
     const validated = setWeeklyWasteSchema.parse({ weekStart, weekEnd, amount });
