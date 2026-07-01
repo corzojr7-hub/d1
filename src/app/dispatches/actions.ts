@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAuth } from "@/lib/supabase/require-auth";
+import { requireSupervisor } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
@@ -31,7 +31,7 @@ const createDispatchSchema = z.object({
 
 export async function createDispatchDifference(formData: FormData) {
   try {
-    const { profile } = await requireAuth();
+    const { profile } = await requireSupervisor();
 
     const parsed = createDispatchSchema.parse({
       driver_name: formData.get("driver_name"),
@@ -98,7 +98,7 @@ export async function addDispatchEvidence(
   notes: string = "",
 ) {
   try {
-    const { profile } = await requireAuth();
+    const { profile } = await requireSupervisor();
     const adminClient = getAdminClient();
 
     const { error } = await adminClient.from("dispatch_evidences").insert({
@@ -126,7 +126,7 @@ export async function closeDispatchDifference(
   finalStatus: "aplicado" | "rechazado" | "anulado",
 ) {
   try {
-    const { profile } = await requireAuth();
+    const { profile } = await requireSupervisor();
     const adminClient = getAdminClient();
 
     const { error } = await adminClient
