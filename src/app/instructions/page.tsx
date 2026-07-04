@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ClipboardList, Plus } from "lucide-react";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
@@ -57,48 +57,55 @@ export default async function InstructionsIndex() {
         </Link>
       </div>
 
-      <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.16)] sm:px-6 sm:py-6 lg:px-7 lg:py-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
-          <div className="max-w-3xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-              Operación diaria
-            </p>
-            <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-              Instrucciones del turno
-            </h1>
-            <p className="mt-2 max-w-[420px] text-[13px] leading-relaxed text-white/82 sm:text-sm">
-              Comunica lo que se debe hacer, sigue lo pendiente y deja listo lo que
-              luego se va a verificar.
-            </p>
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
-                {instructionList.length} instrucciones registradas
-              </div>
-              <div className="inline-flex items-center rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-semibold text-white/88 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-                {activeCount} activas por seguimiento
-              </div>
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)]">
+        <div className="overflow-hidden rounded-[28px] border border-rose-100 bg-gradient-to-br from-white via-slate-50 to-rose-50 px-5 py-5 shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
+            Operación diaria
+          </p>
+          <h1 className="mt-2 text-[28px] font-black tracking-tight text-slate-950">
+            Bandeja ejecutiva de instrucciones
+          </h1>
+          <p className="mt-2 max-w-[460px] text-[13px] leading-relaxed text-slate-600 sm:text-sm">
+            Comunica lo que se debe hacer, sigue lo pendiente y deja listo lo que luego se va a
+            verificar.
+          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm ring-1 ring-slate-200">
+              {instructionList.length} instrucciones registradas
+            </div>
+            <div className="inline-flex items-center rounded-full bg-rose-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
+              {activeCount} activas
+            </div>
+            <div className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
+              {urgentCount} urgentes
             </div>
           </div>
+        </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 xl:min-w-[420px]">
-            <div className="rounded-[24px] bg-white/10 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] backdrop-blur-sm">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/65">
-                Pendientes del turno
+        <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+            Acción prioritaria
+          </p>
+          <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950">
+            Lo primero que debe hacer el supervisor
+          </h2>
+          <div className="mt-4 space-y-3">
+            <div className="rounded-[22px] border border-slate-100 bg-slate-50 p-4">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                Cumplidas
               </p>
-              <p className="mt-2 text-3xl font-black text-white">{activeCount}</p>
-              <p className="mt-1 text-xs font-medium text-white/75">
-                Instrucciones que siguen abiertas o requieren seguimiento.
-              </p>
-            </div>
-            <div className="rounded-[24px] bg-white/10 p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] backdrop-blur-sm">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-white/65">
-                Alta prioridad
-              </p>
-              <p className="mt-2 text-3xl font-black text-white">{urgentCount}</p>
-              <p className="mt-1 text-xs font-medium text-white/75">
-                Casos que piden reacción rápida del equipo.
+              <p className="mt-2 text-2xl font-black text-slate-900">{completedCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500">
+                Tareas que ya cerró el equipo.
               </p>
             </div>
+            <Link
+              href="/instructions/new"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e51d2e] px-5 py-3 text-sm font-black text-white shadow-[0_16px_32px_rgba(229,29,46,0.2)] transition hover:-translate-y-0.5 hover:bg-[#cf1727]"
+            >
+              <Plus className="h-4 w-4" />
+              Crear instrucción
+            </Link>
           </div>
         </div>
       </section>
@@ -217,10 +224,10 @@ export default async function InstructionsIndex() {
 
         <div className="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-            Acción principal
+            Nueva instrucción
           </p>
           <h2 className="mt-1 text-lg font-black tracking-tight text-slate-900">
-            Registra una novedad nueva
+            Crear nueva instrucción
           </h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500">
             Si el equipo necesita una instrucción nueva, entra directo al registro y
@@ -300,3 +307,5 @@ export default async function InstructionsIndex() {
     </div>
   );
 }
+
+
