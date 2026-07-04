@@ -8,7 +8,7 @@ import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton"
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export const metadata: Metadata = {
-  title: "PrevenciÃ³n y PÃ©rdida â€” Sistema de Control Operativo de Tienda",
+  title: "Prevención y Pérdida — Sistema de Control Operativo de Tienda",
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -158,13 +158,13 @@ export default async function WasteIndex({
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
         <div className="overflow-hidden rounded-[28px] border border-blue-100 bg-gradient-to-br from-white via-slate-50 to-blue-50 px-5 py-5 shadow-sm lg:px-6 lg:py-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
-            Prevencion y perdida
+            Prevención y pérdida
           </p>
           <h1 className="mt-2 text-[26px] font-black tracking-tight text-slate-950 lg:text-[30px]">
             Centro de control de Merma
           </h1>
           <p className="mt-2 max-w-[38rem] text-[13px] leading-relaxed text-slate-600">
-            Registra perdidas, revisa vencimientos y soportes, y cierra la semana desde una sola
+            Registra pérdidas, revisa vencimientos y soportes, y cierra la semana desde una sola
             entrada operativa.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -175,14 +175,14 @@ export default async function WasteIndex({
               {selectedCutIsValid ? "Semana cerrada" : "Semana activa"}
             </div>
             <div className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
-              Pagina {page}
+              Página {page}
             </div>
           </div>
         </div>
 
         <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm lg:px-6 lg:py-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
-            Accion prioritaria
+            Acción prioritaria
           </p>
           <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950">
             Lo primero que debe hacer el supervisor
@@ -202,7 +202,7 @@ export default async function WasteIndex({
                   2. FEFO
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  Prevenir perdida por vencimiento.
+                  Prevenir pérdida por vencimiento.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
@@ -230,14 +230,15 @@ export default async function WasteIndex({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Accesos rÃ¡pidos
+              Accesos rápidos
             </p>
             <h2 className="mt-1 text-xl font-black text-slate-950">
               Lo principal de Merma
             </h2>
           </div>
           <p className="max-w-sm text-right text-[11px] font-medium leading-relaxed text-slate-500">
-            La ruta principal para registrar perdida; FEFO, evidencias y corte semanal quedan como
+            La ruta principal para registrar pérdida; FEFO, evidencias y corte semanal quedan como
+            controles secundarios.
           </p>
         </div>
 
@@ -360,7 +361,7 @@ export default async function WasteIndex({
               <div className="text-left">
                 <h2 className="text-sm font-bold">Descargar Evidencias (ZIP)</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                  ReÃºne los soportes de transporte y calidad por producto
+                  Reúne los soportes de transporte y calidad por producto
                 </p>
               </div>
             </div>
@@ -390,8 +391,8 @@ export default async function WasteIndex({
             </p>
             <h2 className="mt-1 text-sm font-black text-slate-900">
               {selectedCutIsValid
-                ? "Semana cerrada en RevisiÃ³n"
-                : "Semana activa de prevenciÃ³n y pÃ©rdida"}
+                ? "Semana cerrada en Revisión"
+                : "Semana activa de prevención y pérdida"}
             </h2>
             <p className="mt-1 text-[11px] text-slate-500">
               {selectedCutIsValid
@@ -399,8 +400,8 @@ export default async function WasteIndex({
                     cycleEnd ? ` hasta ${formatCutDate(cycleEnd)}` : ""
                   }.`
                 : activeCut
-                  ? `La semana actual iniciÃ³ en ${formatCutDate(activeCut)}.`
-                  : "TodavÃ­a no hay un corte manual. EstÃ¡s viendo todos los registros actuales."}
+                  ? `La semana actual inició en ${formatCutDate(activeCut)}.`
+                  : "Todavía no hay un corte manual. Estás viendo todos los registros actuales."}
             </p>
           </div>
 
@@ -472,14 +473,14 @@ export default async function WasteIndex({
             type="button"
             className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
           >
-            DepositÃ³
+            Depositó
             <span className="text-[10px]">v</span>
           </button>
           <button
             type="button"
             className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
           >
-            RevisiÃ³n
+            Revisión
             <span className="text-[10px]">v</span>
           </button>
         </div>
@@ -520,14 +521,14 @@ export default async function WasteIndex({
               href={pageHref(page - 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              â† Anterior
+              ← Anterior
             </Link>
           ) : (
             <div />
           )}
 
           <span className="rounded-full bg-white px-3 py-1 text-[12px] text-slate-500 ring-1 ring-slate-200">
-            PÃ¡g {page}
+            Pág {page}
           </span>
 
           {to < totalRecords ? (
@@ -535,7 +536,7 @@ export default async function WasteIndex({
               href={pageHref(page + 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              Siguiente â†’
+              Siguiente →
             </Link>
           ) : (
             <div />
@@ -545,3 +546,4 @@ export default async function WasteIndex({
     </div>
   );
 }
+
