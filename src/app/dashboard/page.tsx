@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { format, subDays, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowRight, BarChart3, ShoppingBag, TrendingUp, WalletCards } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import type { DailySale } from "@/lib/domain/types";
 import AppSelect from "@/components/dashboard/AppSelect";
@@ -10,6 +10,7 @@ import ExportDataButton from "@/components/dashboard/ExportDataButton";
 import PosAssistantFilter from "@/components/dashboard/PosAssistantFilter";
 import PosMetricsImportButton from "@/components/dashboard/PosMetricsImportButton";
 import PosMetricsCharts from "@/components/dashboard/PosMetricsCharts";
+import SalesTrendsChart from "@/components/dashboard/SalesTrendsChart";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { savePosMetric } from "./actions";
 import type { StoreAssistant } from "@/lib/domain/types";
@@ -398,91 +399,126 @@ export default async function DashboardPage(props: {
         </div>
       </div>
 
-      <section className="mb-6 rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="max-w-3xl">
+      <section className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+        <div className="rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-3xl">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
+                Lectura ejecutiva
+              </p>
+              <h2 className="mt-1 text-xl font-black text-slate-900">
+                Tendencia comercial de la tienda
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                La primera mirada para entender ventas, impulso y productividad sin entrar todavía al detalle operativo.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">
+              Primero mira la tendencia. Luego baja al detalle.
+            </div>
+          </div>
+
+          <div className="mt-5">
+            <SalesTrendsChart data={dailySales || []} />
+          </div>
+        </div>
+
+        <aside className="space-y-4">
+          <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
-              Centro comercial
+              Qué revisar primero
             </p>
-            <h2 className="mt-1 text-xl font-black text-slate-900">Explora ventas, impulso y productividad sin salirte del hilo</h2>
+            <h3 className="mt-1 text-lg font-black text-slate-900">
+              Atajos ejecutivos
+            </h3>
             <p className="mt-1 text-sm text-slate-500">
-              Esta vista queda como centro de lectura comercial. Desde aquí puedes bajar al detalle operativo o saltar al módulo que necesites.
+              Abre el frente que necesites sin perder la lectura general de la tienda.
             </p>
+
+            <div className="mt-5 grid gap-3">
+              <Link
+                href="#ventas-merma"
+                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                      Ventas y merma
+                    </p>
+                    <p className="mt-1 text-sm font-black text-slate-900">{formatCop(currentSalesMtd)}</p>
+                    <p
+                      className={`mt-1 text-[11px] font-bold ${
+                        salesDeltaPercent >= 0 ? "text-emerald-600" : "text-red-600"
+                      }`}
+                    >
+                      {salesDeltaPercent >= 0 ? "+" : ""}
+                      {salesDeltaPercent.toFixed(1)}% vs mes anterior
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-blue-500" />
+                </div>
+              </Link>
+
+              <Link
+                href="#productividad-pos"
+                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                      Productividad POS
+                    </p>
+                    <p className="mt-1 text-sm font-black text-slate-900">
+                      {formatMetric(posToday.productivity)} · {formatMetric(posToday.scan)}
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Hoy, artículos por minuto y escaneo.
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-rose-500" />
+                </div>
+              </Link>
+
+              <Link
+                href="/sales"
+                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                      Ventas operativas
+                    </p>
+                    <p className="mt-1 text-sm font-black text-slate-900">Registro y presupuesto</p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Entra al dato diario sin mezclarlo con la lectura ejecutiva.
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-500" />
+                </div>
+              </Link>
+
+              <Link
+                href="/impulses"
+                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                      Impulso comercial
+                    </p>
+                    <p className="mt-1 text-sm font-black text-slate-900">
+                      {impulseRecords?.length || 0} registros
+                    </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      Revisa quién movió más unidades esta semana.
+                    </p>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-amber-500" />
+                </div>
+              </Link>
+            </div>
           </div>
-          <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm font-semibold text-blue-900">
-            Resumen comercial arriba, detalle analítico abajo.
-          </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-2 2xl:grid-cols-4">
-          <Link
-            href="#ventas-merma"
-            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50 text-blue-600">
-                <BarChart3 className="h-5 w-5" />
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-blue-500" />
-            </div>
-            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Resumen</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Ventas y merma</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Revisa el comportamiento mensual y el corte comparativo.
-            </p>
-          </Link>
-
-          <Link
-            href="/sales"
-            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <WalletCards className="h-5 w-5" />
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-emerald-500" />
-            </div>
-            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Ventas operativas</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Entra al registro diario y al presupuesto operativo sin mezclar la lectura comercial.
-            </p>
-          </Link>
-
-          <Link
-            href="/impulses"
-            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                <TrendingUp className="h-5 w-5" />
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-amber-500" />
-            </div>
-            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Modulo</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Impulso comercial</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Consulta el comportamiento por colaborador y la tendencia del mes.
-            </p>
-          </Link>
-
-          <Link
-            href="#productividad-pos"
-            className="group rounded-[26px] border border-slate-200/80 bg-gradient-to-br from-slate-50 via-white to-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-600">
-                <ShoppingBag className="h-5 w-5" />
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-300 transition group-hover:text-rose-500" />
-            </div>
-            <p className="mt-4 text-[11px] font-extrabold uppercase tracking-[0.18em] text-slate-400">Detalle</p>
-            <h3 className="mt-1 text-lg font-black text-slate-900">Productividad POS</h3>
-            <p className="mt-1 text-sm text-slate-500">
-              Compara escaneo, articulos por minuto, anulaciones y cancelaciones.
-            </p>
-          </Link>
-        </div>
+        </aside>
       </section>
 
       <div className="space-y-6 xl:space-y-8">
