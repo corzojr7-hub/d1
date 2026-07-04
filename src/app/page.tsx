@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { ClipboardPlus, FileText, Radar, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
@@ -13,7 +12,7 @@ import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
 import { parseTruckReportContent } from "@/lib/truck-report";
 
 export const metadata: Metadata = {
-  title: "Inicio - Sistema de Control Operativo de Tienda",
+  title: "Centro de control del supervisor - Sistema de Control Operativo de Tienda",
 };
 
 function getBogotaCalendar(now = new Date()) {
@@ -83,8 +82,7 @@ export default async function Home() {
     hour: currentHour,
     dateString: bogotaToday,
     bogotaMidnight,
-  } =
-    getBogotaCalendar();
+  } = getBogotaCalendar();
   const sessionAlertKey = user?.last_sign_in_at
     ? `${user.id}:${user.last_sign_in_at}`
     : `${user?.id ?? "anon"}:${bogotaToday}`;
@@ -235,8 +233,8 @@ export default async function Home() {
         quantity: rec.quantity,
         expirationDate: rec.expiration_date,
         actionLabel: shouldWarnTonight
-          ? "Prepáralo desde esta noche para salida o venta final mañana."
-          : "Revísalo hoy y sácalo si ya cumplió el retiro FEFO.",
+          ? "Preparalo desde esta noche para salida o venta final manana."
+          : "Revisalo hoy y sacalo si ya cumplio el retiro FEFO.",
       },
     ];
   });
@@ -315,8 +313,63 @@ export default async function Home() {
     detail: dispatch.description,
   }));
 
+  const controlFlowGroups = [
+    {
+      code: "OD",
+      title: "Operacion diaria",
+      subtitle: "Instrucciones, auditorias, bitacora, pre-turno y entrega de turno.",
+      tone: "text-[#b91c1c]",
+      chip:
+        "border-[#e51d2e]/15 bg-[#fff6f7] text-[#b91c1c] hover:bg-[#ffecee]",
+      links: [
+        { href: "/instructions", label: "Instrucciones" },
+        { href: "/audits", label: "Auditorias" },
+        { href: "/logbook", label: "Bitacora" },
+        { href: "/preshift", label: "Pre-turno" },
+        { href: "/handover", label: "Entrega" },
+      ],
+    },
+    {
+      code: "PP",
+      title: "Prevencion y perdida",
+      subtitle: "Merma, radar FEFO, evidencias y cierre semanal.",
+      tone: "text-[#c2410c]",
+      chip:
+        "border-amber-200 bg-amber-50 text-amber-800 hover:bg-amber-100",
+      links: [
+        { href: "/waste", label: "Merma" },
+        { href: "/waste/fefo", label: "FEFO" },
+        { href: "/waste/evidence", label: "Evidencias" },
+      ],
+    },
+    {
+      code: "CM",
+      title: "Comercial",
+      subtitle: "Indicadores, ventas y accion comercial en caja.",
+      tone: "text-[#0a58ca]",
+      chip: "border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100",
+      links: [
+        { href: "/dashboard", label: "Indicadores" },
+        { href: "/sales", label: "Ventas" },
+        { href: "/impulses", label: "Impulso" },
+      ],
+    },
+    {
+      code: "ET",
+      title: "Estructura de tienda",
+      subtitle: "Equipo, horarios y cuadrantes en un solo frente.",
+      tone: "text-[#0f766e]",
+      chip: "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100",
+      links: [
+        { href: "/team", label: "Equipo" },
+        { href: "/schedule", label: "Horarios" },
+        { href: "/quadrants", label: "Cuadrantes" },
+      ],
+    },
+  ] as const;
+
   return (
-    <div className="mx-auto min-h-screen max-w-[1600px] bg-slate-50 pb-24">
+    <div className="mx-auto min-h-screen max-w-[1600px] bg-[linear-gradient(180deg,#f8fafc_0%,#f3f6fb_100%)] pb-24">
       <StoreTeamSummary />
       <HomeStartupAlerts
         todayKey={bogotaToday}
@@ -327,355 +380,97 @@ export default async function Home() {
         fefoAlerts={startupFefoItems}
       />
 
-      <section className="mx-4 mt-4 overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] shadow-[0_20px_40px_rgba(229,29,46,0.18)] lg:mx-6 xl:mx-8">
-        <div className="flex items-start justify-between gap-4 px-5 py-5 text-white">
-          <div className="flex items-start gap-3">
-            <span className="mt-0.5 text-xl">O</span>
-            <div>
-              <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-white/75">
-                Meta del Dia
-              </p>
-              <p className="mt-1 text-xl font-black tracking-tight text-white">
-                {new Intl.NumberFormat("es-CO", {
+      <section className="mx-4 mt-4 overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] lg:mx-6 xl:mx-8">
+        <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,360px)]">
+          <div className="bg-gradient-to-br from-[#c51628] via-[#e11d2e] to-[#f0434f] px-6 py-6 text-white sm:px-7 sm:py-7">
+            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/90">
+              Centro de control del supervisor
+            </span>
+            <h1 className="mt-4 max-w-xl text-3xl font-black tracking-tight text-white sm:text-4xl">
+              Lo importante de hoy, en un solo vistazo.
+            </h1>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/86">
+              Arranca el turno con prioridades claras: revisar, ejecutar y cerrar sin perder el hilo entre lo urgente, lo operativo y lo comercial.
+            </p>
+
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                  Tareas abiertas
+                </p>
+                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                  {String(pendingCount ?? 0).padStart(2, "0")}
+                </p>
+                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                  Instrucciones y tareas que no se deben perder de vista.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                  Alertas FEFO
+                </p>
+                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                  {criticalFefoItems.length}
+                </p>
+                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                  Productos que ya piden revisión hoy o salida preventiva.
+                </p>
+              </div>
+              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+                  Diferencias
+                </p>
+                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                  {startupDispatchAlerts.length}
+                </p>
+                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                  Casos por validar antes de cambiar de frente.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-200 bg-slate-50/95 px-6 py-6 lg:border-l lg:border-t-0">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+              Prioridad de arranque
+            </p>
+            <div className="mt-4 space-y-3">
+              <ControlRow
+                label="Aseo de hoy"
+                value={todayAseoPerson}
+                hint="Tenlo presente desde el arranque del turno."
+              />
+              <ControlRow
+                label="Meta del dia"
+                value={new Intl.NumberFormat("es-CO", {
                   style: "currency",
                   currency: "COP",
                   maximumFractionDigits: 0,
                 }).format(dailyGoal)}
-              </p>
-              <p className="mt-2 max-w-[180px] text-[11px] font-medium leading-snug text-white/80">
-                Objetivo operativo del turno con foco directo en avance diario.
-              </p>
-            </div>
-          </div>
-          <div className="rounded-2xl bg-white/12 px-3 py-3 text-right shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] backdrop-blur-sm">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-white/70">
-              Dias Restantes
-            </p>
-            <p className="mt-1 text-2xl font-black leading-none text-white tabular-nums">
-              {remainingDays}
-            </p>
-          </div>
-        </div>
-
-        {preShiftData && (
-          <div className="grid gap-3 border-t border-white/10 bg-black/10 px-5 py-3 text-white/92">
-            <div className="flex items-start justify-between gap-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">
-                Foco de Impulso
-              </span>
-              <span className="max-w-[190px] text-right text-[12px] font-semibold leading-snug">
-                {preShiftData.impulse_focus}
-              </span>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">
-                Prioridad Tareas
-              </span>
-              <span className="max-w-[190px] text-right text-[12px] font-semibold leading-snug">
-                {preShiftData.priority}
-              </span>
-            </div>
-            <div className="flex items-start justify-between gap-4">
-              <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">
-                Aseo de Hoy
-              </span>
-              <span className="max-w-[190px] text-right text-[12px] font-semibold leading-snug">
-                {todayAseoPerson}
-              </span>
-            </div>
-            {preShiftData.average_ticket_goal > 0 && (
-              <div className="flex items-start justify-between gap-4">
-                <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-white/65">
-                  Ticket Promedio
-                </span>
-                <span className="text-right text-[12px] font-black text-white">
-                  {new Intl.NumberFormat("es-CO", {
-                    style: "currency",
-                    currency: "COP",
-                    maximumFractionDigits: 0,
-                  }).format(preShiftData.average_ticket_goal)}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
-      </section>
-
-      <div className="mx-4 mt-5 grid gap-5 lg:mx-6 lg:grid-cols-[minmax(320px,380px)_minmax(0,1fr)] lg:items-start xl:mx-8 xl:grid-cols-[minmax(340px,400px)_minmax(0,1fr)]">
-        <section className="rounded-[28px] border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-            Resumen RÃ¡pido
-          </p>
-          <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-            Lo crÃ­tico del dÃ­a
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <MetricCard
-            label="Tareas"
-            value={String(pendingCount ?? 0).padStart(2, "0")}
-            tone="text-[#0a58ca]"
-          />
-          <MetricCard
-            label="Merma sem"
-            value={String(wasteCountWeek ?? 0)}
-            tone="text-[#e51d2e]"
-          />
-          <MetricCard
-            label="Merma total"
-            value={String(wasteCount ?? 0)}
-            tone="text-[#b91c1c]"
-          />
-        </div>
-        </section>
-
-        <section className="rounded-[28px] border border-slate-200/90 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4 flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-          <div className="max-w-2xl">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Acciones del turno
-            </p>
-            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              Registro rapido
-            </h2>
-            <p className="mt-1 text-[12px] leading-snug text-slate-500">
-              Deja a mano lo urgente del dia y manten visibles las alertas que si requieren reaccion inmediata.
-            </p>
-          </div>
-          {criticalFefoItems.length > 0 && (
-            <div className="rounded-[22px] border border-amber-200 bg-amber-50 px-4 py-3 xl:max-w-[320px]">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-2">
-                  <Radar className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
-                  <div className="min-w-0">
-                    <h3 className="text-[13px] font-bold text-amber-900">
-                      Radar FEFO activo
-                    </h3>
-                    <p className="mt-0.5 text-[11px] leading-snug text-amber-800/80">
-                      {criticalFefoItems.length} alerta{criticalFefoItems.length === 1 ? "" : "s"} para revisar hoy.
-                    </p>
-                  </div>
-                </div>
-                <span className="shrink-0 rounded-full bg-amber-200 px-2 py-0.5 text-[10px] font-bold text-amber-800">
-                  {criticalFefoItems.length}
-                </span>
-              </div>
-              <Link
-                href="/waste/fefo"
-                className="mt-3 block rounded-2xl bg-amber-200/70 py-2 text-center text-[11px] font-bold text-amber-800 transition-colors hover:bg-amber-200"
-              >
-                Ver radar completo
-              </Link>
-            </div>
-          )}
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Link
-            href="/instructions/new"
-            className="group flex min-h-[150px] flex-col justify-between rounded-[24px] bg-[#e51d2e] p-4 shadow-[0_16px_32px_rgba(229,29,46,0.18)] transition-all duration-200 active:scale-[0.98]"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/18 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-              <ClipboardPlus className="h-[22px] w-[22px] text-white" strokeWidth={2} />
-            </div>
-            <div className="mt-4">
-              <p className="text-[18px] font-black leading-tight tracking-tight text-white">
-                Nueva Instruccion
-              </p>
-              <p className="mt-1 pr-2 text-[11px] leading-snug text-white/88">
-                Asigna una novedad o accion puntual sin perder tiempo en el menu.
-              </p>
-            </div>
-          </Link>
-
-          <Link
-            href="/waste/new"
-            className="group flex min-h-[150px] flex-col justify-between rounded-[24px] border border-blue-200 bg-white p-4 shadow-sm transition-all duration-200 active:scale-[0.98]"
-          >
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-50">
-              <Trash2 className="h-[22px] w-[22px] text-[#0a58ca]" strokeWidth={2} />
-            </div>
-            <div className="mt-4">
-              <p className="text-[18px] font-black leading-tight tracking-tight text-slate-900">
-                Registrar Merma
-              </p>
-              <p className="mt-1 pr-2 text-[11px] leading-snug text-slate-600">
-                Traza la novedad, deja evidencia y sigue el caso sin salir del flujo.
-              </p>
-            </div>
-          </Link>
-        </div>
-        </section>
-
-        <div className="lg:col-span-2">
-          <TruckArrivalReportCard
-            storeName={profile.store_name}
-            initialReports={todayTruckReports}
-            canManage={profile.role === "supervisor" || profile.role === "admin"}
-          />
-        </div>
-
-      </div>
-
-      <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-start">
-          <div className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-              <div className="max-w-2xl">
-                <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  Navegacion del dia
-                </p>
-                <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-                  Operacion principal
-                </h2>
-                <p className="mt-1 text-[12px] leading-snug text-slate-500">
-                  Menos opciones arriba, mas claridad para abrir, seguir y cerrar el turno.
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href="/dashboard"
-                  className="rounded-full border border-[#e51d2e]/20 bg-white px-3 py-2 text-[11px] font-bold text-[#e51d2e] shadow-sm transition-transform active:scale-95"
-                >
-                  Ver indicadores
-                </Link>
-                <Link
-                  href="/sales"
-                  className="rounded-full border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-700 shadow-sm transition-transform active:scale-95"
-                >
-                  Ver ventas
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              <QuickAccessCard
-                href="/logbook"
-                title="Bitacora"
-                subtitle="Novedades y seguimiento del turno"
-                iconBg="bg-fuchsia-50"
-                iconTone="text-fuchsia-600"
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
-                }
+                hint="Objetivo operativo para avanzar sin perder foco."
               />
-              <QuickAccessCard
-                href="/quadrants"
-                title="Cuadrantes"
-                subtitle="Pasillos, responsables y control"
-                iconBg="bg-orange-50"
-                iconTone="text-orange-600"
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-                }
-              />
-              <QuickAccessCard
-                href="/handover"
-                title="Entrega"
-                subtitle="Cierre de turno y evidencia"
-                iconBg="bg-blue-50"
-                iconTone="text-blue-600"
-                icon={
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
-                }
+              <ControlRow
+                label="Prioridad del pre-turno"
+                value={preShiftData?.priority || "Sin definir"}
+                hint={preShiftData?.impulse_focus || "Revisa lo que se debe impulsar hoy."}
               />
             </div>
 
-            <details className="group mt-4 rounded-[24px] border border-slate-200 bg-slate-50 p-4 shadow-sm">
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+            <div className="mt-5 rounded-[24px] border border-blue-100 bg-white p-4 shadow-sm">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                    Herramientas complementarias
+                  <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-600">
+                    Comercial en curso
                   </p>
                   <p className="mt-1 text-[13px] font-bold text-slate-900">
-                    Pre-turno, impulso, mensajes, diferencias y horarios
+                    Meta mensual vs venta acumulada
                   </p>
                 </div>
-                <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-slate-600 transition group-open:bg-slate-900 group-open:text-white">
-                  Ver mas
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-[10px] font-bold text-blue-700">
+                  {Math.round((accumulatedSales / (monthlyBudget || 1)) * 100)}%
                 </span>
-              </summary>
-
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <QuickAccessCard
-                  href="/preshift"
-                  title="Pre-Turno"
-                  subtitle="Objetivos y enfoque del dia"
-                  iconBg="bg-amber-50"
-                  iconTone="text-amber-600"
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
-                  }
-                />
-                <QuickAccessCard
-                  href="/impulses"
-                  title="Impulso"
-                  subtitle="Ventas por asistente"
-                  iconBg="bg-emerald-50"
-                  iconTone="text-emerald-600"
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
-                  }
-                />
-                <QuickAccessCard
-                  href="/instructions/feedback/new?mode=whatsapp"
-                  title="Mensaje IA"
-                  subtitle="WhatsApp y retroalimentacion"
-                  iconBg="bg-rose-50"
-                  iconTone="text-rose-600"
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8"/><path d="M8 13h5"/></svg>
-                  }
-                />
-                <QuickAccessCard
-                  href="/dispatches"
-                  title="Diferencias"
-                  subtitle="Despachos C1 y OTC"
-                  iconBg="bg-indigo-50"
-                  iconTone="text-indigo-600"
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
-                  }
-                />
-                <QuickAccessCard
-                  href="/schedule"
-                  title="Horarios IA"
-                  subtitle="Planeacion semanal"
-                  iconBg="bg-cyan-50"
-                  iconTone="text-cyan-700"
-                  icon={
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/></svg>
-                  }
-                />
               </div>
-            </details>
-          </div>
-
-          <div className="rounded-[26px] border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-blue-100 p-2.5 text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-              </div>
-              <div>
-                <span className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-blue-600">
-                  Responsable de aseo
-                </span>
-                <h3 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-                  {todayAseoPerson}
-                </h3>
-                <p className="mt-1 text-[11px] font-medium text-slate-500">
-                  Bano, cafetin y aforo del dia.
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-white/80 p-4 shadow-sm ring-1 ring-blue-100">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                Resumen comercial
-              </p>
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500">
                     Objetivo mes
@@ -701,7 +496,6 @@ export default async function Home() {
                   </p>
                 </div>
               </div>
-
               <div className="mt-3 h-2 w-full rounded-full bg-slate-200">
                 <div
                   className="h-2 rounded-full bg-[#0a58ca]"
@@ -719,14 +513,14 @@ export default async function Home() {
             </div>
 
             {Object.keys(aseoSchedule).length > 0 && (
-              <details className="group mt-4 rounded-[22px] border border-blue-100 bg-white/80 p-4 shadow-sm">
+              <details className="group mt-4 rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm">
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
                       Programacion semanal
                     </p>
                     <p className="mt-1 text-[13px] font-bold text-slate-900">
-                      Ver responsables de aseo de la semana
+                      Responsables de aseo de la semana
                     </p>
                   </div>
                   <span className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold text-blue-700 transition group-open:bg-blue-600 group-open:text-white">
@@ -738,9 +532,9 @@ export default async function Home() {
                   {dayNames.map((day) => (
                     <div
                       key={day}
-                      className="rounded-2xl border border-blue-100 bg-white px-3 py-2"
+                      className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2"
                     >
-                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-blue-600">
+                      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em] text-slate-500">
                         {day}
                       </p>
                       <p className="mt-1 text-[11px] font-bold leading-snug text-slate-700">
@@ -755,14 +549,96 @@ export default async function Home() {
         </div>
       </section>
 
+      <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+              Lo que se revisa primero
+            </p>
+            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-950">
+              Prioridades del turno
+            </h2>
+            <p className="mt-1 text-[12px] leading-snug text-slate-500">
+              Si alguna alarma sigue activa, se resuelve antes de moverse a otros frentes.
+            </p>
+          </div>
+          <Link
+            href="/waste/fefo"
+            className="inline-flex w-fit items-center rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-bold text-amber-800 transition hover:bg-amber-100"
+          >
+            Ver radar FEFO
+          </Link>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetricCard
+            label="Tareas"
+            value={String(pendingCount ?? 0).padStart(2, "0")}
+            tone="text-[#0a58ca]"
+          />
+          <MetricCard
+            label="Merma sem"
+            value={String(wasteCountWeek ?? 0)}
+            tone="text-[#e51d2e]"
+          />
+          <MetricCard
+            label="Merma total"
+            value={String(wasteCount ?? 0)}
+            tone="text-[#b91c1c]"
+          />
+        </div>
+
+        <div className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+          <p className="text-[12px] leading-snug text-slate-600">
+            Si tienes alertas FEFO o diferencias de despacho, atiéndelas antes de pasar a ventas o cuadrantes.
+          </p>
+        </div>
+      </section>
+
+      <div className="mx-4 mt-6 lg:mx-6 xl:mx-8">
+        <TruckArrivalReportCard
+          storeName={profile.store_name}
+          initialReports={todayTruckReports}
+          canManage={profile.role === "supervisor" || profile.role === "admin"}
+        />
+      </div>
+
+      <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
+        <div className="mb-4">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+            Rutas del dia
+          </p>
+          <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-950">
+            Cuatro frentes para moverse sin perder el hilo
+          </h2>
+          <p className="mt-1 text-[12px] leading-snug text-slate-500">
+            La home deja de ser una lista suelta y pasa a agrupar lo que el supervisor realmente usa.
+          </p>
+        </div>
+
+        <div className="grid gap-4 xl:grid-cols-2 2xl:grid-cols-4">
+          {controlFlowGroups.map((group) => (
+            <FlowGroupCard
+              key={group.title}
+              code={group.code}
+              title={group.title}
+              subtitle={group.subtitle}
+              tone={group.tone}
+              chipClass={group.chip}
+              links={group.links}
+            />
+          ))}
+        </div>
+      </section>
+
       {recentInstructions && recentInstructions.length > 0 && (
         <section className="mx-4 mt-8 lg:mx-6 xl:mx-8">
           <div className="mb-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
               Seguimiento
             </p>
-            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-900">
-              Instrucciones Recientes
+            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-950">
+              Instrucciones recientes
             </h2>
             <p className="mt-1 text-[11px] text-slate-500">
               Ultimas tareas asignadas
@@ -779,7 +655,9 @@ export default async function Home() {
 
       {(!recentInstructions || recentInstructions.length === 0) && (
         <div className="mx-4 mt-8 flex flex-col items-center justify-center rounded-[26px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm lg:mx-6 xl:mx-8">
-          <FileText className="mb-3 size-6 text-slate-300" />
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+            <span className="text-sm font-black">i</span>
+          </div>
           <p className="text-xs font-medium text-slate-500">
             No hay instrucciones recientes
           </p>
@@ -791,6 +669,26 @@ export default async function Home() {
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+function ControlRow({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div className="rounded-[22px] border border-slate-200 bg-white px-4 py-3 shadow-sm">
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+        {label}
+      </p>
+      <p className="mt-1 text-[15px] font-black leading-tight text-slate-950">{value}</p>
+      <p className="mt-1 text-[11px] leading-snug text-slate-500">{hint}</p>
     </div>
   );
 }
@@ -818,33 +716,40 @@ function MetricCard({
   );
 }
 
-function QuickAccessCard({
-  href,
+function FlowGroupCard({
+  code,
   title,
   subtitle,
-  icon,
-  iconBg,
-  iconTone,
+  tone,
+  chipClass,
+  links,
 }: {
-  href: string;
+  code: string;
   title: string;
   subtitle: string;
-  icon: React.ReactNode;
-  iconBg: string;
-  iconTone: string;
+  tone: string;
+  chipClass: string;
+  links: readonly { href: string; label: string }[];
 }) {
   return (
-    <Link
-      href={href}
-      className="w-full rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm transition-transform active:scale-95"
-    >
-      <div className={`flex h-10 w-10 items-center justify-center rounded-2xl ${iconBg} ${iconTone}`}>
-        {icon}
+    <article className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
+      <div className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl border text-[12px] font-black ${chipClass} ${tone}`}>
+        {code}
       </div>
-      <div className="mt-3">
-        <h3 className="text-sm font-bold text-slate-800">{title}</h3>
-        <p className="mt-1 text-[11px] text-slate-500">{subtitle}</p>
+      <h3 className="mt-3 text-[18px] font-black tracking-tight text-slate-950">{title}</h3>
+      <p className="mt-1 text-[12px] leading-snug text-slate-500">{subtitle}</p>
+
+      <div className="mt-4 flex flex-wrap gap-2">
+        {links.map((link) => (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={`rounded-full border px-3 py-2 text-[11px] font-bold transition ${chipClass}`}
+          >
+            {link.label}
+          </Link>
+        ))}
       </div>
-    </Link>
+    </article>
   );
 }
