@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +8,7 @@ import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton"
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 export const metadata: Metadata = {
-  title: "Prevención y Pérdida — Sistema de Control Operativo de Tienda",
+  title: "PrevenciÃ³n y PÃ©rdida â€” Sistema de Control Operativo de Tienda",
 };
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
@@ -155,18 +155,74 @@ export default async function WasteIndex({
         </Link>
       </div>
 
-      <section className="w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0a4aa8] via-[#0a58ca] to-[#3b82f6] px-5 py-5 text-white shadow-[0_18px_36px_rgba(10,88,202,0.16)]">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-          Prevención y pérdida
-        </p>
-        <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-          Prevención y Pérdida
-        </h1>
-        <p className="mt-2 max-w-[250px] text-[13px] leading-relaxed text-white/82">
-          Registra pérdidas, revisa vencimientos y soportes, y cierra la semana desde un mismo flujo.
-        </p>
-        <div className="mt-4 inline-flex items-center rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)]">
-          {totalRecords ?? 0} registros totales (Página {page})
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
+        <div className="overflow-hidden rounded-[28px] border border-blue-100 bg-gradient-to-br from-white via-slate-50 to-blue-50 px-5 py-5 shadow-sm lg:px-6 lg:py-6">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
+            Prevencion y perdida
+          </p>
+          <h1 className="mt-2 text-[26px] font-black tracking-tight text-slate-950 lg:text-[30px]">
+            Centro de control de Merma
+          </h1>
+          <p className="mt-2 max-w-[38rem] text-[13px] leading-relaxed text-slate-600">
+            Registra perdidas, revisa vencimientos y soportes, y cierra la semana desde una sola
+            entrada operativa.
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <div className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm ring-1 ring-slate-200">
+              {totalRecords ?? 0} registros totales
+            </div>
+            <div className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
+              {selectedCutIsValid ? "Semana cerrada" : "Semana activa"}
+            </div>
+            <div className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
+              Pagina {page}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-[28px] border border-slate-200 bg-white px-5 py-5 shadow-sm lg:px-6 lg:py-6">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+            Accion prioritaria
+          </p>
+          <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950">
+            Lo primero que debe hacer el supervisor
+          </h2>
+          <div className="mt-4 space-y-3">
+            <div className="rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3">
+              <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-red-500">
+                1. Registrar
+              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-900">
+                Abrir el flujo principal de merma.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  2. FEFO
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  Prevenir perdida por vencimiento.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  3. Evidencias
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  Revisar y descargar soportes.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                  4. Corte semanal
+                </p>
+                <p className="mt-1 text-sm font-semibold text-slate-800">
+                  Cerrar y revisar el ciclo de la semana.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -174,14 +230,14 @@ export default async function WasteIndex({
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Accesos rápidos
+              Accesos rÃ¡pidos
             </p>
             <h2 className="mt-1 text-xl font-black text-slate-950">
               Lo principal de Merma
             </h2>
           </div>
           <p className="max-w-sm text-right text-[11px] font-medium leading-relaxed text-slate-500">
-            La ruta principal para registrar pérdida; FEFO, evidencias y corte semanal quedan como apoyo.
+            La ruta principal para registrar perdida; FEFO, evidencias y corte semanal quedan como
           </p>
         </div>
 
@@ -210,7 +266,7 @@ export default async function WasteIndex({
               <div className="text-left">
                 <h2 className="text-sm font-bold">Registrar Merma</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-white/85">
-                  Abre el flujo principal de pérdida
+                  Abre el flujo principal de perdida
                 </p>
               </div>
             </div>
@@ -304,7 +360,7 @@ export default async function WasteIndex({
               <div className="text-left">
                 <h2 className="text-sm font-bold">Descargar Evidencias (ZIP)</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                  Reúne los soportes de transporte y calidad por producto
+                  ReÃºne los soportes de transporte y calidad por producto
                 </p>
               </div>
             </div>
@@ -334,8 +390,8 @@ export default async function WasteIndex({
             </p>
             <h2 className="mt-1 text-sm font-black text-slate-900">
               {selectedCutIsValid
-                ? "Semana cerrada en Revisión"
-                : "Semana activa de prevención y pérdida"}
+                ? "Semana cerrada en RevisiÃ³n"
+                : "Semana activa de prevenciÃ³n y pÃ©rdida"}
             </h2>
             <p className="mt-1 text-[11px] text-slate-500">
               {selectedCutIsValid
@@ -343,8 +399,8 @@ export default async function WasteIndex({
                     cycleEnd ? ` hasta ${formatCutDate(cycleEnd)}` : ""
                   }.`
                 : activeCut
-                  ? `La semana actual inició en ${formatCutDate(activeCut)}.`
-                  : "Todavía no hay un corte manual. Estás viendo todos los registros actuales."}
+                  ? `La semana actual iniciÃ³ en ${formatCutDate(activeCut)}.`
+                  : "TodavÃ­a no hay un corte manual. EstÃ¡s viendo todos los registros actuales."}
             </p>
           </div>
 
@@ -416,14 +472,14 @@ export default async function WasteIndex({
             type="button"
             className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
           >
-            Depositó
+            DepositÃ³
             <span className="text-[10px]">v</span>
           </button>
           <button
             type="button"
             className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
           >
-            Revisión
+            RevisiÃ³n
             <span className="text-[10px]">v</span>
           </button>
         </div>
@@ -464,14 +520,14 @@ export default async function WasteIndex({
               href={pageHref(page - 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              ← Anterior
+              â† Anterior
             </Link>
           ) : (
             <div />
           )}
 
           <span className="rounded-full bg-white px-3 py-1 text-[12px] text-slate-500 ring-1 ring-slate-200">
-            Pág {page}
+            PÃ¡g {page}
           </span>
 
           {to < totalRecords ? (
@@ -479,7 +535,7 @@ export default async function WasteIndex({
               href={pageHref(page + 1)}
               className="rounded-2xl bg-white px-4 py-2.5 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50"
             >
-              Siguiente →
+              Siguiente â†’
             </Link>
           ) : (
             <div />
