@@ -380,57 +380,58 @@ export default async function Home() {
         fefoAlerts={startupFefoItems}
       />
 
-      <section className="mx-4 mt-4 overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-[0_24px_60px_rgba(15,23,42,0.08)] lg:mx-6 xl:mx-8">
-        <div className="grid lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,360px)]">
-          <div className="bg-gradient-to-br from-[#c51628] via-[#e11d2e] to-[#f0434f] px-6 py-6 text-white sm:px-7 sm:py-7">
-            <span className="inline-flex items-center rounded-full border border-white/20 bg-white/12 px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-white/90">
+      <section className="mx-4 mt-4 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.08)] lg:mx-6 xl:mx-8">
+        <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,360px)]">
+          <div className="bg-[linear-gradient(180deg,#fffafb_0%,#fff_56%,#fff7f8_100%)] px-6 py-5 text-slate-900 sm:px-7 sm:py-6">
+            <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
+            <span className="inline-flex items-center rounded-full border border-[#e51d2e]/15 bg-[#fff6f7] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#b91c1c]">
               Centro de control del supervisor
             </span>
-            <h1 className="mt-4 max-w-xl text-3xl font-black tracking-tight text-white sm:text-4xl">
+            <h1 className="mt-4 max-w-xl text-2xl font-black tracking-tight text-slate-950 sm:text-[2.2rem]">
               Lo importante de hoy, en un solo vistazo.
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-white/86">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
               Arranca el turno con prioridades claras: revisar, ejecutar y cerrar sin perder el hilo entre lo urgente, lo operativo y lo comercial.
             </p>
 
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Tareas abiertas
                 </p>
-                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                <p className="mt-2 text-[26px] font-black leading-none tabular-nums text-[#b91c1c]">
                   {String(pendingCount ?? 0).padStart(2, "0")}
                 </p>
-                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                <p className="mt-2 text-[11px] leading-snug text-slate-500">
                   Instrucciones y tareas que no se deben perder de vista.
                 </p>
               </div>
-              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+              <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Alertas FEFO
                 </p>
-                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                <p className="mt-2 text-[26px] font-black leading-none tabular-nums text-[#c2410c]">
                   {criticalFefoItems.length}
                 </p>
-                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                <p className="mt-2 text-[11px] leading-snug text-slate-500">
                   Productos que ya piden revisión hoy o salida preventiva.
                 </p>
               </div>
-              <div className="rounded-[24px] border border-white/15 bg-white/12 px-4 py-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)] backdrop-blur-sm">
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/70">
+              <div className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400">
                   Diferencias
                 </p>
-                <p className="mt-2 text-[28px] font-black leading-none tabular-nums text-white">
+                <p className="mt-2 text-[26px] font-black leading-none tabular-nums text-[#0a58ca]">
                   {startupDispatchAlerts.length}
                 </p>
-                <p className="mt-2 text-[11px] leading-snug text-white/78">
+                <p className="mt-2 text-[11px] leading-snug text-slate-500">
                   Casos por validar antes de cambiar de frente.
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50/95 px-6 py-6 lg:border-l lg:border-t-0">
+          <div className="border-t border-slate-200 bg-slate-50/95 px-6 py-5 lg:border-l lg:border-t-0">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
               Prioridad de arranque
             </p>
