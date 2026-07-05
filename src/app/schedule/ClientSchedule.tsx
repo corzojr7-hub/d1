@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   ArrowLeft,
+  CheckCircle2,
   Sparkles,
   Calendar as CalendarIcon,
   ChevronRight,
@@ -31,6 +32,10 @@ type ScheduleItem = {
   week_start: string;
   week_end: string;
   status: string;
+  source?: string | null;
+  approved_at?: string | null;
+  approved_by_profile_id?: string | null;
+  approval_note?: string | null;
   schedule_data?: ScheduleData;
 };
 
@@ -46,6 +51,53 @@ const idleGenerationSnapshot: GenerationSnapshot = {
   status: "idle",
   requestKey: null,
 };
+
+function normalizeScheduleStatus(value: string) {
+  const status = value.trim().toLowerCase();
+  if (["approved", "publicado", "published", "aprobado"].includes(status)) return "approved";
+  if (["historical", "historico", "histórico"].includes(status)) return "historical";
+  if (["draft", "borrador", "generated", "generado", ""].includes(status)) return "draft";
+  return status;
+}
+
+function getScheduleStateMeta(status: string) {
+  const normalized = normalizeScheduleStatus(status);
+
+  if (normalized === "approved") {
+    return {
+      tone: "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100",
+      label: "Aprobado",
+      helper: "Memoria operativa",
+    };
+  }
+
+  if (normalized === "historical") {
+    return {
+      tone: "bg-slate-100 text-slate-600 ring-1 ring-slate-100",
+      label: "Histórico",
+      helper: "Referencia guardada",
+    };
+  }
+
+  return {
+    tone: "bg-amber-100 text-amber-700 ring-1 ring-amber-100",
+    label: "Borrador",
+    helper: "Generado o pendiente",
+  };
+}
+
+function formatApprovalDate(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat("es-CO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
 
 let generationSnapshot: GenerationSnapshot = idleGenerationSnapshot;
 let generationPromise: Promise<void> | null = null;
@@ -135,6 +187,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
   const [holidays, setHolidays] = useState("");
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [taskSnapshot, setTaskSnapshot] = useState<GenerationSnapshot>(generationSnapshot);
+  const [approvalLoadingId, setApprovalLoadingId] = useState<string | null>(null);
   const isGenerating = taskSnapshot.status === "running";
 
   const getShiftColor = (type: string) => {
@@ -190,6 +243,62 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     };
   }, []);
 
+  async function handleApprove(schedule: ScheduleItem) {
+    if (normalizeScheduleStatus(schedule.status) === "approved") {
+      toast.info("Esta malla ya está aprobada.");
+      return;
+    }
+
+    const confirmed = confirm(
+      `¿Marcar como aprobada la semana ${schedule.week_start} al ${schedule.week_end}?`,
+    );
+    if (!confirmed) return;
+
+    const approvalNote = window.prompt(
+      "Nota opcional de aprobación (puedes dejarla vacía):",
+      schedule.approval_note ?? "",
+    );
+    if (approvalNote === null) return;
+
+    try {
+      setApprovalLoadingId(schedule.id);
+      const res = await fetch("/api/schedule/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheduleId: schedule.id,
+          approvalNote: approvalNote.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error al aprobar la malla.");
+      }
+
+      const updatedSchedule: ScheduleItem = data.schedule ?? {
+        ...schedule,
+        status: "approved",
+        approved_at: new Date().toISOString(),
+        approval_note: approvalNote.trim() || null,
+      };
+
+      setSchedules((current) =>
+        current.map((item) => (item.id === updatedSchedule.id ? updatedSchedule : item)),
+      );
+
+      if (selectedSchedule?.id === updatedSchedule.id) {
+        setSelectedSchedule(updatedSchedule);
+      }
+
+      toast.success("Malla aprobada y guardada como memoria operativa.");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Error al aprobar la malla.");
+    } finally {
+      setApprovalLoadingId(null);
+    }
+  }
+
   async function handleDelete(id: string) {
     if (!confirm("¿Seguro que deseas eliminar esta malla?")) return;
     try {
@@ -222,6 +331,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     !schedules.some((item) => item.id === taskSnapshot.schedule?.id)
       ? [taskSnapshot.schedule, ...schedules]
       : schedules;
+
+  const approvedSchedules = visibleSchedules
+    .filter((schedule) => normalizeScheduleStatus(schedule.status) === "approved")
+    .slice(0, 3);
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
@@ -312,6 +425,89 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           </div>
         </button>
 
+        <section className="rounded-[28px] border border-emerald-100 bg-emerald-50/70 p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-500">
+                Memoria operativa
+              </p>
+              <h3 className="mt-1 text-sm font-black text-emerald-950">
+                Horarios aprobados
+              </h3>
+              <p className="mt-1 max-w-[34rem] text-[12px] leading-relaxed text-emerald-800/90">
+                Un horario aprobado queda como referencia futura. Todavía no alimenta la IA
+                automáticamente en esta fase.
+              </p>
+            </div>
+            <span className="rounded-full bg-white px-3 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-700 ring-1 ring-emerald-100">
+              {approvedSchedules.length} guardados
+            </span>
+          </div>
+
+          <div className="mt-4 space-y-3">
+            {approvedSchedules.length === 0 ? (
+              <div className="rounded-[22px] border border-dashed border-emerald-200 bg-white/75 p-4 text-sm text-emerald-900">
+                <p className="font-bold">Aún no hay horarios aprobados.</p>
+                <p className="mt-1 text-[12px] leading-relaxed text-emerald-700">
+                  Aprueba una malla revisada para empezar a construir memoria operativa.
+                </p>
+              </div>
+            ) : (
+              approvedSchedules.map((schedule) => {
+                const meta = getScheduleStateMeta(schedule.status);
+                return (
+                  <div
+                    key={`approved-${schedule.id}`}
+                    className="rounded-[22px] bg-white p-4 shadow-sm ring-1 ring-emerald-100"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                          Semana
+                        </p>
+                        <p className="mt-1 text-sm font-black text-slate-900">
+                          {schedule.week_start} al {schedule.week_end}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${meta.tone}`}
+                      >
+                        {meta.label}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid gap-2 text-[12px] text-slate-600 sm:grid-cols-3">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          Aprobado
+                        </p>
+                        <p className="mt-0.5 font-medium text-slate-700">
+                          {formatApprovalDate(schedule.approved_at) || "Sin fecha"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          Origen
+                        </p>
+                        <p className="mt-0.5 font-medium text-slate-700">
+                          {schedule.source || "generated"}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                          Nota
+                        </p>
+                        <p className="mt-0.5 line-clamp-2 font-medium text-slate-700">
+                          {schedule.approval_note?.trim() || "Sin nota"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </section>
+
         <div className="flex items-center justify-between pt-2">
           <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">
             Turnos generados
@@ -345,15 +541,16 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                     <p className="mt-1 text-[15px] font-black text-slate-900">
                       {sch.week_start} al {sch.week_end}
                     </p>
+                    <p className="mt-1 text-[11px] text-slate-500">
+                      {getScheduleStateMeta(sch.status).helper}
+                    </p>
                   </div>
                   <span
-                    className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
-                      sch.status === "publicado"
-                        ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100"
-                        : "bg-amber-100 text-amber-700 ring-1 ring-amber-100"
-                    }`}
+                    className={`inline-flex shrink-0 items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${getScheduleStateMeta(
+                      sch.status,
+                    ).tone}`}
                   >
-                    {sch.status === "publicado" ? "Publicado" : "Borrador"}
+                    {getScheduleStateMeta(sch.status).label}
                   </span>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-slate-100 pt-3">
@@ -361,6 +558,16 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                     Toca el chevron para ver la programación completa.
                   </p>
                   <div className="flex items-center gap-2">
+                    {normalizeScheduleStatus(sch.status) !== "approved" && (
+                      <button
+                        onClick={() => handleApprove(sch)}
+                        disabled={approvalLoadingId === sch.id}
+                        className="flex h-11 items-center gap-2 rounded-full bg-emerald-50 px-3 text-[11px] font-bold uppercase tracking-[0.12em] text-emerald-700 transition-colors hover:bg-emerald-100 disabled:opacity-60"
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                        {approvalLoadingId === sch.id ? "Aprobando..." : "Aprobar"}
+                      </button>
+                    )}
                     <button
                       onClick={() => handleDelete(sch.id)}
                       className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 transition-colors hover:bg-rose-100"
@@ -481,17 +688,77 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               </div>
             </div>
             <span
-              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${
-                selectedSchedule.status === "publicado"
-                  ? "bg-emerald-100 text-emerald-700 ring-1 ring-emerald-100"
-                  : "bg-amber-100 text-amber-700 ring-1 ring-amber-100"
-              }`}
+              className={`inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] ${getScheduleStateMeta(
+                selectedSchedule.status,
+              ).tone}`}
             >
-              {selectedSchedule.status === "publicado" ? "Publicado" : "Borrador"}
+              {getScheduleStateMeta(selectedSchedule.status).label}
             </span>
           </header>
 
           <div className="flex-1 overflow-auto px-4 pb-4 pt-4 md:px-6 lg:px-8">
+            {normalizeScheduleStatus(selectedSchedule.status) !== "approved" && (
+              <div className="mb-4 rounded-[24px] border border-emerald-100 bg-emerald-50/75 p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-500">
+                      Cierre del supervisor
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-emerald-950">
+                      Aprobá esta malla para guardarla como memoria operativa.
+                    </p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-emerald-800/90">
+                      La aprobación valida este horario como referencia futura. En esta fase todavía no cambia la generación IA.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => handleApprove(selectedSchedule)}
+                    disabled={approvalLoadingId === selectedSchedule.id}
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-emerald-700 disabled:opacity-60"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {approvalLoadingId === selectedSchedule.id ? "Aprobando..." : "Marcar como aprobado"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {normalizeScheduleStatus(selectedSchedule.status) === "approved" && (
+              <div className="mb-4 rounded-[24px] border border-emerald-100 bg-emerald-50/75 p-4 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-emerald-500">
+                      Memoria operativa
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-emerald-950">
+                      Esta malla ya quedó aprobada por el supervisor.
+                    </p>
+                    <p className="mt-1 text-[12px] leading-relaxed text-emerald-800/90">
+                      Queda guardada como referencia futura para la operación. Todavía no alimenta la IA automáticamente en esta fase.
+                    </p>
+                  </div>
+                  <div className="grid gap-2 text-[12px] text-emerald-900 sm:min-w-56">
+                    <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-emerald-100">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-500">
+                        Aprobado
+                      </p>
+                      <p className="mt-0.5 font-medium">
+                        {formatApprovalDate(selectedSchedule.approved_at) || "Sin fecha"}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-emerald-100">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-500">
+                        Nota
+                      </p>
+                      <p className="mt-0.5 font-medium">
+                        {selectedSchedule.approval_note?.trim() || "Sin nota"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="overflow-hidden rounded-[28px] border border-slate-100 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.08)]">
               <div className="overflow-x-auto">
                 <table className="w-full border-collapse whitespace-nowrap text-xs text-left">
