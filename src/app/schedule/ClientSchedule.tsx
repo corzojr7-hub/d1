@@ -17,6 +17,9 @@ type ShiftData = {
   type?: string;
   shift?: string;
   hours?: number;
+  start?: string | null;
+  "break"?: string | null;
+  end?: string | null;
 };
 
 type ScheduleRow = {
@@ -38,6 +41,180 @@ type ScheduleItem = {
   approval_note?: string | null;
   schedule_data?: ScheduleData;
 };
+
+const scheduleDayKeys = [
+  "monday",
+  "tuesday",
+  "wednesday",
+  "thursday",
+  "friday",
+  "saturday",
+  "sunday",
+] as const;
+
+type ScheduleDayKey = (typeof scheduleDayKeys)[number];
+
+const scheduleDayLabels: Record<ScheduleDayKey, string> = {
+  monday: "Lunes",
+  tuesday: "Martes",
+  wednesday: "Miercoles",
+  thursday: "Jueves",
+  friday: "Viernes",
+  saturday: "Sabado",
+  sunday: "Domingo",
+};
+
+type ManualDay = {
+  start: string;
+  break: string;
+  end: string;
+  hours: string;
+};
+
+type ManualScheduleRow = {
+  id: string;
+  assistant: string;
+  days: Record<ScheduleDayKey, ManualDay>;
+};
+
+function createManualDay(): ManualDay {
+  return {
+    start: "",
+    break: "0:30",
+    end: "",
+    hours: "",
+  };
+}
+
+function createManualDays() {
+  return scheduleDayKeys.reduce((days, day) => {
+    days[day] = createManualDay();
+    return days;
+  }, {} as Record<ScheduleDayKey, ManualDay>);
+}
+
+function createManualRow(): ManualScheduleRow {
+  return {
+    id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    assistant: "",
+    days: createManualDays(),
+  };
+}
+
+function parseTimeToMinutes(value: string) {
+  const match = value.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours > 23 || minutes > 59) {
+    return null;
+  }
+  return hours * 60 + minutes;
+}
+
+function parseBreakHours(value: string) {
+  const normalized = value.trim().replace(",", ".");
+  const timeMatch = normalized.match(/^(\d{1,2}):(\d{2})$/);
+  if (timeMatch) {
+    return Number(timeMatch[1]) + Number(timeMatch[2]) / 60;
+  }
+
+  const numeric = Number(normalized);
+  return Number.isFinite(numeric) && numeric >= 0 ? numeric : 0;
+}
+
+function formatHourNumber(value: number) {
+  return Number(value.toFixed(2)).toString();
+}
+
+function calculateManualHours(start: string, end: string, breakValue: string) {
+  const startMinutes = parseTimeToMinutes(start);
+  const endMinutes = parseTimeToMinutes(end);
+  if (startMinutes === null || endMinutes === null) return "";
+
+  let elapsed = endMinutes - startMinutes;
+  if (elapsed < 0) elapsed += 24 * 60;
+
+  const hours = Math.max(0, elapsed / 60 - parseBreakHours(breakValue));
+  return formatHourNumber(hours);
+}
+
+function addDaysToInputDate(value: string, days: number) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime())) return "";
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function isMondayInputDate(value: string) {
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.getUTCDay() === 1;
+}
+
+function getManualDayHours(day: ManualDay) {
+  const hours = Number(day.hours.replace(",", "."));
+  return Number.isFinite(hours) && hours > 0 ? hours : 0;
+}
+
+function getManualWeeklyTotal(row: ManualScheduleRow) {
+  return scheduleDayKeys.reduce((sum, day) => sum + getManualDayHours(row.days[day]), 0);
+}
+
+function manualDayHasValue(day: ManualDay) {
+  return Boolean(day.start || day.end || day.hours);
+}
+
+function manualRowHasValue(row: ManualScheduleRow) {
+  return Boolean(row.assistant.trim() || scheduleDayKeys.some((day) => manualDayHasValue(row.days[day])));
+}
+
+function inferManualShiftType(day: ManualDay) {
+  const hours = getManualDayHours(day);
+  if (hours <= 0) return "Descanso";
+  const startMinutes = parseTimeToMinutes(day.start);
+  const endMinutes = parseTimeToMinutes(day.end);
+  if (startMinutes !== null && startMinutes <= 8 * 60) return "Apertura";
+  if (endMinutes !== null && endMinutes >= 20 * 60) return "Cierre";
+  return "Intermedio";
+}
+
+function buildManualShiftCell(day: ManualDay) {
+  const hours = getManualDayHours(day);
+  const shift =
+    hours <= 0
+      ? "Descanso"
+      : day.start && day.end
+        ? `${day.start}-${day.end}`
+        : "Manual";
+
+  return {
+    shift,
+    hours,
+    type: inferManualShiftType(day),
+    start: day.start || null,
+    break: day.break || "0:30",
+    end: day.end || null,
+  };
+}
+
+function buildManualScheduleData(rows: ManualScheduleRow[]) {
+  return {
+    source: "manual",
+    created_from: "manual_builder",
+    schedule: rows.map((row) => {
+      const scheduleRow: ScheduleRow = {
+        assistant: row.assistant.trim(),
+        total_hours: formatHourNumber(getManualWeeklyTotal(row)),
+      };
+
+      scheduleDayKeys.forEach((day) => {
+        scheduleRow[day] = buildManualShiftCell(row.days[day]);
+      });
+
+      return scheduleRow;
+    }),
+  };
+}
 
 type GenerationSnapshot = {
   status: "idle" | "running" | "done" | "error";
@@ -188,7 +365,14 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleItem | null>(null);
   const [taskSnapshot, setTaskSnapshot] = useState<GenerationSnapshot>(generationSnapshot);
   const [approvalLoadingId, setApprovalLoadingId] = useState<string | null>(null);
+  const [showManualBuilder, setShowManualBuilder] = useState(false);
+  const [manualWeekStart, setManualWeekStart] = useState("");
+  const [manualRows, setManualRows] = useState<ManualScheduleRow[]>(() => [createManualRow()]);
+  const [manualApprovalNote, setManualApprovalNote] = useState("");
+  const [manualError, setManualError] = useState("");
+  const [isSavingManual, setIsSavingManual] = useState(false);
   const isGenerating = taskSnapshot.status === "running";
+  const manualWeekEnd = manualWeekStart ? addDaysToInputDate(manualWeekStart, 6) : "";
 
   const getShiftColor = (type: string) => {
     if (!type) return "bg-slate-100 text-slate-600";
@@ -233,6 +417,135 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
       const message = err instanceof Error ? err.message : "Error al generar malla.";
       setGenerationError(message);
       toast.error(message);
+    }
+  }
+
+  function updateManualAssistant(rowId: string, value: string) {
+    setManualRows((current) =>
+      current.map((row) => (row.id === rowId ? { ...row, assistant: value } : row)),
+    );
+  }
+
+  function updateManualDay(
+    rowId: string,
+    day: ScheduleDayKey,
+    field: keyof ManualDay,
+    value: string,
+  ) {
+    setManualRows((current) =>
+      current.map((row) => {
+        if (row.id !== rowId) return row;
+
+        const nextDay = {
+          ...row.days[day],
+          [field]: value,
+        };
+
+        if (field !== "hours") {
+          nextDay.hours = calculateManualHours(nextDay.start, nextDay.end, nextDay.break);
+        }
+
+        return {
+          ...row,
+          days: {
+            ...row.days,
+            [day]: nextDay,
+          },
+        };
+      }),
+    );
+  }
+
+  function addManualAssistant() {
+    setManualRows((current) => [...current, createManualRow()]);
+  }
+
+  function removeManualAssistant(rowId: string) {
+    setManualRows((current) => {
+      const remaining = current.filter((row) => row.id !== rowId);
+      return remaining.length > 0 ? remaining : [createManualRow()];
+    });
+  }
+
+  function resetManualBuilder() {
+    setManualWeekStart("");
+    setManualRows([createManualRow()]);
+    setManualApprovalNote("");
+    setManualError("");
+  }
+
+  async function handleSaveManualSchedule() {
+    if (!manualWeekStart || !manualWeekEnd) {
+      setManualError("Selecciona el lunes de inicio de semana.");
+      return;
+    }
+
+    if (!isMondayInputDate(manualWeekStart)) {
+      setManualError("La semana debe iniciar un lunes.");
+      return;
+    }
+
+    const activeRows = manualRows.filter(manualRowHasValue);
+    if (activeRows.length === 0 || !activeRows.some((row) => getManualWeeklyTotal(row) > 0)) {
+      setManualError("Ingresa al menos un asistente con horas en la semana.");
+      return;
+    }
+
+    const missingNameRow = activeRows.find(
+      (row) => !row.assistant.trim() && scheduleDayKeys.some((day) => manualDayHasValue(row.days[day])),
+    );
+    if (missingNameRow) {
+      setManualError("Toda fila con turnos necesita nombre de asistente.");
+      return;
+    }
+
+    const zeroHourNames = activeRows
+      .filter((row) => row.assistant.trim() && getManualWeeklyTotal(row) === 0)
+      .map((row) => row.assistant.trim());
+
+    if (
+      zeroHourNames.length > 0 &&
+      !confirm(`Estos asistentes quedan con 0 horas: ${zeroHourNames.join(", ")}. ¿Guardar de todas formas?`)
+    ) {
+      return;
+    }
+
+    try {
+      setIsSavingManual(true);
+      setManualError("");
+
+      const scheduleData = buildManualScheduleData(activeRows);
+      const res = await fetch("/api/schedule/manual", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          weekStart: manualWeekStart,
+          weekEnd: manualWeekEnd,
+          scheduleData,
+          approvalNote: manualApprovalNote.trim(),
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Error guardando la malla manual.");
+      }
+
+      const createdSchedule = data.schedule as ScheduleItem;
+      setSchedules((current) => [
+        createdSchedule,
+        ...current.filter((schedule) => schedule.id !== createdSchedule.id),
+      ]);
+      setSelectedSchedule(createdSchedule);
+      setShowManualBuilder(false);
+      resetManualBuilder();
+      toast.success("Horario manual guardado como aprobado.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error guardando la malla manual.";
+      setManualError(message);
+      toast.error(message);
+    } finally {
+      setIsSavingManual(false);
     }
   }
 
@@ -425,6 +738,195 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           </div>
         </button>
 
+        <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm">
+          <button
+            type="button"
+            onClick={() => {
+              setManualError("");
+              setShowManualBuilder((current) => !current);
+            }}
+            className="flex w-full flex-col gap-3 p-5 text-left transition-colors hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div className="min-w-0">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+                Malla editable
+              </p>
+              <h2 className="mt-1 text-[18px] font-black text-slate-950">
+                Crear horario manual
+              </h2>
+              <p className="mt-1 max-w-2xl text-[12px] leading-relaxed text-slate-500">
+                Arma una semana de lunes a domingo, ajusta horas por persona y guarda el resultado como aprobado.
+              </p>
+            </div>
+            <span className="inline-flex items-center justify-center rounded-full bg-slate-950 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.14em] text-white">
+              {showManualBuilder ? "Cerrar malla" : "Abrir malla"}
+            </span>
+          </button>
+
+          {showManualBuilder && (
+            <div className="border-t border-slate-100 bg-slate-50/80 p-4 sm:p-5">
+              <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+                <div>
+                  <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                    Lunes de inicio
+                  </label>
+                  <input
+                    type="date"
+                    value={manualWeekStart}
+                    onChange={(event) => setManualWeekStart(event.target.value)}
+                    className="w-full rounded-2xl border-0 bg-white px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                    Domingo de cierre
+                  </label>
+                  <input
+                    type="date"
+                    value={manualWeekEnd}
+                    readOnly
+                    className="w-full rounded-2xl border-0 bg-slate-100 px-3 py-3 text-sm font-medium text-slate-500 ring-1 ring-slate-200 outline-none"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={addManualAssistant}
+                    className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800 lg:w-auto"
+                  >
+                    Agregar asistente
+                  </button>
+                </div>
+              </div>
+
+              {manualError && (
+                <div className="mt-4 rounded-[22px] border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                  {manualError}
+                </div>
+              )}
+
+              <div className="mt-4 overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[1180px] border-collapse text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-200 bg-slate-100/80">
+                        <th className="sticky left-0 z-20 min-w-[190px] border-r border-slate-200 bg-slate-100/95 px-3 py-3 text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                          Asistente
+                        </th>
+                        {scheduleDayKeys.map((day) => (
+                          <th
+                            key={day}
+                            className="min-w-[140px] border-r border-slate-200 px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.16em] text-slate-500"
+                          >
+                            {scheduleDayLabels[day]}
+                          </th>
+                        ))}
+                        <th className="min-w-[90px] px-3 py-3 text-center text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
+                          Total
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {manualRows.map((row) => (
+                        <tr key={row.id} className="border-b border-slate-100 align-top">
+                          <td className="sticky left-0 z-10 border-r border-slate-200 bg-white p-3 shadow-[8px_0_16px_-14px_rgba(15,23,42,0.45)]">
+                            <input
+                              type="text"
+                              value={row.assistant}
+                              onChange={(event) => updateManualAssistant(row.id, event.target.value)}
+                              placeholder="Nombre Apellido"
+                              className="w-full rounded-2xl border-0 bg-slate-50 px-3 py-2 text-sm font-bold text-slate-900 ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeManualAssistant(row.id)}
+                              className="mt-2 text-[11px] font-bold text-rose-500 transition-colors hover:text-rose-700"
+                            >
+                              Quitar fila
+                            </button>
+                            {manualRowHasValue(row) && getManualWeeklyTotal(row) === 0 && (
+                              <p className="mt-2 text-[10px] font-bold text-amber-600">
+                                Advertencia: 0 horas
+                              </p>
+                            )}
+                          </td>
+                          {scheduleDayKeys.map((day) => (
+                            <td key={day} className="border-r border-slate-100 bg-white p-2">
+                              <div className="grid gap-1.5">
+                                <input
+                                  type="time"
+                                  value={row.days[day].start}
+                                  onChange={(event) => updateManualDay(row.id, day, "start", event.target.value)}
+                                  className="rounded-xl border-0 bg-slate-50 px-2 py-2 text-[11px] font-semibold ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-[#e51d2e]/25"
+                                  aria-label={`${scheduleDayLabels[day]} ingreso`}
+                                />
+                                <input
+                                  type="text"
+                                  value={row.days[day].break}
+                                  onChange={(event) => updateManualDay(row.id, day, "break", event.target.value)}
+                                  className="rounded-xl border-0 bg-slate-50 px-2 py-2 text-[11px] font-semibold ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-[#e51d2e]/25"
+                                  aria-label={`${scheduleDayLabels[day]} descanso`}
+                                  placeholder="0:30"
+                                />
+                                <input
+                                  type="time"
+                                  value={row.days[day].end}
+                                  onChange={(event) => updateManualDay(row.id, day, "end", event.target.value)}
+                                  className="rounded-xl border-0 bg-slate-50 px-2 py-2 text-[11px] font-semibold ring-1 ring-slate-200 outline-none focus:ring-2 focus:ring-[#e51d2e]/25"
+                                  aria-label={`${scheduleDayLabels[day]} salida`}
+                                />
+                                <input
+                                  type="number"
+                                  min="0"
+                                  step="0.25"
+                                  value={row.days[day].hours}
+                                  onChange={(event) => updateManualDay(row.id, day, "hours", event.target.value)}
+                                  className="rounded-xl border-0 bg-white px-2 py-2 text-[11px] font-black text-slate-900 ring-1 ring-slate-300 outline-none focus:ring-2 focus:ring-[#e51d2e]/25"
+                                  aria-label={`${scheduleDayLabels[day]} horas`}
+                                  placeholder="0"
+                                />
+                              </div>
+                            </td>
+                          ))}
+                          <td className="bg-slate-50 p-3 text-center text-base font-black text-slate-900">
+                            {formatHourNumber(getManualWeeklyTotal(row))}h
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_auto]">
+                <div>
+                  <label className="mb-1 block text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
+                    Nota opcional de aprobación
+                  </label>
+                  <input
+                    type="text"
+                    value={manualApprovalNote}
+                    onChange={(event) => setManualApprovalNote(event.target.value)}
+                    placeholder="Ej. horario construido manualmente por operación"
+                    className="w-full rounded-2xl border-0 bg-white px-3 py-3 text-sm font-medium ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/30"
+                  />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    type="button"
+                    onClick={handleSaveManualSchedule}
+                    disabled={isSavingManual}
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-5 py-3 text-sm font-black text-white transition-colors hover:bg-emerald-700 disabled:opacity-60 lg:w-auto"
+                  >
+                    <CheckCircle2 className="h-4 w-4" />
+                    {isSavingManual ? "Guardando..." : "Guardar como aprobado"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
         <section className="rounded-[28px] border border-emerald-100 bg-emerald-50/70 p-4 shadow-sm">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -510,7 +1012,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
         <div className="flex items-center justify-between pt-2">
           <h3 className="text-sm font-black uppercase tracking-[0.16em] text-slate-700">
-            Turnos generados
+            Programaciones recientes
           </h3>
           <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 ring-1 ring-slate-200">
             {visibleSchedules.length} recientes
@@ -526,7 +1028,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
               Aún no has generado ninguna programación.
             </p>
             <p className="mt-1 text-[12px] leading-relaxed text-slate-500">
-              Crea la primera semana desde el planificador IA para empezar.
+              Crea la primera semana desde la malla manual o desde el planificador IA.
             </p>
           </div>
         ) : (
