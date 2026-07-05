@@ -816,7 +816,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="sticky top-0 z-40 rounded-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 pb-5 pt-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] md:px-6 lg:px-8 lg:rounded-[36px]">
+      <header className="sticky top-0 z-40 rounded-[28px] border border-rose-100 bg-white px-4 pb-4 pt-4 shadow-[0_12px_26px_rgba(15,23,42,0.06)] backdrop-blur-sm md:px-6 lg:px-8 lg:rounded-[32px]">
         <div className="flex items-start gap-3">
           <Link
             href="/"
@@ -877,28 +877,28 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
             setGenerationError("");
             setShowModal(true);
           }}
-          className="group relative w-full overflow-hidden rounded-[28px] bg-gradient-to-br from-[#e51d2e] via-[#f22435] to-[#ff5b6b] p-5 text-left text-white shadow-[0_18px_36px_rgba(229,29,46,0.24)] transition-transform active:scale-[0.99]"
+          className="group relative w-full overflow-hidden rounded-[28px] border border-red-200 bg-[#fff7f8] p-5 text-left text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.05)] transition-transform active:scale-[0.99]"
         >
-          <div className="absolute -right-6 -top-6 text-white/10">
+          <div className="absolute -right-6 -top-6 text-[#e51d2e]/10">
             <Sparkles className="h-24 w-24" />
           </div>
           <div className="relative z-10 flex items-start gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/14 ring-1 ring-white/15">
-              <Sparkles className="h-6 w-6" />
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-red-100">
+              <Sparkles className="h-6 w-6 text-[#e51d2e]" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/72">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-red-500">
                 Planificación asistida
               </p>
-              <h2 className="mt-1 text-[18px] font-black leading-tight">
+              <h2 className="mt-1 text-[18px] font-black leading-tight text-slate-900">
                 Generar turnos con IA
               </h2>
-              <p className="mt-1 max-w-[220px] text-[12px] leading-relaxed text-white/84">
+              <p className="mt-1 max-w-[220px] text-[12px] leading-relaxed text-slate-600">
                 Arma autom?ticamente los turnos de la semana sin pelearte con la planilla.
               </p>
             </div>
           </div>
-          <div className="relative z-10 mt-4 inline-flex items-center gap-2 rounded-full bg-white/14 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-white/92 ring-1 ring-white/12">
+          <div className="relative z-10 mt-4 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#b91c1c] ring-1 ring-red-100">
             Abrir generador
           </div>
         </button>
@@ -1554,3 +1554,4 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
     </div>
   );
 }
+

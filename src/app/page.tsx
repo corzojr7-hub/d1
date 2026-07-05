@@ -380,9 +380,9 @@ export default async function Home() {
         fefoAlerts={startupFefoItems}
       />
 
-      <section className="mx-4 mt-4 overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_18px_42px_rgba(15,23,42,0.08)] lg:mx-6 xl:mx-8">
+      <section className="mx-4 mt-4 overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-[0_12px_28px_rgba(15,23,42,0.06)] lg:mx-6 xl:mx-8">
         <div className="grid lg:grid-cols-[minmax(0,1.2fr)_minmax(320px,360px)]">
-          <div className="bg-[linear-gradient(180deg,#fffafb_0%,#fff_56%,#fff7f8_100%)] px-6 py-5 text-slate-900 sm:px-7 sm:py-6">
+          <div className="bg-white px-6 py-5 text-slate-900 sm:px-7 sm:py-6">
             <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
             <span className="inline-flex items-center rounded-full border border-[#e51d2e]/15 bg-[#fff6f7] px-3 py-1 text-[10px] font-extrabold uppercase tracking-[0.2em] text-[#b91c1c]">
               Centro de control del supervisor
@@ -431,7 +431,7 @@ export default async function Home() {
             </div>
           </div>
 
-          <div className="border-t border-slate-200 bg-slate-50/95 px-6 py-5 lg:border-l lg:border-t-0">
+          <div className="border-t border-slate-200 bg-white/95 px-6 py-5 lg:border-l lg:border-t-0">
             <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
               Prioridad de arranque
             </p>

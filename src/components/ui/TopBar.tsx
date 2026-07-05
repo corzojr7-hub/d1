@@ -92,23 +92,24 @@ export default function TopBar() {
     : profile.store_name;
 
   return (
-    <header className="relative z-40 border-b border-black/5 bg-[#e51d2e] shadow-[0_8px_24px_rgba(136,19,29,0.18)]">
-      <div className="mx-auto flex items-center justify-between px-4 py-3.5 lg:max-w-7xl lg:px-6 xl:px-8">
+    <header className="relative z-40 border-b border-slate-200/80 bg-white/95 shadow-[0_8px_24px_rgba(15,23,42,0.06)] backdrop-blur">
+      <div className="h-1 bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
+      <div className="mx-auto flex items-center justify-between px-4 py-2.5 lg:max-w-7xl lg:px-6 xl:px-8">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-base font-extrabold text-[#e51d2e] shadow-[0_8px_20px_rgba(0,0,0,0.12)] transition-transform hover:scale-105 active:scale-95"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#e51d2e]/10 bg-[#fff1f2] text-base font-extrabold text-[#e51d2e] shadow-none transition-transform hover:scale-105 active:scale-95"
           >
             D1
           </Link>
           <div className="flex min-w-0 flex-col">
-            <span className="max-w-[150px] truncate text-[15px] font-extrabold leading-tight tracking-tight text-white sm:max-w-none">
+            <span className="max-w-[150px] truncate text-[15px] font-extrabold leading-tight tracking-tight text-slate-900 sm:max-w-none">
               {profile.store_name || "Tiendas D1"}
             </span>
-            <span className="max-w-[170px] truncate text-[11px] font-medium text-white/88 sm:max-w-none">
+            <span className="max-w-[170px] truncate text-[11px] font-medium text-slate-500 sm:max-w-none">
               Control de Operaciones - {storeLine}
             </span>
-            <span className="max-w-[220px] text-[10px] font-medium leading-tight text-white/72 sm:max-w-none">
+            <span className="max-w-[220px] text-[10px] font-medium leading-tight text-slate-400 sm:max-w-none">
               {currentDateTime}
             </span>
           </div>
@@ -116,11 +117,11 @@ export default function TopBar() {
 
         <div className="flex shrink-0 items-center gap-2">
           <div className="relative">
-            <div className="flex items-center gap-2 rounded-full bg-white/16 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.14)] backdrop-blur-md">
+            <div className="flex items-center gap-2 rounded-full bg-slate-100/90 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(148,163,184,0.18)] backdrop-blur-md">
               <div className="flex h-5 w-5 items-center justify-center rounded-full bg-white">
                 <UserRound className="h-3.5 w-3.5 text-[#e51d2e]" />
               </div>
-              <span className="max-w-[120px] truncate text-[11px] font-bold text-white">
+              <span className="max-w-[120px] truncate text-[11px] font-bold text-slate-700">
                 {profile.display_name || "Supervisor"}
               </span>
             </div>
@@ -129,7 +130,7 @@ export default function TopBar() {
           {profile?.role === "admin" && (
             <Link
               href="/admin"
-              className="flex items-center justify-center rounded-full bg-amber-300 px-3 py-1.5 text-[11px] font-extrabold text-amber-950 transition-colors hover:bg-amber-200"
+              className="flex items-center justify-center rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-extrabold text-amber-800 transition-colors hover:bg-amber-100"
             >
               Admin Central
             </Link>
@@ -138,7 +139,7 @@ export default function TopBar() {
           <form action={logout}>
             <button
               type="submit"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-white/10 text-white/85 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.12)] transition-colors hover:bg-white/20 hover:text-white"
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 shadow-none transition-colors hover:bg-slate-200 hover:text-slate-700"
               title="Cerrar sesion"
             >
               <LogOut className="h-3.5 w-3.5" />
@@ -148,9 +149,9 @@ export default function TopBar() {
       </div>
 
       {todayMessage && (
-        <div className="border-t border-white/10 bg-[#c41525] px-4 py-2 shadow-inner lg:px-6 xl:px-8">
+        <div className="border-t border-slate-200/80 bg-slate-50/95 px-4 py-1.5 lg:px-6 xl:px-8">
           <div className="mx-auto lg:max-w-7xl">
-            <p className="truncate text-[11px] font-semibold tracking-[0.02em] text-white/92 lg:text-[12px]">
+            <p className="truncate text-[11px] font-semibold tracking-[0.02em] text-slate-600 lg:text-[12px]">
               {todayMessage}
             </p>
           </div>

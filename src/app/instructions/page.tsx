@@ -58,7 +58,7 @@ export default async function InstructionsIndex() {
       </div>
 
       <section className="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.75fr)]">
-        <div className="overflow-hidden rounded-[28px] border border-rose-100 bg-gradient-to-br from-white via-slate-50 to-rose-50 px-5 py-5 shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        <div className="overflow-hidden rounded-[28px] border border-rose-100 bg-white px-5 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)] sm:px-6 sm:py-6 lg:px-7 lg:py-7">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
             Operación diaria
           </p>
@@ -101,7 +101,7 @@ export default async function InstructionsIndex() {
             </div>
             <Link
               href="/instructions/new"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e51d2e] px-5 py-3 text-sm font-black text-white shadow-[0_16px_32px_rgba(229,29,46,0.2)] transition hover:-translate-y-0.5 hover:bg-[#cf1727]"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-200 bg-[#fff1f2] px-5 py-3 text-sm font-black text-[#b91c1c] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#ffe4e6]"
             >
               <Plus className="h-4 w-4" />
               Crear instrucción
@@ -245,7 +245,7 @@ export default async function InstructionsIndex() {
             </div>
             <Link
               href="/instructions/new"
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#e51d2e] px-5 py-3 text-sm font-black text-white shadow-[0_16px_32px_rgba(229,29,46,0.2)] transition hover:-translate-y-0.5 hover:bg-[#cf1727]"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-red-200 bg-[#fff1f2] px-5 py-3 text-sm font-black text-[#b91c1c] shadow-sm transition hover:-translate-y-0.5 hover:bg-[#ffe4e6]"
             >
               <Plus className="h-4 w-4" />
               Crear instrucción

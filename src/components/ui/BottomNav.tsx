@@ -40,8 +40,8 @@ export default function BottomNav() {
   }
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/90 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur-sm lg:bottom-4 lg:border-0 lg:bg-transparent lg:px-6 lg:pb-0 lg:shadow-none">
-      <div className="flex items-center justify-around gap-1 px-2 pt-2 pb-2 lg:mx-auto lg:max-w-4xl lg:justify-between lg:rounded-full lg:border lg:border-slate-200/90 lg:bg-white/95 lg:px-4 lg:py-3 lg:shadow-[0_16px_36px_rgba(15,23,42,0.12)] lg:backdrop-blur-sm">
+    <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-slate-200/80 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-6px_18px_rgba(15,23,42,0.06)] backdrop-blur-sm lg:bottom-4 lg:border-0 lg:bg-transparent lg:px-6 lg:pb-0 lg:shadow-none">
+      <div className="flex items-center justify-around gap-1 px-2 pt-2 pb-2 lg:mx-auto lg:max-w-4xl lg:justify-between lg:rounded-full lg:border lg:border-slate-200/80 lg:bg-white/95 lg:px-3.5 lg:py-2.5 lg:shadow-[0_12px_28px_rgba(15,23,42,0.08)] lg:backdrop-blur-sm">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive =
             href === "/"
@@ -53,24 +53,24 @@ export default function BottomNav() {
               key={href}
               href={href}
               prefetch={false}
-              className="flex min-w-[66px] flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-0.5 lg:min-w-[86px] lg:flex-none"
+              className="flex min-w-[60px] flex-1 flex-col items-center gap-1 rounded-2xl px-1 py-0.5 lg:min-w-[80px] lg:flex-none"
             >
               <div
-                className={`flex h-9 min-w-[48px] px-4 items-center justify-center transition-all duration-200 lg:min-w-[56px] lg:px-5 ${
+                className={`flex h-[34px] min-w-[44px] items-center justify-center px-3.5 transition-all duration-200 lg:min-w-[50px] lg:px-4 ${
                   isActive
                     ? "rounded-full bg-[#fdecef] shadow-[inset_0_0_0_1px_rgba(229,29,46,0.1)]"
                     : "bg-transparent"
                 }`}
               >
                 <Icon
-                  className={`h-5 w-5 transition-colors duration-200 ${
+                  className={`h-4 w-4 transition-colors duration-200 ${
                     isActive ? "text-[#e51d2e]" : "text-slate-500"
                   }`}
                   strokeWidth={isActive ? 2.2 : 1.8}
                 />
               </div>
               <span
-                className={`mt-0.5 text-center text-[10px] font-bold leading-tight transition-colors duration-200 lg:text-[11px] ${
+                className={`mt-0.5 text-center text-[10px] font-bold leading-tight transition-colors duration-200 lg:text-[10px] ${
                   isActive ? "text-slate-900" : "text-slate-500"
                 }`}
               >

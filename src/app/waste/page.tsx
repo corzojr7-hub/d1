@@ -156,7 +156,7 @@ export default async function WasteIndex({
       </div>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.25fr)_minmax(280px,0.75fr)]">
-        <div className="overflow-hidden rounded-[28px] border border-blue-100 bg-gradient-to-br from-white via-slate-50 to-blue-50 px-5 py-5 shadow-sm lg:px-6 lg:py-6">
+        <div className="overflow-hidden rounded-[28px] border border-blue-100 bg-white px-5 py-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)] lg:px-6 lg:py-6">
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-blue-500">
             Prevención y pérdida
           </p>
@@ -245,10 +245,10 @@ export default async function WasteIndex({
         <div className="grid gap-3 md:grid-cols-3">
           <Link
             href="/waste/new"
-            className="flex min-h-[116px] w-full items-center justify-between rounded-[24px] border border-transparent bg-gradient-to-br from-red-600 via-red-500 to-red-400 p-4 text-white shadow-[0_14px_30px_rgba(220,38,38,0.22)] transition-all active:scale-[0.98] md:hover:-translate-y-0.5 md:hover:shadow-[0_18px_34px_rgba(220,38,38,0.28)]"
+            className="flex min-h-[116px] w-full items-center justify-between rounded-[24px] border border-red-200 bg-[#fff7f8] p-4 text-slate-900 shadow-sm transition-all active:scale-[0.98] md:hover:-translate-y-0.5 md:hover:shadow-md"
           >
             <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-white/15 p-2.5 text-white">
+              <div className="rounded-2xl bg-white p-2.5 text-[#e51d2e] ring-1 ring-red-100">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="24"
@@ -266,7 +266,7 @@ export default async function WasteIndex({
               </div>
               <div className="text-left">
                 <h2 className="text-sm font-bold">Registrar Merma</h2>
-                <p className="mt-0.5 text-[11px] font-medium text-white/85">
+                <p className="mt-0.5 text-[11px] font-medium text-slate-600">
                   Abre el flujo principal de perdida
                 </p>
               </div>
@@ -281,7 +281,7 @@ export default async function WasteIndex({
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-white/70"
+              className="text-slate-400"
             >
               <path d="m9 18 6-6-6-6" />
             </svg>

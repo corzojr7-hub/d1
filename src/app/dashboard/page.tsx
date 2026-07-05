@@ -370,7 +370,7 @@ export default async function DashboardPage(props: {
         Volver
       </Link>
 
-      <div className="mb-6 rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7">
+      <div className="mb-6 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_24px_rgba(15,23,42,0.05)] sm:p-5 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between xl:gap-8">
           <div className="max-w-3xl">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Lectura comercial</p>
@@ -399,8 +399,8 @@ export default async function DashboardPage(props: {
         </div>
       </div>
 
-      <section className="mb-6 grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
-        <div className="rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
+      <section className="mb-6 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-5 lg:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
@@ -424,7 +424,7 @@ export default async function DashboardPage(props: {
         </div>
 
         <aside className="space-y-4">
-          <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6">
+          <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-5">
             <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-slate-400">
               Qué revisar primero
             </p>
@@ -438,7 +438,7 @@ export default async function DashboardPage(props: {
             <div className="mt-5 grid gap-3">
               <Link
                 href="#ventas-merma"
-                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                className="group rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -461,7 +461,7 @@ export default async function DashboardPage(props: {
 
               <Link
                 href="#productividad-pos"
-                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
+                className="group rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-blue-200 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -481,7 +481,7 @@ export default async function DashboardPage(props: {
 
               <Link
                 href="/sales"
-                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
+                className="group rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-200 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -499,7 +499,7 @@ export default async function DashboardPage(props: {
 
               <Link
                 href="/impulses"
-                className="group rounded-[26px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
+                className="group rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -525,7 +525,7 @@ export default async function DashboardPage(props: {
         <section
           id="ventas-merma"
           data-pdf-section="life-for-life"
-          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7"
+          className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-5 lg:p-6"
         >
           <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div className="max-w-3xl">
@@ -614,7 +614,7 @@ export default async function DashboardPage(props: {
         <section
           id="productividad-pos"
           data-pdf-section="productividad-pos"
-          className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-4 shadow-sm sm:p-5 lg:p-6 xl:p-7"
+          className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-sm sm:p-4 lg:p-5 xl:p-6"
         >
           <div className="mb-5 flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">

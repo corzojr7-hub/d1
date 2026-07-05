@@ -48,7 +48,8 @@ html {
 
 body {
   overscroll-behavior: none;
-  background: var(--color-app-bg);
+  background:
+    linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
   color: var(--color-text-strong);
 }
 
@@ -112,7 +113,7 @@ select option {
   border-radius: 9999px;
   background: var(--color-brand);
   color: var(--color-brand-contrast);
-  box-shadow: 0 12px 24px rgba(229, 29, 46, 0.18);
+  box-shadow: 0 10px 20px rgba(229, 29, 46, 0.16);
   transition:
     background-color 160ms ease,
     transform 160ms ease,
@@ -122,7 +123,7 @@ select option {
 
 .app-cta-primary:hover {
   background: var(--color-brand-dark);
-  box-shadow: 0 14px 28px rgba(196, 21, 37, 0.2);
+  box-shadow: 0 12px 24px rgba(196, 21, 37, 0.18);
 }
 
 .app-cta-primary:active {
