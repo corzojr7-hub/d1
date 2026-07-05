@@ -416,7 +416,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                 Generar turnos con IA
               </h2>
               <p className="mt-1 max-w-[220px] text-[12px] leading-relaxed text-white/84">
-                Arma automaticamente los turnos de la semana sin pelearte con la planilla.
+                Arma autom?ticamente los turnos de la semana sin pelearte con la planilla.
               </p>
             </div>
           </div>
@@ -852,7 +852,7 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                       Estado tecnico
                     </p>
                     <p className="mb-4 text-sm text-rose-500">
-                      El formato devuelto por la IA no fue el esperado. Aqui tienes los datos en crudo para que puedas ver el horario:
+                      El formato devuelto por la IA no fue el esperado. Aqu? tienes los datos en crudo para que puedas ver el horario:
                     </p>
                     <div className="overflow-x-auto rounded-2xl bg-slate-900 p-4 text-left text-[10px] font-mono whitespace-pre-wrap text-emerald-400 ring-1 ring-slate-800/60">
                       {JSON.stringify(selectedSchedule.schedule_data, null, 2)}
