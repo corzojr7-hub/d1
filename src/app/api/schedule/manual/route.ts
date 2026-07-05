@@ -128,6 +128,7 @@ export async function POST(request: Request) {
         schedule_data: payload?.scheduleData,
         status: "approved",
         source: "manual",
+        store_code: profile.store_code,
         approved_at: now,
         approved_by_profile_id: profile.id,
         approval_note: approvalNote || null,
