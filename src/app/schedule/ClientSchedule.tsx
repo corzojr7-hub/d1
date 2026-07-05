@@ -20,6 +20,7 @@ type ShiftData = {
   start?: string | null;
   "break"?: string | null;
   end?: string | null;
+  preset?: string | null;
 };
 
 type ScheduleRow = {
@@ -65,11 +66,52 @@ const scheduleDayLabels: Record<ScheduleDayKey, string> = {
 };
 
 type ManualDay = {
+  preset: ManualQuickPresetKey | "";
   start: string;
   break: string;
   end: string;
   hours: string;
 };
+
+type ManualQuickPresetKey =
+  | "A5"
+  | "A6"
+  | "A7"
+  | "A8"
+  | "C5"
+  | "C6"
+  | "C7"
+  | "C8"
+  | "P1"
+  | "P2"
+  | "DESC"
+  | "LIMPIAR";
+
+type ManualQuickPreset = {
+  code: ManualQuickPresetKey;
+  label: string;
+  shift: string;
+  type: "Apertura" | "Cierre" | "Partido" | "Descanso" | "Libre";
+  start: string;
+  break: string;
+  end: string;
+  hours: string;
+};
+
+const manualQuickPresets: ManualQuickPreset[] = [
+  { code: "A5", label: "A5 · 06:00-11:00", shift: "06:00-11:00", type: "Apertura", start: "06:00", break: "0:00", end: "11:00", hours: "5" },
+  { code: "A6", label: "A6 · 06:00-12:30", shift: "06:00-12:30", type: "Apertura", start: "06:00", break: "0:30", end: "12:30", hours: "6" },
+  { code: "A7", label: "A7 · 06:00-13:30", shift: "06:00-13:30", type: "Apertura", start: "06:00", break: "0:30", end: "13:30", hours: "7" },
+  { code: "A8", label: "A8 · 06:00-14:30", shift: "06:00-14:30", type: "Apertura", start: "06:00", break: "0:30", end: "14:30", hours: "8" },
+  { code: "C5", label: "C5 · 17:00-22:00", shift: "17:00-22:00", type: "Cierre", start: "17:00", break: "0:00", end: "22:00", hours: "5" },
+  { code: "C6", label: "C6 · 15:30-22:00", shift: "15:30-22:00", type: "Cierre", start: "15:30", break: "0:30", end: "22:00", hours: "6" },
+  { code: "C7", label: "C7 · 14:30-22:00", shift: "14:30-22:00", type: "Cierre", start: "14:30", break: "0:30", end: "22:00", hours: "7" },
+  { code: "C8", label: "C8 · 13:30-22:00", shift: "13:30-22:00", type: "Cierre", start: "13:30", break: "0:30", end: "22:00", hours: "8" },
+  { code: "P1", label: "P1 · 06:00-10:00 / 18:00-22:00", shift: "06:00-10:00 / 18:00-22:00", type: "Partido", start: "06:00", break: "8:00", end: "22:00", hours: "8" },
+  { code: "P2", label: "P2 · 10:00-14:00 / 18:00-22:00", shift: "10:00-14:00 / 18:00-22:00", type: "Partido", start: "10:00", break: "8:00", end: "22:00", hours: "8" },
+  { code: "DESC", label: "DESC · día libre", shift: "Libre", type: "Descanso", start: "", break: "", end: "", hours: "0" },
+  { code: "LIMPIAR", label: "LIMPIAR · vaciar", shift: "Libre", type: "Libre", start: "", break: "", end: "", hours: "0" },
+];
 
 type ManualScheduleRow = {
   id: string;
@@ -79,10 +121,48 @@ type ManualScheduleRow = {
 
 function createManualDay(): ManualDay {
   return {
+    preset: "",
     start: "",
     break: "0:30",
     end: "",
     hours: "",
+  };
+}
+
+function getManualQuickPreset(code: ManualQuickPresetKey) {
+  return manualQuickPresets.find((preset) => preset.code === code) ?? null;
+}
+
+function applyManualQuickPreset(day: ManualDay, code: ManualQuickPresetKey): ManualDay {
+  if (code === "LIMPIAR") {
+    return {
+      preset: "LIMPIAR",
+      start: "",
+      break: "",
+      end: "",
+      hours: "0",
+    };
+  }
+
+  if (code === "DESC") {
+    return {
+      preset: "DESC",
+      start: "",
+      break: "",
+      end: "",
+      hours: "0",
+    };
+  }
+
+  const preset = getManualQuickPreset(code);
+  if (!preset) return day;
+
+  return {
+    preset: preset.code,
+    start: preset.start,
+    break: preset.break,
+    end: preset.end,
+    hours: preset.hours,
   };
 }
 
@@ -161,7 +241,7 @@ function getManualWeeklyTotal(row: ManualScheduleRow) {
 }
 
 function manualDayHasValue(day: ManualDay) {
-  return Boolean(day.start || day.end || day.hours);
+  return Boolean(day.preset || day.start || day.end || day.hours);
 }
 
 function manualRowHasValue(row: ManualScheduleRow) {
@@ -179,6 +259,48 @@ function inferManualShiftType(day: ManualDay) {
 }
 
 function buildManualShiftCell(day: ManualDay) {
+  if (day.preset === "LIMPIAR") {
+    return {
+      shift: "Libre",
+      hours: 0,
+      type: "Libre",
+      start: null,
+      break: null,
+      end: null,
+      preset: "LIMPIAR",
+    } satisfies ShiftData;
+  }
+
+  if (day.preset && day.preset !== "DESC") {
+    const preset = getManualQuickPreset(day.preset);
+    if (preset) {
+      return {
+        shift: preset.shift,
+        hours: Number(preset.hours),
+        type: preset.type,
+        start: preset.start || null,
+        break: preset.break || null,
+        end: preset.end || null,
+        preset: preset.code,
+      } satisfies ShiftData;
+    }
+  }
+
+  if (day.preset === "DESC") {
+    return {
+      shift: "DESC",
+      hours: 0,
+      type: "DESC",
+      start: null,
+      break: null,
+      end: null,
+      preset: "DESC",
+    } satisfies ShiftData;
+  }
+
+  const hasManualValue = Boolean(day.start || day.end || day.hours);
+  if (!hasManualValue) return null;
+
   const hours = getManualDayHours(day);
   const shift =
     hours <= 0
@@ -194,6 +316,7 @@ function buildManualShiftCell(day: ManualDay) {
     start: day.start || null,
     break: day.break || "0:30",
     end: day.end || null,
+    preset: null,
   };
 }
 
@@ -208,7 +331,10 @@ function buildManualScheduleData(rows: ManualScheduleRow[]) {
       };
 
       scheduleDayKeys.forEach((day) => {
-        scheduleRow[day] = buildManualShiftCell(row.days[day]);
+        const cell = buildManualShiftCell(row.days[day]);
+        if (cell) {
+          scheduleRow[day] = cell;
+        }
       });
 
       return scheduleRow;
@@ -441,6 +567,10 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           [field]: value,
         };
 
+        if (field !== "preset") {
+          nextDay.preset = "";
+        }
+
         if (field !== "hours") {
           nextDay.hours = calculateManualHours(nextDay.start, nextDay.end, nextDay.break);
         }
@@ -453,6 +583,41 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
           },
         };
       }),
+    );
+  }
+
+  function setManualQuickPreset(rowId: string, day: ScheduleDayKey, preset: ManualQuickPresetKey) {
+    setManualRows((current) =>
+      current.map((row) =>
+        row.id === rowId
+          ? {
+              ...row,
+              days: {
+                ...row.days,
+                [day]: applyManualQuickPreset(row.days[day], preset),
+              },
+            }
+          : row,
+      ),
+    );
+  }
+
+  function clearManualQuickPreset(rowId: string, day: ScheduleDayKey) {
+    setManualRows((current) =>
+      current.map((row) =>
+        row.id === rowId
+          ? {
+              ...row,
+              days: {
+                ...row.days,
+                [day]: {
+                  ...row.days[day],
+                  preset: "",
+                },
+              },
+            }
+          : row,
+      ),
     );
   }
 
@@ -853,6 +1018,26 @@ export default function ClientSchedule({ initialSchedules }: { initialSchedules:
                           {scheduleDayKeys.map((day) => (
                             <td key={day} className="border-r border-slate-100 bg-white p-2">
                               <div className="grid gap-1.5">
+                                <select
+                                  value={row.days[day].preset}
+                                  onChange={(event) => {
+                                    const preset = event.target.value as ManualQuickPresetKey | "";
+                                    if (!preset) {
+                                      clearManualQuickPreset(row.id, day);
+                                      return;
+                                    }
+                                    setManualQuickPreset(row.id, day, preset);
+                                  }}
+                                  className="rounded-xl border-0 bg-slate-950 px-2 py-2 text-[10px] font-black uppercase tracking-[0.1em] text-white ring-1 ring-slate-900 outline-none transition focus:ring-2 focus:ring-[#e51d2e]/25"
+                                  aria-label={`${scheduleDayLabels[day]} turno rápido`}
+                                >
+                                  <option value="">Manual</option>
+                                  {manualQuickPresets.map((preset) => (
+                                    <option key={preset.code} value={preset.code}>
+                                      {preset.label}
+                                    </option>
+                                  ))}
+                                </select>
                                 <input
                                   type="time"
                                   value={row.days[day].start}
