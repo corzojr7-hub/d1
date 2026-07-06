@@ -297,23 +297,24 @@ export default function ClientQuadrants({
   }
 
   return (
-    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
+    <div className="mx-auto min-h-screen w-full bg-[#f3f6fb] px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <header className="sticky top-0 z-40 overflow-hidden rounded-b-[28px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm lg:rounded-[32px] lg:px-7 lg:py-5">
+        <div className="mb-3 h-1.5 w-24 rounded-full bg-[#e51d2e]" />
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#fff1f2] text-[#c41525] transition-colors hover:bg-[#ffe4e6]"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-col">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#c41525]">
               Estructura de tienda
             </p>
-            <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-white">
+            <h1 className="flex items-center gap-2 text-lg font-black leading-tight text-slate-950">
               Responsabilidades operativas
             </h1>
-            <p className="text-[10px] text-white/90">
+            <p className="text-[10px] text-slate-500">
               Asignación y seguimiento de responsabilidades
             </p>
           </div>
@@ -323,7 +324,7 @@ export default function ClientQuadrants({
       <div className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-6 lg:space-y-0 lg:py-6">
         <form
           onSubmit={handleAssign}
-          className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:sticky lg:top-28 lg:self-start lg:p-6"
+          className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.05)] lg:sticky lg:top-28 lg:self-start lg:p-6"
         >
           <h2 className="mb-4 flex items-center gap-2 text-sm font-bold text-slate-800">
             <UserPlus className="h-4 w-4 text-blue-500" />
@@ -394,7 +395,7 @@ export default function ClientQuadrants({
             assignments.map((assignment) => (
               <div
                 key={assignment.id}
-                className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm"
+                className="rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-[0_6px_18px_rgba(15,23,42,0.05)]"
               >
                 <div className="mb-2 flex items-center justify-between">
                   <span className="text-sm font-bold text-slate-800">
