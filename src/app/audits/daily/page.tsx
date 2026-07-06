@@ -28,7 +28,7 @@ export default async function DailyAuditPage() {
     .order("created_at", { ascending: false });
 
   return (
-    <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 pb-20 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 lg:pt-10 xl:max-w-6xl xl:px-8 2xl:max-w-7xl 2xl:px-10">
+    <div className="mx-auto min-h-screen w-full max-w-md bg-[#f3f6fb] px-4 pb-20 pt-6 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 lg:pt-10 xl:max-w-6xl xl:px-8 2xl:max-w-7xl 2xl:px-10">
       <div className="mb-2">
         <a
           href="/audits"
@@ -51,20 +51,21 @@ export default async function DailyAuditPage() {
         </a>
       </div>
 
-      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0a3875] via-[#0a4aa8] to-[#2563eb] px-5 py-5 text-white shadow-[0_18px_36px_rgba(10,56,117,0.16)] sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+      <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        <div className="mb-3 h-1.5 w-24 rounded-full bg-[#0a4aa8]" />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#0a4aa8]">
               Rutina guiada
             </p>
-            <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
+            <h1 className="mt-2 text-[28px] font-black tracking-tight text-slate-950">
               Checklist operativo
             </h1>
-            <p className="mt-2 max-w-[320px] text-[13px] leading-relaxed text-white/84">
+            <p className="mt-2 max-w-[360px] text-[13px] leading-relaxed text-slate-500">
               Ejecuta apertura o cierre con una vista más clara y sin perder el flujo del turno.
             </p>
           </div>
-          <span className="inline-flex rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-[11px] font-bold text-white">
+          <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-600">
             {todayAudits?.length ?? 0} hoy
           </span>
         </div>
@@ -73,12 +74,14 @@ export default async function DailyAuditPage() {
       <ChecklistWizardWrapper operatorName={profile?.display_name || "Desconocido"} />
 
       {todayAudits && todayAudits.length > 0 && (
-        <section className="mt-6 border-t border-slate-200 px-1 py-6">
-          <h2 className="text-sm font-bold text-slate-800 mb-4">Rutinas Completadas Hoy</h2>
+        <section className="mt-6 rounded-[24px] border border-slate-200/80 bg-white px-4 py-5 shadow-sm">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-sm font-bold text-slate-900">Rutinas completadas hoy</h2>
+          </div>
           <div className="space-y-3">
             {todayAudits.map(audit => (
-              <div key={audit.id} className="bg-white p-4 rounded-xl border border-emerald-100 shadow-sm flex items-center gap-3">
-                <div className="bg-emerald-100 text-emerald-600 p-2 rounded-full">
+              <div key={audit.id} className="flex items-center gap-3 rounded-[20px] border border-emerald-100 bg-emerald-50/60 p-4 shadow-none">
+                <div className="rounded-full bg-emerald-100 p-2 text-emerald-600">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
                 <div>

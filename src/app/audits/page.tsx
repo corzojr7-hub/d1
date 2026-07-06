@@ -75,14 +75,15 @@ export default async function AuditsPage() {
 
   return (
     <>
-      <section className="mx-auto mb-4 w-full max-w-[1600px] rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
-        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+      <section className="mx-auto mb-4 w-full max-w-[1600px] overflow-hidden rounded-[28px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm sm:px-6 lg:px-8">
+        <div className="mb-3 h-1.5 w-24 rounded-full bg-[#0a4aa8]" />
+        <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#0a4aa8]">
           Operación diaria
         </p>
-        <h1 className="mt-1 text-lg font-black tracking-tight text-slate-900">
+        <h1 className="mt-1 text-lg font-black tracking-tight text-slate-950">
           Verificación del turno
         </h1>
-        <p className="mt-1 text-sm leading-relaxed text-slate-500">
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500">
           Aquí se revisa lo que quedó instruido y lo que todavía falta por cumplir.
         </p>
       </section>

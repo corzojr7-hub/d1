@@ -134,29 +134,29 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
   return (
     <div className="mx-auto w-full max-w-4xl px-0 py-4 lg:py-6">
       {/* Progress Bar */}
-      <div className="mb-8">
-        <div className="flex justify-between text-xs font-bold text-slate-500 mb-2">
+      <div className="mb-6 rounded-[24px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm lg:px-5">
+        <div className="mb-2 flex justify-between text-xs font-bold text-slate-500">
           <span>Paso {currentStep + 1} de {STEPS.length}</span>
           <span className="uppercase text-[#0a3875]">{auditType}</span>
         </div>
-        <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-blue-600 transition-all duration-300" 
+        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+          <div
+            className="h-full bg-[#0a4aa8] transition-all duration-300"
             style={{ width: `${((currentStep + 1) / STEPS.length) * 100}%` }}
           />
         </div>
       </div>
 
       {/* Card */}
-      <div className="rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:p-7">
-        <h2 className="text-xl font-black text-slate-800 mb-2">{step.title}</h2>
-        <p className="text-slate-600 font-medium mb-6">{step.question}</p>
+      <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-7">
+        <h2 className="mb-2 text-xl font-black text-slate-950">{step.title}</h2>
+        <p className="mb-6 text-pretty font-medium text-slate-600">{step.question}</p>
 
         {/* Binary Answer */}
-        <div className="flex gap-4 mb-6">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
           <button
             onClick={() => handleAnswer(true)}
-            className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all ${
+            className={`flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all ${
               answers[step.id] === true 
                 ? "border-emerald-500 bg-emerald-50 text-emerald-700" 
                 : "border-slate-200 bg-slate-50 text-slate-500"
@@ -167,7 +167,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
           </button>
           <button
             onClick={() => handleAnswer(false)}
-            className={`flex-1 flex flex-col items-center justify-center gap-2 py-4 rounded-2xl border-2 transition-all ${
+            className={`flex min-h-28 flex-col items-center justify-center gap-2 rounded-2xl border-2 px-4 py-4 transition-all ${
               answers[step.id] === false 
                 ? "border-red-500 bg-red-50 text-red-700" 
                 : "border-slate-200 bg-slate-50 text-slate-500"
@@ -180,11 +180,11 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
 
         {/* Photo Evidence (if required) */}
         {step.requiresPhoto && (
-          <div className="mb-6">
-            <h3 className="text-sm font-bold text-slate-800 mb-2">Evidencia Fotográfica Obligatoria</h3>
+          <div className="mb-6 rounded-[24px] border border-slate-200/80 bg-slate-50/70 p-4">
+            <h3 className="mb-2 text-sm font-bold text-slate-800">Evidencia Fotográfica obligatoria</h3>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className={`w-full flex items-center justify-center gap-2 py-4 rounded-2xl border-2 border-dashed ${
+              className={`flex w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-4 ${
                 photos[step.id] ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-slate-300 bg-slate-50 text-slate-600"
               }`}
             >
@@ -205,7 +205,7 @@ export default function ChecklistWizard({ auditType, operator }: { auditType: "a
         <button
           onClick={handleNext}
           disabled={isPending}
-          className="w-full flex items-center justify-center gap-2 bg-[#0a3875] text-white py-3.5 rounded-full font-bold text-sm mt-4 hover:bg-[#072a59] transition-colors disabled:opacity-50"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-[#0a4aa8] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#083a85] disabled:opacity-50"
         >
           {isPending ? "Guardando..." : isLastStep ? "Finalizar Checklist" : "Siguiente"}
           {!isLastStep && !isPending && <ChevronRight className="h-4 w-4" />}

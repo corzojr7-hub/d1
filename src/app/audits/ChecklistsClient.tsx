@@ -132,7 +132,7 @@ export default function ChecklistsClient({
   }
 
   return (
-    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 pt-6 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+    <div className="mx-auto min-h-screen w-full bg-[#f3f6fb] px-4 pb-28 pt-6 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
       <div className="mb-2">
         <Link
           href="/"
@@ -143,26 +143,27 @@ export default function ChecklistsClient({
         </Link>
       </div>
 
-      <section className="overflow-hidden rounded-[28px] bg-gradient-to-br from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.18)] sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+      <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 shadow-sm sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        <div className="mb-3 h-1.5 w-24 rounded-full bg-[#e51d2e]" />
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#c41525]">
               Operación diaria
             </p>
-            <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
+            <h1 className="mt-2 text-[28px] font-black tracking-tight text-slate-950">
               Básicos diarios
             </h1>
-            <p className="mt-2 max-w-[320px] text-[13px] leading-relaxed text-white/84">
+            <p className="mt-2 max-w-[360px] text-[13px] leading-relaxed text-slate-500">
               Asigna, verifica y ajusta las rutinas clave del turno desde un solo frente.
             </p>
           </div>
-          <span className="inline-flex rounded-full border border-white/20 bg-white/12 px-3 py-1.5 text-[11px] font-bold text-white">
+          <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-600">
             {initialTasks.length} hoy
           </span>
         </div>
       </section>
 
-      <section className="mt-6 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm lg:p-5">
+      <section className="mt-6 rounded-[24px] border border-slate-200/80 bg-white p-4 shadow-sm lg:p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
@@ -261,7 +262,7 @@ export default function ChecklistsClient({
                 return (
                   <div
                     key={basic.id}
-                    className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm"
+                    className="rounded-[28px] border border-slate-200/80 bg-white p-4 shadow-[0_6px_18px_rgba(15,23,42,0.05)]"
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <h3 className="min-w-0 text-sm font-black leading-tight text-slate-900">
@@ -350,7 +351,7 @@ export default function ChecklistsClient({
                 return (
                   <div
                     key={task.id}
-                    className={`rounded-[28px] border bg-gradient-to-br from-white to-slate-50 p-4 shadow-sm ${
+                    className={`rounded-[28px] border bg-white p-4 shadow-[0_6px_18px_rgba(15,23,42,0.05)] ${
                       isOverdue
                         ? "border-red-300 ring-1 ring-red-300"
                         : isWarning
@@ -457,7 +458,7 @@ export default function ChecklistsClient({
 
         {activeTab === "configuracion" && isSupervisor && (
           <form onSubmit={handleSaveConfig} className="space-y-4">
-            <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm">
+            <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm">
               <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wide text-slate-800">
                 Configuración de básicos
               </h2>
