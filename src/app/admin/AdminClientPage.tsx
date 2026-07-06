@@ -123,12 +123,12 @@ export default function AdminClientPage({
     {
       label: "Tiendas con estructura",
       value: realStores.length,
-      tone: "bg-white/16 text-white ring-white/15",
+      tone: "border border-slate-200/80 bg-white text-slate-900 shadow-sm",
     },
     {
       label: "Uso IA operativo",
       value: aiUsageSummary.scheduleCount + aiUsageSummary.feedbackCount,
-      tone: "bg-white/12 text-white/90 ring-white/10",
+      tone: "border border-rose-100 bg-rose-50/60 text-rose-700 shadow-sm",
     },
   ];
 
@@ -149,13 +149,13 @@ export default function AdminClientPage({
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-20 pt-8 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="rounded-[34px] bg-gradient-to-br from-zinc-950 via-zinc-900 to-slate-900 px-5 py-5 shadow-[0_28px_80px_-40px_rgba(15,23,42,0.7)] ring-1 ring-white/10 lg:px-7 lg:py-7">
+      <header className="rounded-[34px] border border-slate-200/80 bg-white px-5 py-5 shadow-sm lg:px-7 lg:py-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-rose-200/80">
+            <p className="text-[11px] font-bold uppercase tracking-[0.32em] text-rose-500">
               Estructura de tienda
             </p>
-            <h1 className="mt-2 text-2xl font-black leading-tight text-white lg:text-[2.25rem]">
+            <h1 className="mt-2 text-2xl font-black leading-tight text-slate-900 lg:text-[2.25rem]">
               Estructura de tienda
             </h1>
             <p className="mt-2 max-w-xl text-sm text-zinc-300">
@@ -164,7 +164,7 @@ export default function AdminClientPage({
           </div>
           <Link
             href="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-white/10 px-5 text-sm font-bold text-white transition hover:bg-white/16"
+            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e51d2e] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#c91528]"
           >
             Volver al panel
           </Link>
@@ -174,9 +174,9 @@ export default function AdminClientPage({
           {adminHighlights.map((item) => (
             <div
               key={item.label}
-              className={`rounded-[24px] px-4 py-3 ring-1 backdrop-blur ${item.tone}`}
+              className={`rounded-[24px] px-4 py-3 ${item.tone}`}
             >
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                 {item.label}
               </p>
               <p className="mt-1 text-2xl font-black">{item.value}</p>
@@ -185,13 +185,13 @@ export default function AdminClientPage({
         </div>
       </header>
 
-      <div className="mt-5 flex w-full rounded-[28px] border border-slate-200/80 bg-white/90 p-2 shadow-sm backdrop-blur">
+      <div className="mt-5 flex w-full rounded-[28px] border border-slate-200/80 bg-white p-2 shadow-sm">
         <button
           onClick={() => setActiveTab("dashboard")}
           className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[20px] px-3 text-sm font-bold transition-colors ${
             activeTab === "dashboard"
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+              ? "bg-rose-50 text-rose-700 ring-1 ring-rose-100 shadow-sm"
+              : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
           }`}
         >
           <BarChart3 className="h-4 w-4" />
@@ -201,8 +201,8 @@ export default function AdminClientPage({
           onClick={() => setActiveTab("tiendas")}
           className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[20px] px-3 text-sm font-bold transition-colors ${
             activeTab === "tiendas"
-              ? "bg-zinc-900 text-white shadow-sm"
-              : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+              ? "bg-rose-50 text-rose-700 ring-1 ring-rose-100 shadow-sm"
+              : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
           }`}
         >
           <Store className="h-4 w-4" />
@@ -432,7 +432,7 @@ export default function AdminClientPage({
               </div>
               <button
                 onClick={() => setIsCreating(true)}
-                className="inline-flex min-h-11 items-center justify-center rounded-full bg-blue-600 px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
+                className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e51d2e] px-5 text-sm font-bold text-white shadow-sm transition-all hover:bg-[#c91528] active:scale-95"
               >
                 + Nuevo Supervisor
               </button>
@@ -567,7 +567,7 @@ export default function AdminClientPage({
               <div className="mt-8 flex flex-col gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex min-h-12 w-full items-center justify-center rounded-full bg-zinc-900 font-bold text-white transition-all hover:bg-zinc-800 active:scale-95"
+                  className="flex min-h-12 w-full items-center justify-center rounded-full bg-[#e51d2e] font-bold text-white transition-all hover:bg-[#c91528] active:scale-95"
                 >
                   Guardar Cambios
                 </button>
@@ -688,7 +688,7 @@ export default function AdminClientPage({
               <div className="mt-8 flex flex-col gap-3 pt-2">
                 <button
                   type="submit"
-                  className="flex min-h-12 w-full items-center justify-center rounded-full bg-blue-600 font-bold text-white shadow-lg shadow-blue-600/20 transition-all hover:bg-blue-700 active:scale-95"
+                  className="flex min-h-12 w-full items-center justify-center rounded-full bg-blue-600 font-bold text-white shadow-sm transition-all hover:bg-blue-700 active:scale-95"
                 >
                   Crear Supervisor
                 </button>
