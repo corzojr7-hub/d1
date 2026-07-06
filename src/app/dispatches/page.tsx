@@ -33,7 +33,7 @@ export default async function DispatchesPage() {
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <div className="mb-6 mt-6 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm lg:mt-0 lg:p-6">
+      <div className="mb-6 mt-6 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:mt-0 lg:p-6">
         <Link
           href="/"
           className="mb-4 inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900"
@@ -44,7 +44,7 @@ export default async function DispatchesPage() {
 
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
+            <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-rose-500">
               Seguimiento de despacho
             </p>
             <h1 className="text-2xl font-black tracking-tight text-slate-900">
@@ -58,7 +58,7 @@ export default async function DispatchesPage() {
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
             <div className="grid grid-cols-3 gap-3 sm:min-w-[360px]">
-              <div className="rounded-2xl border border-amber-200/80 bg-amber-50/80 px-3 py-3">
+              <div className="rounded-2xl border border-amber-100 bg-white px-3 py-3 shadow-sm">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-600">
                   Pendientes
                 </p>
@@ -66,7 +66,7 @@ export default async function DispatchesPage() {
                   {activeDispatches.length}
                 </p>
               </div>
-              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-3">
+              <div className="rounded-2xl border border-emerald-100 bg-white px-3 py-3 shadow-sm">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-600">
                   Resueltos
                 </p>
@@ -74,7 +74,7 @@ export default async function DispatchesPage() {
                   {resolvedDispatches}
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-3 py-3 shadow-sm">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   Evidencias
                 </p>
@@ -86,7 +86,7 @@ export default async function DispatchesPage() {
 
             <Link
               href="/dispatches/new"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-blue-600 px-5 text-sm font-bold text-white shadow-md shadow-blue-200/60 transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[#e51d2e] px-5 text-sm font-bold text-white shadow-sm transition-transform hover:bg-[#c91528] active:scale-[0.99]"
             >
               <Plus className="h-5 w-5" />
               Nueva diferencia

@@ -91,7 +91,7 @@ export default function DispatchDetailsClient({
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-6xl 2xl:px-10">
-      <div className="mb-6 mt-6 rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm lg:mt-0 lg:p-6">
+      <div className="mb-6 mt-6 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:mt-0 lg:p-6">
         <Link
           href="/dispatches"
           className="mb-4 inline-flex items-center text-sm font-medium text-slate-500 hover:text-slate-900"
@@ -102,7 +102,7 @@ export default function DispatchDetailsClient({
 
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
+            <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-rose-500">
               Seguimiento diario
             </p>
             <h1 className="text-2xl font-black leading-tight text-slate-900">
@@ -117,7 +117,7 @@ export default function DispatchDetailsClient({
           </div>
 
           <div className="grid grid-cols-2 gap-3 sm:max-w-[340px]">
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-4 py-3">
+            <div className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                 Estado
               </p>
@@ -133,7 +133,7 @@ export default function DispatchDetailsClient({
                 {dispatch.status}
               </span>
             </div>
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-4 py-3">
+            <div className="rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
               <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                 Días abiertos
               </p>
@@ -181,8 +181,8 @@ export default function DispatchDetailsClient({
             <div
               className={`rounded-[28px] border-2 p-5 shadow-sm lg:p-6 ${
                 hasEvidenceToday
-                  ? "border-emerald-200 bg-emerald-50"
-                  : "border-blue-200 bg-blue-50"
+                  ? "border-emerald-100 bg-white"
+                  : "border-blue-100 bg-white"
               }`}
             >
               {hasEvidenceToday ? (
@@ -209,7 +209,7 @@ export default function DispatchDetailsClient({
 
                   <div className="space-y-3">
                     {evidenceUrl ? (
-                      <div className="flex flex-col items-center rounded-xl border-2 border-dashed border-blue-300 bg-white p-4">
+                      <div className="flex flex-col items-center rounded-xl border-2 border-dashed border-blue-200 bg-slate-50 p-4">
                         <img
                           src={evidenceUrl}
                           alt="Vista previa del screenshot"
@@ -231,7 +231,7 @@ export default function DispatchDetailsClient({
                           );
                           if (url) setEvidenceUrl(url);
                         }}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-300 bg-white py-3 font-medium text-blue-600 transition-colors hover:bg-blue-50"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-blue-200 bg-white py-3 font-medium text-blue-600 transition-colors hover:bg-blue-50"
                       >
                         <Camera className="h-5 w-5" />
                         Tomar screenshot de hoy
@@ -243,7 +243,7 @@ export default function DispatchDetailsClient({
                       placeholder="Nota opcional (ej: Sigue en bandeja 1)"
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
-                      className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full rounded-lg border border-blue-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500"
                     />
 
                     <button
@@ -260,7 +260,7 @@ export default function DispatchDetailsClient({
           )}
 
           {isPendingStatus && (
-            <div className="rounded-[28px] border border-red-100 bg-red-50 p-5 lg:p-6">
+            <div className="rounded-[28px] border border-red-100 bg-white p-5 lg:p-6 shadow-sm">
               <h3 className="mb-2 font-bold text-red-900">Cerrar caso</h3>
               <p className="mb-4 text-xs text-red-700">
                 Una vez resuelto por inventarios, cierra la diferencia para
@@ -316,10 +316,10 @@ export default function DispatchDetailsClient({
                 </p>
               </div>
             ) : (
-              <div className="relative ml-3 space-y-6 border-l-2 border-slate-200 pl-4">
-                {dispatch.dispatch_evidences?.map((ev) => (
-                  <div key={ev.id} className="relative">
-                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full border-4 border-white bg-blue-500" />
+                <div className="relative ml-3 space-y-6 border-l-2 border-slate-200 pl-4">
+                  {dispatch.dispatch_evidences?.map((ev) => (
+                    <div key={ev.id} className="relative">
+                    <div className="absolute -left-[21px] top-1 h-3 w-3 rounded-full border-4 border-white bg-rose-500" />
                     <div className="mb-1 text-xs font-bold text-slate-500">
                       {format(new Date(ev.created_at), "dd MMM yyyy, h:mm a", {
                         locale: es,

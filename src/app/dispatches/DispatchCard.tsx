@@ -48,9 +48,9 @@ export default function DispatchCard({
       className={`group relative flex flex-col rounded-[24px] border p-4 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md lg:p-5 ${
         isPending
           ? hasEvidenceToday
-            ? "border-emerald-200 bg-gradient-to-br from-white to-emerald-50/40"
-            : "border-red-200 bg-gradient-to-br from-white to-red-50/40"
-          : "border-slate-200 bg-gradient-to-br from-white to-slate-50/80"
+            ? "border-emerald-100 bg-white"
+            : "border-red-100 bg-white"
+          : "border-slate-200 bg-white"
       }`}
     >
       <div className="mb-4 flex items-start justify-between gap-3">
@@ -68,10 +68,10 @@ export default function DispatchCard({
 
         {isPending ? (
           <div
-            className={`flex shrink-0 flex-col items-center rounded-2xl px-2.5 py-2 ${
+            className={`flex shrink-0 flex-col items-center rounded-2xl px-2.5 py-2 shadow-sm ${
               hasEvidenceToday
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-red-50 text-red-700"
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-[0.18em]">
@@ -85,10 +85,10 @@ export default function DispatchCard({
           </div>
         ) : (
           <div
-            className={`flex shrink-0 flex-col items-center rounded-2xl px-2.5 py-2 ${
+            className={`flex shrink-0 flex-col items-center rounded-2xl px-2.5 py-2 shadow-sm ${
               dispatch.status === "aplicado"
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-slate-100 text-slate-700"
+                ? "bg-emerald-50 text-emerald-700"
+                : "bg-slate-50 text-slate-700"
             }`}
           >
             <span className="text-[10px] font-black uppercase tracking-[0.18em]">
