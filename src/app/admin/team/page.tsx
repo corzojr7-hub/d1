@@ -46,42 +46,42 @@ export default async function AdminTeamPage() {
   }, 0);
 
   return (
-    <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-24 pt-8 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <div className="rounded-[34px] bg-gradient-to-br from-[#e51d2e] via-[#d91d2f] to-[#f35b66] p-5 text-white shadow-[0_28px_80px_-40px_rgba(229,29,46,0.65)] lg:p-7">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto min-h-screen w-full bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 pb-24 pt-8 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
+      <div className="rounded-[34px] border border-slate-200/80 bg-white p-5 text-slate-900 shadow-sm lg:p-7">
+        <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl">
             <Link
               href="/admin"
-              className="inline-flex items-center gap-2 text-sm font-semibold text-white/90 transition hover:text-white"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-slate-700"
             >
               <ArrowLeft className="h-4 w-4" />
               Volver al panel
             </Link>
-            <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.32em] text-white/70">
+            <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.32em] text-[#e51d2e]">
               Directorio maestro
             </p>
-            <h1 className="mt-2 text-2xl font-black lg:text-[2.2rem]">
-              Equipos por Tienda
+            <h1 className="mt-2 text-2xl font-black text-slate-950 lg:text-[2.2rem]">
+              Equipos por tienda
             </h1>
-            <p className="mt-2 text-sm text-white/85">
-              Directorio global de talento, rotación y estructura operativa por
-              tienda.
+            <p className="mt-2 text-sm text-slate-600">
+              Directorio global de talento, rotación y estructura operativa por tienda.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 lg:min-w-[280px]">
-            <div className="rounded-[24px] bg-white/14 px-4 py-3 ring-1 ring-white/14 backdrop-blur">
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
+            <div className="rounded-[24px] border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-400">
                 Tiendas
               </p>
-              <p className="mt-1 text-2xl font-black">
+              <p className="mt-1 text-2xl font-black text-slate-950">
                 {supervisorProfiles.length}
               </p>
             </div>
-            <div className="rounded-[24px] bg-white/14 px-4 py-3 ring-1 ring-white/14 backdrop-blur">
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-white/70">
+            <div className="rounded-[24px] border border-[#e51d2e]/15 bg-[#fff1f2] px-4 py-3 shadow-sm">
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-[#b91c1c]">
                 Asistentes
               </p>
-              <p className="mt-1 text-2xl font-black">{totalAssistants}</p>
+              <p className="mt-1 text-2xl font-black text-slate-950">{totalAssistants}</p>
             </div>
           </div>
         </div>
@@ -99,14 +99,14 @@ export default async function AdminTeamPage() {
           return (
             <div
               key={storeProfile.id}
-              className="rounded-[30px] border border-slate-100 bg-white p-6 shadow-sm lg:p-7"
+              className="rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6"
             >
-              <div className="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div className="rounded-2xl bg-red-50 p-3 text-red-600">
+              <div className="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
+                <div className="rounded-2xl bg-[#fff1f2] p-3 text-[#e51d2e]">
                   <Store className="h-6 w-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">
+                  <h2 className="text-lg font-bold text-slate-950">
                     {storeProfile.store_name}
                   </h2>
                   <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
@@ -115,28 +115,28 @@ export default async function AdminTeamPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
                 <div>
                   <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
                     Mando operativo
                   </h3>
                   <div className="space-y-2">
-                    <div className="flex items-center gap-3 rounded-2xl border border-blue-100 bg-blue-50 p-3">
-                      <ShieldAlert className="h-5 w-5 text-blue-500" />
+                    <div className="flex items-center gap-3 rounded-2xl border border-[#e51d2e]/15 bg-[#fff1f2] p-3">
+                      <ShieldAlert className="h-5 w-5 text-[#e51d2e]" />
                       <div>
-                        <p className="text-sm font-bold text-slate-800">
+                        <p className="text-sm font-bold text-slate-950">
                           {storeProfile.display_name}
                         </p>
-                        <p className="text-[10px] font-bold uppercase text-blue-600">
+                        <p className="text-[10px] font-bold uppercase text-[#b91c1c]">
                           Supervisor
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
                       <User className="h-5 w-5 text-slate-400" />
                       <div>
-                        <p className="text-sm font-bold text-slate-700">
+                        <p className="text-sm font-bold text-slate-900">
                           {secondInCharge}
                         </p>
                         <p className="text-[10px] font-bold uppercase text-slate-500">
@@ -145,10 +145,10 @@ export default async function AdminTeamPage() {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
                       <User className="h-5 w-5 text-slate-400" />
                       <div>
-                        <p className="text-sm font-bold text-slate-700">
+                        <p className="text-sm font-bold text-slate-900">
                           {thirdInCharge}
                         </p>
                         <p className="text-[10px] font-bold uppercase text-slate-500">
@@ -176,11 +176,11 @@ export default async function AdminTeamPage() {
                       {assistants.map((assistant: StoreAssistant, idx: number) => (
                         <div
                           key={idx}
-                          className="flex items-center gap-3 rounded-2xl border border-slate-100 p-3"
+                          className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3"
                         >
                           <Users className="h-4 w-4 text-emerald-500" />
                           <div className="flex-1">
-                            <p className="text-sm font-bold text-slate-700">
+                            <p className="text-sm font-bold text-slate-900">
                               {assistant.name}
                             </p>
                             <p className="text-[10px] font-semibold text-slate-500">

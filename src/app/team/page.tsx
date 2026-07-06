@@ -258,7 +258,7 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md bg-slate-50 pb-28 lg:max-w-6xl xl:max-w-7xl">
+    <div className="mx-auto min-h-screen max-w-md bg-[linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] pb-28 lg:max-w-6xl xl:max-w-7xl">
       <div className="px-4 pt-6">
         <Link
           href="/"
@@ -280,43 +280,40 @@ export default function TeamPage() {
           Volver
         </Link>
 
-        <div className="mt-4 rounded-[28px] bg-gradient-to-br from-[#0a3875] to-[#1e52a8] px-5 py-5 text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)]">
-          <div className="flex items-start justify-between gap-4">
-            <div className="max-w-[220px]">
-              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/65">
-                Operación de Tienda
+        <div className="mt-4 rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 text-slate-900 shadow-sm lg:px-6 lg:py-6">
+          <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-[36rem]">
+              <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+                Estructura de tienda
               </p>
-              <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
+              <h1 className="mt-2 text-[28px] font-black tracking-tight text-slate-950">
                 Gestión de equipo
               </h1>
-              <p className="mt-2 text-[13px] leading-relaxed text-white/80">
-                Ordena los datos base de la tienda y define responsables clave
-                sin salir del flujo operativo.
+              <p className="mt-2 max-w-[28rem] text-[13px] leading-relaxed text-slate-600">
+                Ordena los datos base de la tienda y define responsables clave sin perder el flujo operativo.
               </p>
             </div>
-            <div className="rounded-2xl bg-white/10 p-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-              <UsersRound className="h-6 w-6 text-white" strokeWidth={2.2} />
-            </div>
-          </div>
 
-          {profile.role === "supervisor" ? (
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <div className="inline-flex items-center rounded-full bg-white/12 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
+            <div className="flex flex-wrap gap-2">
+              <div className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-bold text-slate-600">
                 Datos base y jerarquía operativa
               </div>
-              <Link
-                href="/team/invites"
-                className="flex shrink-0 items-center gap-1 rounded-full bg-white px-3.5 py-2 text-[11px] font-bold text-slate-900 transition hover:bg-slate-100"
-              >
-                <UsersRound className="h-3.5 w-3.5" />
-                Crear acceso
-              </Link>
+              {profile.role === "supervisor" ? (
+                <Link
+                  href="/team/invites"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-[#e51d2e]/15 bg-[#fff1f2] px-3.5 py-2 text-[11px] font-bold text-[#b91c1c] transition hover:bg-[#ffe4e6]"
+                >
+                  <UsersRound className="h-3.5 w-3.5" />
+                  Crear acceso
+                </Link>
+              ) : (
+                <div className="inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-slate-500">
+                  Vista general del equipo
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="mt-4 inline-flex items-center rounded-full bg-white/12 px-3 py-1.5 text-[11px] font-bold text-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.1)]">
-              Vista general del equipo
-            </div>
-          )}
+          </div>
         </div>
 
         {localMessage && (
@@ -780,15 +777,16 @@ function ReadOnlyTeamView({ profile }: { profile: Profile }) {
           </svg>
           Volver
         </Link>
-        <div className="mt-4 rounded-[28px] bg-gradient-to-br from-[#d51b2b] via-[#e51d2e] to-[#f04452] px-5 py-5 text-white shadow-[0_18px_36px_rgba(229,29,46,0.16)]">
-          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/70">
-            Centro de Control
+        <div className="mt-4 rounded-[28px] border border-slate-200/80 bg-white px-5 py-5 text-slate-900 shadow-sm">
+          <div className="mb-4 h-1.5 w-24 rounded-full bg-gradient-to-r from-[#e51d2e] via-[#ef4444] to-[#f59e0b]" />
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+            Centro de control
           </p>
-          <h1 className="mt-2 text-[28px] font-black tracking-tight text-white">
-            Gestión de Tienda
+          <h1 className="mt-2 text-[28px] font-black tracking-tight text-slate-950">
+            Gestión de tienda
           </h1>
-          <p className="mt-2 max-w-[240px] text-[13px] leading-relaxed text-white/82">
-            Información de la tienda y tu equipo (Solo lectura)
+          <p className="mt-2 max-w-[280px] text-[13px] leading-relaxed text-slate-600">
+            Información de la tienda y tu equipo, en una vista de solo lectura.
           </p>
         </div>
       </div>
