@@ -83,28 +83,28 @@ export default function ClientImpulses({
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
+      <header className="sticky top-0 z-40 rounded-b-[32px] border border-rose-200/70 bg-white/95 px-4 py-4 shadow-sm backdrop-blur lg:rounded-[36px] lg:px-7 lg:py-6">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-1 flex-col">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
               Impulso comercial
             </p>
-            <h1 className="text-lg font-black leading-tight text-white">
+            <h1 className="text-lg font-black leading-tight text-slate-900">
               Registro comercial
             </h1>
-            <p className="text-[10px] text-white/90">
+            <p className="text-[10px] text-slate-500">
               Guarda el producto, la persona y las unidades del impulso del día.
             </p>
           </div>
           <Link
             href="/impulses/analytics"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100"
           >
             <BarChart3 className="h-4 w-4" />
           </Link>
@@ -112,7 +112,7 @@ export default function ClientImpulses({
       </header>
 
       <form onSubmit={handleSubmit} className="space-y-6 px-0 py-4 lg:py-6">
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-emerald-50/30 p-5 shadow-sm lg:p-6">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
@@ -131,7 +131,7 @@ export default function ClientImpulses({
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
-              <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-3 py-3">
+              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-emerald-600">
                   Modalidad
                 </p>
@@ -139,7 +139,7 @@ export default function ClientImpulses({
                   Registro rápido
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   Seguimiento
                 </p>
@@ -203,7 +203,7 @@ export default function ClientImpulses({
                       value={catalogQuery}
                       onChange={(e) => handleCatalogSearch(e.target.value)}
                       placeholder="Escribe para buscar (ej. wafer)..."
-                      className="w-full rounded-xl border-0 bg-slate-50 py-2.5 pl-10 pr-3 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full rounded-xl border-0 bg-slate-50 py-2.5 pl-10 pr-3 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-400"
                       autoComplete="off"
                     />
                     {catalogQuery.trim() && (
@@ -227,7 +227,7 @@ export default function ClientImpulses({
                                   <span className="text-[10px] text-slate-400">
                                     EAN: {p.barcode_id}
                                     {p.material_code
-                                      ? ` • Mat: ${p.material_code}`
+                                      ? ` · Mat: ${p.material_code}`
                                       : ""}
                                   </span>
                                 </button>
@@ -239,12 +239,12 @@ export default function ClientImpulses({
                     )}
                   </div>
                 ) : (
-                  <div className="flex items-center justify-between rounded-xl bg-blue-50 px-3 py-2.5 ring-1 ring-blue-200">
+                  <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5">
                     <div className="min-w-0 pr-2">
-                      <span className="block truncate text-sm font-bold text-blue-900">
+                      <span className="block truncate text-sm font-bold text-slate-900">
                         {selectedProduct.name}
                       </span>
-                      <span className="text-[10px] text-blue-600">
+                      <span className="text-[10px] text-slate-500">
                         EAN: {selectedProduct.barcode_id}
                       </span>
                     </div>
@@ -255,7 +255,7 @@ export default function ClientImpulses({
                         setCatalogQuery("");
                         setCatalogResults([]);
                       }}
-                      className="shrink-0 rounded-full p-1 text-blue-400 transition-colors hover:bg-blue-100 hover:text-blue-600"
+                      className="shrink-0 rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
                     >
                       <X className="h-4 w-4" />
                     </button>
@@ -290,7 +290,7 @@ export default function ClientImpulses({
                     min={1}
                     value={quantity}
                     onChange={(e) => setQuantity(Number(e.target.value) || 1)}
-                    className="h-12 flex-1 rounded-2xl border-0 bg-slate-50 px-4 text-center text-lg font-black text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="h-12 flex-1 rounded-2xl border-0 bg-slate-50 px-4 text-center text-lg font-black text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-rose-400"
                   />
                   <button
                     type="button"
@@ -316,8 +316,8 @@ export default function ClientImpulses({
               </div>
             </div>
 
-            <div className="rounded-[24px] border border-emerald-200/80 bg-emerald-50/70 p-4 shadow-sm lg:p-5">
-              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-600">
+            <div className="rounded-[24px] border border-rose-200/70 bg-rose-50/60 p-4 shadow-sm lg:p-5">
+              <p className="text-[11px] font-black uppercase tracking-[0.24em] text-rose-600">
                 Enlace útil
               </p>
               <p className="mt-2 text-sm text-emerald-900">
@@ -326,7 +326,7 @@ export default function ClientImpulses({
               </p>
               <Link
                 href="/impulses/analytics"
-                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-emerald-700 hover:text-emerald-800"
+                className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-rose-700 hover:text-rose-800"
               >
                 <BarChart3 className="h-4 w-4" />
                 Ver analítica

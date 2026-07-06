@@ -91,7 +91,7 @@ export default function ClientImpulseAnalytics({
   return (
     <div className="space-y-6">
       <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr]">
-        <div className="rounded-[24px] border border-amber-200/80 bg-gradient-to-br from-amber-50 to-white p-5 shadow-sm">
+        <div className="rounded-[24px] border border-amber-100 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-600">
             Mejor registro
           </p>
@@ -106,12 +106,12 @@ export default function ClientImpulseAnalytics({
           </div>
         </div>
 
-        <div className="rounded-[24px] border border-slate-200/80 bg-slate-50/70 p-5 shadow-sm">
+        <div className="rounded-[24px] border border-slate-200/80 bg-white p-5 shadow-sm">
           <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
             Lectura rápida
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <div className="rounded-2xl border border-blue-200/80 bg-white px-4 py-4">
+            <div className="rounded-2xl border border-blue-100 bg-slate-50 px-4 py-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-blue-600">
                 Nacional
               </p>
@@ -119,7 +119,7 @@ export default function ClientImpulseAnalytics({
                 {dataByType.find((item) => item.name === "Nacional")?.value || 0}
               </p>
             </div>
-            <div className="rounded-2xl border border-emerald-200/80 bg-white px-4 py-4">
+            <div className="rounded-2xl border border-emerald-100 bg-slate-50 px-4 py-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-600">
                 Regional
               </p>
@@ -127,7 +127,7 @@ export default function ClientImpulseAnalytics({
                 {dataByType.find((item) => item.name === "Regional")?.value || 0}
               </p>
             </div>
-            <div className="rounded-2xl border border-amber-200/80 bg-white px-4 py-4">
+            <div className="rounded-2xl border border-amber-100 bg-slate-50 px-4 py-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-600">
                 Fecha pronta
               </p>

@@ -37,19 +37,19 @@ export default async function ImpulsesAnalyticsPage() {
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
+      <header className="sticky top-0 z-40 rounded-b-[32px] border border-rose-200/70 bg-white/95 px-4 py-4 shadow-sm backdrop-blur lg:rounded-[36px] lg:px-7 lg:py-6">
         <div className="flex items-center gap-3">
           <Link
             href="/impulses"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-rose-50 text-rose-700 transition-colors hover:bg-rose-100"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div className="flex flex-1 flex-col">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-white/75">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-rose-500">
               Impulso comercial
             </p>
-            <h1 className="text-lg font-black leading-tight text-white">
+            <h1 className="text-lg font-black leading-tight text-slate-900">
               Analítica semanal
             </h1>
             <p className="text-[10px] text-white/90">
@@ -63,7 +63,7 @@ export default async function ImpulsesAnalyticsPage() {
       </header>
 
       <div className="space-y-6 px-0 py-4 lg:py-6">
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-rose-50/30 p-5 shadow-sm lg:p-6">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="mb-2 text-[11px] font-black uppercase tracking-[0.28em] text-slate-400">
@@ -82,7 +82,7 @@ export default async function ImpulsesAnalyticsPage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:min-w-[280px]">
-              <div className="rounded-2xl border border-rose-200/80 bg-rose-50/80 px-3 py-3">
+              <div className="rounded-2xl border border-rose-100 bg-rose-50/70 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-rose-600">
                   Periodo
                 </p>
@@ -90,7 +90,7 @@ export default async function ImpulsesAnalyticsPage() {
                   Últimos 7 días
                 </p>
               </div>
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-100/80 px-3 py-3">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50 px-3 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.24em] text-slate-500">
                   Agrupación
                 </p>
