@@ -50,11 +50,11 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
 
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
-      <header className="sticky top-0 z-40 rounded-b-[32px] bg-gradient-to-r from-[#d91d2f] via-[#e51d2e] to-[#ff4f61] px-4 py-4 shadow-[0_16px_34px_rgba(229,29,46,0.22)] lg:rounded-[36px] lg:px-7 lg:py-7">
-        <div className="flex items-center gap-3">
+      <header className="sticky top-0 z-40 rounded-b-[28px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm lg:rounded-[32px] lg:px-7 lg:py-6">
+        <div className="flex items-start gap-3 lg:items-center">
           <Link
             href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white transition-colors hover:bg-white/30"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-600 transition-colors hover:bg-rose-100"
           >
             <ArrowLeft className="h-5 w-5" />
           </Link>
@@ -66,7 +66,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
               Entrega de Turno
             </h1>
             <p className="text-[10px] text-white/90">
-              Relevo y pendientes del dia
+              Relevo y pendientes del d?a
             </p>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
         onSubmit={handleSubmit}
         className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-6 lg:space-y-0 lg:py-6"
       >
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm lg:p-6">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6">
           <h2 className="mb-4 text-sm font-bold text-slate-800">¿Quiénes realizan el cambio?</h2>
 
           <div className="space-y-4 lg:space-y-5">
@@ -88,7 +88,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
                 label="Entrega el turno"
                 name="handed_by"
                 required
-                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                buttonClassName="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium shadow-sm"
                 options={[
                   { value: "", label: "Selecciona quién entrega" },
                   ...supervisors.map((s) => ({ value: s, label: s })),
@@ -104,7 +104,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
                 label="Recibe el turno"
                 name="received_by"
                 required
-                buttonClassName="rounded-xl px-3 py-2.5 text-sm font-medium shadow-none"
+                buttonClassName="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium shadow-sm"
                 options={[
                   { value: "", label: "Selecciona quién recibe" },
                   ...supervisors.map((s) => ({ value: s, label: s })),
@@ -114,12 +114,12 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/30 p-5 shadow-sm lg:p-6">
+        <div className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6">
           <h2 className="mb-4 text-sm font-bold text-slate-800">Cierre del turno</h2>
 
           <div
             onClick={() => fileInputRef.current?.click()}
-            className={`relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${photoPreview ? "border-emerald-400 bg-emerald-50" : "border-slate-300 bg-slate-50 hover:bg-slate-100"}`}
+            className={`relative flex h-48 w-full cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed transition-colors ${photoPreview ? "border-emerald-200 bg-white" : "border-slate-200 bg-slate-50 hover:bg-slate-100"}`}
           >
             {photoPreview ? (
               <img src={photoPreview} alt="Preview" className="absolute inset-0 h-full w-full object-cover" />
@@ -141,13 +141,13 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
 
           <div className="mt-4">
             <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
-              Pendientes del relevo (Opcional)
+              Pendientes del relevo (opcional)
             </label>
             <textarea
               name="observations"
               rows={3}
               placeholder="Ej. Falta organizar pasillo 3, basura sin sacar..."
-              className="w-full resize-none rounded-xl border-0 bg-slate-50 px-3 py-2.5 text-sm font-medium ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full resize-none rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-rose-500"
             />
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           <button
             type="submit"
             disabled={isPending}
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-sm font-bold text-white shadow-lg transition-all active:scale-95 disabled:opacity-70 lg:mx-auto lg:max-w-md"
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#e51d2e] py-3.5 text-sm font-bold text-white shadow-sm transition-all active:scale-95 disabled:opacity-70 lg:mx-auto lg:max-w-md"
           >
             {isPending ? (
               <>

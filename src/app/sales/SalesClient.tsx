@@ -301,7 +301,7 @@ export default function SalesClient({
         Volver
       </Link>
 
-      <div className="rounded-[32px] border border-slate-200/80 bg-gradient-to-br from-white via-white to-slate-50 p-5 shadow-sm sm:p-6 lg:p-7">
+      <div className="rounded-[32px] border border-slate-200/80 bg-white p-5 shadow-sm sm:p-6 lg:p-7">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-[#e51d2e]">Registro comercial</p>
@@ -333,8 +333,8 @@ export default function SalesClient({
       </div>
 
       <div className="grid gap-6 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] 2xl:items-start">
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-blue-50/40 p-5 shadow-sm lg:p-6 xl:p-7">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6 xl:p-7">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">
           <Target className="h-4 w-4" /> Presupuesto operativo del mes
         </h2>
         {isSupervisor ? (
@@ -344,7 +344,7 @@ export default function SalesClient({
                 <label className="text-[10px] font-bold uppercase text-slate-500">
                   Valor estimado ($)
                 </label>
-                <div className="mt-1 flex w-full items-center justify-between rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-sm font-bold text-slate-800">
+                <div className="mt-1 flex w-full items-center justify-between rounded-xl border border-emerald-100 bg-white px-3 py-2 text-sm font-bold text-slate-800 shadow-sm">
                   <span>{formatCurrency(currentBudget)}</span>
                   <span className="text-[10px] text-emerald-600">OK Registrado</span>
                 </div>
@@ -373,7 +373,7 @@ export default function SalesClient({
               </div>
               <button
                 onClick={handleSaveBudget}
-                className="h-10 rounded-xl bg-[#0a3875] px-4 text-sm font-bold text-white transition-transform active:scale-95"
+                className="h-10 rounded-xl bg-[#e51d2e] px-4 text-sm font-bold text-white transition-transform active:scale-95"
               >
                 <Save className="h-4 w-4" />
               </button>
@@ -388,10 +388,10 @@ export default function SalesClient({
             </div>
           )
         ) : (
-          <div className="mb-4 rounded-xl border border-slate-100 bg-slate-50 p-3">
+            <div className="mb-4 rounded-xl border border-slate-100 bg-white p-3 shadow-sm">
             <p className="text-[10px] font-bold uppercase text-slate-400">Presupuesto actual</p>
             <p className="text-lg font-black text-[#0a3875]">
-              {currentBudget > 0 ? formatCurrency(currentBudget) : "Aun no asignado"}
+              {currentBudget > 0 ? formatCurrency(currentBudget) : "A?n no asignado"}
             </p>
           </div>
         )}
@@ -407,7 +407,7 @@ export default function SalesClient({
                 <p className="text-[10px] font-bold uppercase text-slate-400">Progreso</p>
                 <p
                   className={`text-lg font-black ${
-                    progressPercent >= 100 ? "text-emerald-500" : "text-[#0a3875]"
+                    progressPercent >= 100 ? "text-emerald-500" : "text-rose-700"
                   }`}
                 >
                   {progressPercent.toFixed(1)}%
@@ -424,12 +424,12 @@ export default function SalesClient({
               />
             </div>
 
-            <div className="mt-4 flex items-start gap-3 rounded-xl bg-blue-50 p-3">
-              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-blue-600" />
+            <div className="mt-4 flex items-start gap-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
+              <TrendingUp className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" />
               <div>
                 <p className="text-xs font-bold text-blue-900">Proyección operativa del mes</p>
                 <p className="mt-1 text-[11px] leading-tight text-blue-700">
-                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}</b>, cerraras el
+                  Manteniendo el promedio actual de <b>{formatCurrency(averageDailySale)}</b>, cerrar?s el
                   mes en <b>{formatCurrency(forecastedTotal)}</b> ({forecastPercent.toFixed(1)}%).
                 </p>
               </div>
@@ -438,8 +438,8 @@ export default function SalesClient({
         )}
       </section>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm 2xl:h-full lg:p-6 xl:p-7">
-        <h2 className="mb-4 flex flex-col gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+      <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm 2xl:h-full lg:p-6 xl:p-7">
+        <h2 className="mb-4 flex flex-col gap-3 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" /> Registro operativo
           </div>
@@ -519,8 +519,8 @@ export default function SalesClient({
       </section>
       </div>
 
-      <section className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/30 p-5 shadow-sm lg:p-6">
-        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-400">
+      <section className="rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6">
+        <h2 className="mb-4 flex items-center gap-2 text-xs font-extrabold uppercase tracking-[0.18em] text-slate-500">
           <AlertCircle className="h-4 w-4" /> Merma semanal e impacto
         </h2>
 
@@ -532,7 +532,7 @@ export default function SalesClient({
             const wasteGoal = weeklyBudget * 0.002;
 
             return (
-              <div key={week.key} className="rounded-[24px] border border-slate-100 bg-white/90 p-4 shadow-sm">
+              <div key={week.key} className="rounded-[24px] border border-slate-100 bg-white p-4 shadow-sm">
                 <p className="mb-2 text-[10px] font-bold uppercase text-slate-400">
                   Semana {idx + 1} ({format(week.start, "dd MMM")} - {format(week.end, "dd MMM")})
                 </p>
@@ -545,7 +545,7 @@ export default function SalesClient({
                     <p className="text-[10px] text-slate-500">
                       Merma ($){" "}
                       {wasteGoal > 0 && (
-                        <span className="font-bold text-blue-600">
+                        <span className="font-bold text-rose-600">
                           | Meta: {formatCurrency(wasteGoal)}
                         </span>
                       )}
@@ -560,7 +560,7 @@ export default function SalesClient({
                     ) : isSupervisor ? (
                       <button
                         onClick={() => setWasteWeek(week.key)}
-                        className="mt-1 rounded-lg bg-blue-50 px-2 py-1 text-[10px] font-bold text-[#0a3875]"
+                        className="mt-1 rounded-lg bg-rose-50 px-2 py-1 text-[10px] font-bold text-rose-700"
                       >
                         + INGRESAR
                       </button>
@@ -571,25 +571,25 @@ export default function SalesClient({
                 </div>
 
                 {isEditingWaste && (
-                  <div className="mb-3 flex gap-2 rounded-xl border border-blue-100 bg-blue-50 p-2">
+                  <div className="mb-3 flex gap-2 rounded-xl border border-rose-100 bg-rose-50/60 p-2">
                     <input
                       type="text"
                       inputMode="numeric"
                       placeholder="Total Merma ($)"
                       value={wasteAmount}
                       onChange={(e) => setWasteAmount(formatMoneyInput(e.target.value))}
-                      className="w-full rounded-lg border border-blue-200 px-2 py-1.5 text-xs font-bold"
+                      className="w-full rounded-lg border border-rose-200 px-2 py-1.5 text-xs font-bold"
                     />
                     <button
                       onClick={() => handleSaveWaste(week.key, week.end.toISOString(), wasteAmount)}
                       disabled={isSavingWaste}
-                      className="rounded-lg bg-[#0a3875] px-3 text-xs font-bold text-white"
+                      className="rounded-lg bg-[#e51d2e] px-3 text-xs font-bold text-white"
                     >
                       Guardar
                     </button>
                     <button
                       onClick={() => setWasteWeek("")}
-                      className="px-2 text-xs font-bold text-blue-800"
+                      className="px-2 text-xs font-bold text-rose-800"
                     >
                       X
                     </button>
