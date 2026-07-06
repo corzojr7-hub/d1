@@ -66,3 +66,9 @@ Reglas para UI Skills:
 - No modifiques backend, base de datos, autenticación, permisos ni lógica sensible por una tarea visual.
 - Antes de editar, di qué skill usarás, por qué aplica, qué archivos tocarás y qué NO vas a crear.
 - Espera aprobación antes de modificar archivos.
+
+## UI / Design Contract
+
+- Before UI changes, read `DESIGN.md`.
+- Follow `DESIGN.md` for color, spacing, density, cards, CTAs, and responsive behavior.
+- Do not introduce new visual patterns unless `DESIGN.md` is updated or the exception is clearly justified.
