@@ -17,20 +17,26 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
-async function subscribeUser(registration: ServiceWorkerRegistration) {
+async function syncSubscription(registration: ServiceWorkerRegistration) {
   try {
-    const existing = await registration.pushManager.getSubscription();
-    if (existing) {
-      // Assume already synced
+    let permission = window.Notification?.permission;
+
+    if (permission === "default") {
+      permission = await window.Notification.requestPermission();
+    }
+
+    if (permission !== "granted") {
       return;
     }
 
-    const subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
-    });
+    const existing = await registration.pushManager.getSubscription();
+    const subscription =
+      existing ||
+      (await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!),
+      }));
 
-    // Send to server
     await fetch("/api/push", {
       method: "POST",
       headers: {
@@ -48,16 +54,24 @@ async function subscribeUser(registration: ServiceWorkerRegistration) {
 
 export default function PushManager() {
   useEffect(() => {
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+    if (
+      !("serviceWorker" in navigator) ||
+      !("PushManager" in window) ||
+      !("Notification" in window)
+    ) {
       return;
     }
 
     const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
     if (!vapidPublicKey) return;
 
-    navigator.serviceWorker.ready.then(subscribeUser).catch((err) => {
-      console.error("Service worker not ready for push", err);
-    });
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then(syncSubscription)
+      .catch((err) => {
+        console.error("Service worker not ready for push", err);
+      });
   }, []);
 
   return null;

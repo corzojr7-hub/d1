@@ -14,14 +14,31 @@ export default async function AdminDashboardPage({
   const params = await searchParams;
   const period = resolveAdminPeriod(params.period);
   const { supabase } = await requireAdminContext();
+  const budgetMonths = [...new Set([period.startDate.slice(0, 7), period.endDate.slice(0, 7)])];
 
-  const [{ data: sales, error: salesError }, { data: stores }] = await Promise.all([
+  const [
+    { data: sales, error: salesError },
+    { data: budgets, error: budgetsError },
+    { data: wasteRecords, error: wasteError },
+    { data: stores },
+  ] = await Promise.all([
     supabase
       .from("daily_sales")
       .select("store_code, amount, date")
       .neq("store_code", "ADMIN-CENTRAL")
       .gte("date", period.startDate)
       .lte("date", period.endDate),
+    supabase
+      .from("sales_budgets")
+      .select("store_code, budget_amount, month_year")
+      .neq("store_code", "ADMIN-CENTRAL")
+      .in("month_year", budgetMonths),
+    supabase
+      .from("waste_records")
+      .select("store_code, qty, created_at")
+      .neq("store_code", "ADMIN-CENTRAL")
+      .gte("created_at", period.startIso)
+      .lte("created_at", period.endIso),
     supabase
       .from("profiles")
       .select("store_code, store_name")
@@ -34,9 +51,19 @@ export default async function AdminDashboardPage({
     throw new Error(`No se pudieron cargar los indicadores globales: ${salesError.message}`);
   }
 
+  if (budgetsError) {
+    throw new Error(`No se pudieron cargar los presupuestos globales: ${budgetsError.message}`);
+  }
+
+  if (wasteError) {
+    throw new Error(`No se pudieron cargar las mermas globales: ${wasteError.message}`);
+  }
+
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
   const activeStoreCodes = new Set(storeNames.keys());
   const salesByStore = new Map<string, number>();
+  const budgetsByStore = new Map<string, number>();
+  const wasteUnitsByStore = new Map<string, number>();
   const activeDates = new Set<string>();
 
   for (const sale of sales || []) {
@@ -44,6 +71,29 @@ export default async function AdminDashboardPage({
     const amount = Number(sale.amount || 0);
     salesByStore.set(sale.store_code, (salesByStore.get(sale.store_code) || 0) + amount);
     activeDates.add(sale.date);
+  }
+
+  for (const budget of budgets || []) {
+    if (!activeStoreCodes.has(budget.store_code)) continue;
+    const amount = Number(budget.budget_amount || 0);
+    const overlapDays = getMonthOverlapDays(budget.month_year, period.startDate, period.endDate);
+    const daysInMonth = getDaysInMonth(budget.month_year);
+
+    if (amount <= 0 || overlapDays <= 0 || daysInMonth <= 0) continue;
+
+    budgetsByStore.set(
+      budget.store_code,
+      (budgetsByStore.get(budget.store_code) || 0) + amount * (overlapDays / daysInMonth),
+    );
+  }
+
+  for (const waste of wasteRecords || []) {
+    if (!activeStoreCodes.has(waste.store_code)) continue;
+    const units = Number(waste.qty || 0);
+    wasteUnitsByStore.set(
+      waste.store_code,
+      (wasteUnitsByStore.get(waste.store_code) || 0) + units,
+    );
   }
 
   const totalSales = Array.from(salesByStore.values()).reduce((sum, amount) => sum + amount, 0);
@@ -57,6 +107,32 @@ export default async function AdminDashboardPage({
     }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 10);
+  const healthRows = Array.from(activeStoreCodes)
+    .map((storeCode) => {
+      const salesAmount = salesByStore.get(storeCode) || 0;
+      const budgetTarget = budgetsByStore.get(storeCode) || 0;
+      const wasteUnits = wasteUnitsByStore.get(storeCode) || 0;
+      const budgetCompletion =
+        budgetTarget > 0 ? (salesAmount / budgetTarget) * 100 : salesAmount > 0 ? 100 : 0;
+      const salesScore = Math.min(100, budgetCompletion) * 0.75;
+      const wasteScore = Math.max(0, 100 - Math.min(wasteUnits, 100)) * 0.25;
+      const score = Math.round(salesScore + wasteScore);
+
+      return {
+        storeCode,
+        storeName: storeNames.get(storeCode) || `Tienda ${storeCode}`,
+        salesAmount,
+        budgetTarget,
+        budgetCompletion,
+        wasteUnits,
+        score,
+        light: getHealthLight(score),
+      };
+    })
+    .sort((a, b) => b.score - a.score || b.salesAmount - a.salesAmount || a.wasteUnits - b.wasteUnits);
+  const greenCount = healthRows.filter((store) => store.light.label === "Verde").length;
+  const yellowCount = healthRows.filter((store) => store.light.label === "Amarillo").length;
+  const redCount = healthRows.filter((store) => store.light.label === "Rojo").length;
 
   return (
     <main className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-24 pt-6 sm:px-6 lg:px-8 2xl:max-w-7xl">
@@ -107,6 +183,104 @@ export default async function AdminDashboardPage({
           ) : null}
         </div>
       </section>
+
+      <section className="mt-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+              Salud de tiendas
+            </p>
+            <h2 className="mt-2 text-xl font-black text-slate-950">Scorecard diario con semaforo</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Score de 0 a 100 ponderando cumplimiento del presupuesto y control de merma.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <StatusPill label="Verde" value={greenCount} tone="border-emerald-200 bg-emerald-50 text-emerald-700" />
+            <StatusPill label="Amarillo" value={yellowCount} tone="border-amber-200 bg-amber-50 text-amber-700" />
+            <StatusPill label="Rojo" value={redCount} tone="border-rose-200 bg-rose-50 text-rose-700" />
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+          <div className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+            <div className="grid gap-3 md:grid-cols-2">
+              {healthRows.slice(0, 6).map((store, index) => (
+                <article
+                  key={store.storeCode}
+                  className="rounded-[22px] border border-slate-200 bg-white p-4 shadow-sm"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-extrabold uppercase tracking-[0.14em] text-slate-400">
+                        #{index + 1} {store.storeCode}
+                      </p>
+                      <h3 className="mt-1 truncate text-sm font-black text-slate-950">
+                        {store.storeName}
+                      </h3>
+                    </div>
+                    <span className={`rounded-full px-3 py-1 text-[11px] font-bold ${store.light.badgeClassName}`}>
+                      {store.light.label}
+                    </span>
+                  </div>
+
+                  <div className="mt-4 flex items-end justify-between gap-3">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
+                        Score
+                      </p>
+                      <p className="mt-1 text-3xl font-black text-slate-950">{store.score}</p>
+                    </div>
+                    <div className="text-right text-xs font-semibold text-slate-500">
+                      <p>{store.budgetCompletion.toFixed(0)}% presupuesto</p>
+                      <p>{store.wasteUnits.toFixed(0)} uds merma</p>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+                    <div
+                      className={`h-full rounded-full ${store.light.barClassName}`}
+                      style={{ width: `${Math.min(100, store.score)}%` }}
+                    />
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+
+          <div className="rounded-[24px] border border-slate-200 bg-white p-4 sm:p-5">
+            <h3 className="text-sm font-black text-slate-950">Ranking regional</h3>
+            <div className="mt-4 space-y-3">
+              {healthRows.map((store, index) => (
+                <div
+                  key={store.storeCode}
+                  className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold text-slate-900">
+                      {index + 1}. {store.storeName}
+                    </p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                      {store.storeCode} · {store.wasteUnits.toFixed(0)} uds merma
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-sm font-black text-slate-950">{store.score}</p>
+                    <p className={`text-[11px] font-bold ${store.light.textClassName}`}>
+                      {store.light.label}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {healthRows.length === 0 ? (
+                <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm font-medium text-slate-500">
+                  No hay tiendas activas con datos para este periodo.
+                </p>
+              ) : null}
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
@@ -118,4 +292,70 @@ function MetricCard({ label, value }: { label: string; value: string }) {
       <p className="mt-2 text-2xl font-black text-slate-950">{value}</p>
     </div>
   );
+}
+
+function StatusPill({
+  label,
+  value,
+  tone,
+}: {
+  label: string;
+  value: number;
+  tone: string;
+}) {
+  return (
+    <div className={`rounded-full border px-3 py-2 text-center ${tone}`}>
+      <p className="text-[10px] font-extrabold uppercase tracking-[0.14em]">{label}</p>
+      <p className="mt-1 text-sm font-black">{value}</p>
+    </div>
+  );
+}
+
+function getHealthLight(score: number) {
+  if (score > 80) {
+    return {
+      label: "Verde",
+      textClassName: "text-emerald-600",
+      badgeClassName: "bg-emerald-50 text-emerald-700",
+      barClassName: "bg-emerald-500",
+    };
+  }
+
+  if (score >= 60) {
+    return {
+      label: "Amarillo",
+      textClassName: "text-amber-600",
+      badgeClassName: "bg-amber-50 text-amber-700",
+      barClassName: "bg-amber-400",
+    };
+  }
+
+  return {
+    label: "Rojo",
+    textClassName: "text-rose-600",
+    badgeClassName: "bg-rose-50 text-rose-700",
+    barClassName: "bg-rose-500",
+  };
+}
+
+function getDaysInMonth(monthYear: string) {
+  const [year, month] = monthYear.split("-").map(Number);
+  return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function getMonthOverlapDays(monthYear: string, startDate: string, endDate: string) {
+  const [year, month] = monthYear.split("-").map(Number);
+  const monthStart = new Date(Date.UTC(year, month - 1, 1));
+  const monthEnd = new Date(Date.UTC(year, month, 0));
+  const periodStart = new Date(`${startDate}T00:00:00Z`);
+  const periodEnd = new Date(`${endDate}T00:00:00Z`);
+
+  const overlapStart = Math.max(monthStart.getTime(), periodStart.getTime());
+  const overlapEnd = Math.min(monthEnd.getTime(), periodEnd.getTime());
+
+  if (overlapEnd < overlapStart) {
+    return 0;
+  }
+
+  return Math.floor((overlapEnd - overlapStart) / 86400000) + 1;
 }

@@ -5,11 +5,14 @@ import webpush from "web-push";
 const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || "";
 
-webpush.setVapidDetails(
-  "mailto:soporte@mi2.com",
-  publicVapidKey,
-  privateVapidKey
-);
+function configureWebPush() {
+  if (!publicVapidKey || !privateVapidKey) {
+    return false;
+  }
+
+  webpush.setVapidDetails("mailto:soporte@mi2.com", publicVapidKey, privateVapidKey);
+  return true;
+}
 
 export async function POST(req: Request) {
   try {
@@ -26,25 +29,32 @@ export async function POST(req: Request) {
     const { action, subscription, payload } = body;
 
     if (action === "subscribe") {
-      // Check if subscription exists
       const { data: existing } = await supabase
         .from("push_subscriptions")
         .select("id")
         .eq("user_id", user.id)
         .eq("subscription->>endpoint", subscription.endpoint)
-        .single();
+        .maybeSingle();
 
-      if (!existing) {
+      if (existing) {
+        await supabase
+          .from("push_subscriptions")
+          .update({ subscription })
+          .eq("id", existing.id);
+      } else {
         await supabase.from("push_subscriptions").insert({
           user_id: user.id,
-          subscription: subscription,
+          subscription,
         });
       }
       return NextResponse.json({ success: true });
     }
 
     if (action === "test_push") {
-      // Enviar a todas las suscripciones del usuario (para probar)
+      if (!configureWebPush()) {
+        return NextResponse.json({ error: "Push no configurado" }, { status: 500 });
+      }
+
       const { data: subs } = await supabase
         .from("push_subscriptions")
         .select("subscription")
@@ -55,7 +65,7 @@ export async function POST(req: Request) {
           webpush.sendNotification(
             sub.subscription as webpush.PushSubscription,
             JSON.stringify(payload || { title: "Test", body: "Test body" })
-          ).catch(e => console.error("Push error", e))
+          ).catch((e) => console.error("Push error", e))
         );
         await Promise.all(promises);
       }

@@ -1,10 +1,11 @@
 "use client";
 
-import { useTransition } from "react";
+import { useRef, useTransition } from "react";
 import Link from "next/link";
 import { ArrowLeft, BookOpen, Clock, Send } from "lucide-react";
 import { toast } from "sonner";
 import { createLogbookEntry } from "./actions";
+import SpeechToTextButton from "@/components/ui/SpeechToTextButton";
 
 type LogbookEntry = {
   id: string;
@@ -15,6 +16,7 @@ type LogbookEntry = {
 
 export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) {
   const [isPending, startTransition] = useTransition();
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -61,7 +63,11 @@ export default function ClientLogbook({ entries }: { entries: LogbookEntry[] }) 
           onSubmit={handleSubmit}
           className="flex gap-3 rounded-[28px] border border-slate-200/80 bg-white p-5 shadow-sm lg:sticky lg:top-28 lg:flex-col lg:gap-4 lg:self-start lg:p-6"
         >
+          <div className="flex justify-end">
+            <SpeechToTextButton targetRef={contentRef} label="Microfono" />
+          </div>
           <textarea
+            ref={contentRef}
             name="content"
             required
             rows={2}

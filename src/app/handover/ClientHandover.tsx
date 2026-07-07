@@ -2,17 +2,21 @@
 
 import { useState, useTransition, useRef } from "react";
 import Link from "next/link";
-import { ArrowLeft, Camera, UploadCloud, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Camera, Sparkles, UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
-import { submitHandover } from "./actions";
+import { generateHandoverSummary, submitHandover } from "./actions";
 import { useRouter } from "next/navigation";
 import AppSelect from "@/components/dashboard/AppSelect";
+import SpeechToTextButton from "@/components/ui/SpeechToTextButton";
 
 export default function ClientHandover({ supervisors }: { supervisors: string[] }) {
   const [isPending, startTransition] = useTransition();
+  const [isGenerating, startSummaryTransition] = useTransition();
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const observationsRef = useRef<HTMLTextAreaElement>(null);
   const router = useRouter();
 
   function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -48,6 +52,35 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
     });
   }
 
+  function handleGenerateSummary() {
+    if (!formRef.current || !observationsRef.current) {
+      return;
+    }
+
+    const formData = new FormData(formRef.current);
+    const handedBy = typeof formData.get("handed_by") === "string" ? String(formData.get("handed_by")) : "";
+    const receivedBy =
+      typeof formData.get("received_by") === "string" ? String(formData.get("received_by")) : "";
+    const observations =
+      typeof formData.get("observations") === "string" ? String(formData.get("observations")) : "";
+
+    startSummaryTransition(async () => {
+      try {
+        const summary = await generateHandoverSummary({
+          handedBy,
+          receivedBy,
+          observations,
+        });
+
+        observationsRef.current!.value = summary;
+        observationsRef.current!.dispatchEvent(new Event("input", { bubbles: true }));
+        toast.success("Resumen generado y cargado en el campo.");
+      } catch (err: unknown) {
+        toast.error(err instanceof Error ? err.message : "No se pudo generar el resumen.");
+      }
+    });
+  }
+
   return (
     <div className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-28 sm:px-6 lg:px-6 lg:pt-10 xl:px-8 2xl:max-w-7xl 2xl:px-10">
       <header className="sticky top-0 z-40 rounded-b-[28px] border border-slate-200/80 bg-white px-4 py-4 shadow-sm lg:rounded-[32px] lg:px-7 lg:py-6">
@@ -73,6 +106,7 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
       </header>
 
       <form
+        ref={formRef}
         onSubmit={handleSubmit}
         className="space-y-6 px-0 py-4 lg:grid lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-6 lg:space-y-0 lg:py-6"
       >
@@ -140,10 +174,25 @@ export default function ClientHandover({ supervisors }: { supervisors: string[] 
           </div>
 
           <div className="mt-4">
-            <label className="mb-1.5 block text-[11px] font-bold uppercase tracking-wide text-slate-500">
-              Pendientes del relevo (opcional)
-            </label>
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+              <label className="block text-[11px] font-bold uppercase tracking-wide text-slate-500">
+                Pendientes del relevo (opcional)
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                <SpeechToTextButton targetRef={observationsRef} label="Micrófono" />
+                <button
+                  type="button"
+                  onClick={handleGenerateSummary}
+                  disabled={isGenerating}
+                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 transition hover:bg-slate-50 disabled:opacity-60"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-[#e51d2e]" />
+                  {isGenerating ? "Generando..." : "Auto-generar resumen"}
+                </button>
+              </div>
+            </div>
             <textarea
+              ref={observationsRef}
               name="observations"
               rows={3}
               placeholder="Ej. Falta organizar pasillo 3, basura sin sacar..."

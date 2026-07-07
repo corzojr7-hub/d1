@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import Link from "next/link";
 import AppSelect from "@/components/dashboard/AppSelect";
+import SpeechToTextButton from "@/components/ui/SpeechToTextButton";
 import { createInstruction } from "../actions";
 
 type InstructionProfile = {
@@ -13,9 +14,13 @@ type InstructionProfile = {
 
 export default function NewInstructionForm({ profiles }: { profiles: InstructionProfile[] }) {
   const [state, formAction, pending] = useActionState(createInstruction, undefined);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
 
   return (
-    <form action={formAction} className="mt-6 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:mt-0 lg:p-7">
+    <form
+      action={formAction}
+      className="mt-6 rounded-3xl border border-zinc-100 bg-white p-6 shadow-sm lg:mt-0 lg:p-7"
+    >
       <div className="space-y-5 lg:grid lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-6 lg:space-y-0">
         <div className="space-y-5">
           <div>
@@ -48,7 +53,7 @@ export default function NewInstructionForm({ profiles }: { profiles: Instruction
                 { value: "Baja", label: "Baja" },
                 { value: "Media", label: "Media" },
                 { value: "Alta", label: "Alta" },
-                { value: "Critica", label: "CrÃ­tica" },
+                { value: "Critica", label: "Critica" },
               ]}
               buttonClassName="py-3.5 text-base ring-red-100 focus:ring-red-500"
             />
@@ -56,16 +61,20 @@ export default function NewInstructionForm({ profiles }: { profiles: Instruction
         </div>
 
         <div>
-          <label htmlFor="content" className="mb-2 block text-sm font-semibold text-slate-700">
-            InstrucciÃ³n
-          </label>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+            <label htmlFor="content" className="block text-sm font-semibold text-slate-700">
+              Instruccion
+            </label>
+            <SpeechToTextButton targetRef={contentRef} label="Microfono" />
+          </div>
           <textarea
+            ref={contentRef}
             id="content"
             name="content"
             rows={5}
             required
             className="w-full resize-none rounded-2xl border-0 bg-slate-50 px-4 py-3.5 text-base ring-1 ring-slate-200 transition-shadow placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-red-500 lg:min-h-[220px]"
-            placeholder="Describe la instrucciÃ³n operativa"
+            placeholder="Describe la instruccion operativa"
           />
         </div>
       </div>
@@ -82,7 +91,7 @@ export default function NewInstructionForm({ profiles }: { profiles: Instruction
           disabled={pending}
           className="w-full rounded-full bg-red-600 py-4 text-lg font-bold text-white shadow-md shadow-red-600/20 transition-all hover:bg-red-700 hover:shadow-lg hover:shadow-red-600/30 active:scale-95 disabled:opacity-60"
         >
-          {pending ? "Guardando..." : "Crear InstrucciÃ³n"}
+          {pending ? "Guardando..." : "Crear instruccion"}
         </button>
         <Link
           href="/instructions"
