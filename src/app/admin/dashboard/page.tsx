@@ -14,6 +14,9 @@ export default async function AdminDashboardPage({
   const params = await searchParams;
   const period = resolveAdminPeriod(params.period);
   const { supabase } = await requireAdminContext();
+  const todayKey = getBogotaDateKey();
+  const forecastHistoryStart = shiftDateKey(todayKey, -56);
+  const forecastHistoryEnd = shiftDateKey(todayKey, -1);
   const budgetMonths = [...new Set([period.startDate.slice(0, 7), period.endDate.slice(0, 7)])];
 
   const [
@@ -21,6 +24,7 @@ export default async function AdminDashboardPage({
     { data: budgets, error: budgetsError },
     { data: wasteRecords, error: wasteError },
     { data: stores },
+    { data: forecastSales, error: forecastSalesError },
   ] = await Promise.all([
     supabase
       .from("daily_sales")
@@ -45,6 +49,12 @@ export default async function AdminDashboardPage({
       .eq("role", "supervisor")
       .eq("status", "activo")
       .neq("store_code", "ADMIN-CENTRAL"),
+    supabase
+      .from("daily_sales")
+      .select("store_code, amount, date")
+      .neq("store_code", "ADMIN-CENTRAL")
+      .gte("date", forecastHistoryStart)
+      .lte("date", forecastHistoryEnd),
   ]);
 
   if (salesError) {
@@ -57,6 +67,10 @@ export default async function AdminDashboardPage({
 
   if (wasteError) {
     throw new Error(`No se pudieron cargar las mermas globales: ${wasteError.message}`);
+  }
+
+  if (forecastSalesError) {
+    throw new Error(`No se pudo cargar el histórico para pronóstico: ${forecastSalesError.message}`);
   }
 
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
@@ -133,6 +147,15 @@ export default async function AdminDashboardPage({
   const greenCount = healthRows.filter((store) => store.light.label === "Verde").length;
   const yellowCount = healthRows.filter((store) => store.light.label === "Amarillo").length;
   const redCount = healthRows.filter((store) => store.light.label === "Rojo").length;
+  const forecast = buildSalesForecast({
+    sales: (forecastSales || []).map((sale) => ({
+      storeCode: sale.store_code,
+      date: sale.date,
+      amount: Number(sale.amount || 0),
+    })),
+    storeNames,
+    referenceDate: todayKey,
+  });
 
   return (
     <main className="mx-auto min-h-screen w-full bg-slate-50 px-4 pb-24 pt-6 sm:px-6 lg:px-8 2xl:max-w-7xl">
@@ -155,6 +178,56 @@ export default async function AdminDashboardPage({
         <MetricCard label="Venta regional" value={formatCop(totalSales)} />
         <MetricCard label="Tiendas con venta" value={String(activeStores)} />
         <MetricCard label="Promedio diario" value={formatCop(dailyAverage)} />
+      </section>
+
+      <section className="mt-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">
+              Pronóstico operativo
+            </p>
+            <h2 className="mt-2 text-xl font-black text-slate-950">Ventas proyectadas y dotación sugerida</h2>
+            <p className="mt-1 max-w-2xl text-sm text-slate-500">
+              Lectura de la próxima semana usando el histórico reciente de ventas por día.
+            </p>
+          </div>
+          <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-right">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Siguiente semana</p>
+            <p className="mt-1 text-lg font-black text-slate-950">{formatCop(forecast.nextWeekTotal)}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
+          <article className="rounded-[24px] border border-slate-200 bg-slate-50/70 p-5">
+            <p className="text-sm font-black text-slate-950">{forecast.headline}</p>
+            <p className="mt-2 text-sm leading-6 text-slate-600">{forecast.recommendation}</p>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <MetricCard label="Pico proyectado" value={`${forecast.peakDay.label} · ${formatCop(forecast.peakDay.amount)}`} />
+              <MetricCard label="Fin de semana" value={formatCop(forecast.weekendTotal)} />
+              <MetricCard label="Tienda foco" value={forecast.focusStore.name} />
+            </div>
+          </article>
+
+          <article className="rounded-[24px] border border-slate-200 bg-white p-5">
+            <h3 className="text-sm font-black text-slate-950">Proyección diaria</h3>
+            <div className="mt-4 space-y-3">
+              {forecast.days.map((day) => (
+                <div
+                  key={day.date}
+                  className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0 last:pb-0"
+                >
+                  <div>
+                    <p className="text-sm font-bold text-slate-900">{day.label}</p>
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                      {day.date}
+                    </p>
+                  </div>
+                  <p className="text-sm font-black text-slate-950">{formatCop(day.amount)}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
       </section>
 
       <section className="mt-4 rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
@@ -341,6 +414,199 @@ function getHealthLight(score: number) {
 function getDaysInMonth(monthYear: string) {
   const [year, month] = monthYear.split("-").map(Number);
   return new Date(Date.UTC(year, month, 0)).getUTCDate();
+}
+
+function getBogotaDateKey(now = new Date()) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
+function shiftDateKey(dateKey: string, offsetDays: number) {
+  const shifted = new Date(`${dateKey}T12:00:00-05:00`);
+  shifted.setUTCDate(shifted.getUTCDate() + offsetDays);
+  return getBogotaDateKey(shifted);
+}
+
+function getWeekday(dateKey: string) {
+  return new Date(`${dateKey}T12:00:00-05:00`).getUTCDay();
+}
+
+function getWeekdayLabel(dateKey: string) {
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    weekday: "long",
+  }).format(new Date(`${dateKey}T12:00:00-05:00`));
+}
+
+type ForecastDay = {
+  date: string;
+  weekday: number;
+  label: string;
+  amount: number;
+};
+
+type SalesForecastSummary = {
+  nextWeekTotal: number;
+  weekendTotal: number;
+  headline: string;
+  recommendation: string;
+  peakDay: {
+    label: string;
+    amount: number;
+  };
+  focusStore: {
+    code: string;
+    name: string;
+  };
+  days: ForecastDay[];
+};
+
+function buildSalesForecast({
+  sales,
+  storeNames,
+  referenceDate,
+}: {
+  sales: Array<{ storeCode: string; date: string; amount: number }>;
+  storeNames: Map<string, string>;
+  referenceDate: string;
+}): SalesForecastSummary {
+  const orderedSales = [...sales].sort((a, b) => a.date.localeCompare(b.date));
+  const regionalDaily = new Map<string, number>();
+
+  for (const sale of orderedSales) {
+    regionalDaily.set(sale.date, (regionalDaily.get(sale.date) || 0) + Number(sale.amount || 0));
+  }
+
+  const dailySeries = Array.from(regionalDaily.entries())
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, amount]) => ({
+      date,
+      amount,
+      weekday: getWeekday(date),
+    }));
+
+  if (dailySeries.length === 0) {
+    return {
+      nextWeekTotal: 0,
+      weekendTotal: 0,
+      headline: "Aún no hay suficiente histórico para pronosticar la próxima semana.",
+      recommendation: "Mantén la dotación base hasta completar al menos varios días de ventas reales.",
+      peakDay: {
+        label: "Sin dato",
+        amount: 0,
+      },
+      focusStore: {
+        code: "SIN-DATO",
+        name: "Sin dato",
+      },
+      days: [],
+    };
+  }
+
+  const overallAverage =
+    dailySeries.reduce((sum, day) => sum + day.amount, 0) / Math.max(dailySeries.length, 1);
+  const weekendWeekdays = new Set([5, 6, 0]);
+  const nextSevenDays = Array.from({ length: 7 }, (_, index) => shiftDateKey(referenceDate, index + 1));
+  const forecastDays = nextSevenDays.map((date) => {
+    const weekday = getWeekday(date);
+    const samples = dailySeries.filter((day) => day.weekday === weekday).slice(-6);
+    const projectedAmount = Math.round(
+      samples.length > 0
+        ? samples.reduce((sum, sample) => sum + sample.amount, 0) / samples.length
+        : overallAverage,
+    );
+
+    return {
+      date,
+      weekday,
+      label: getWeekdayLabel(date),
+      amount: projectedAmount,
+    };
+  });
+
+  const nextWeekTotal = forecastDays.reduce((sum, day) => sum + day.amount, 0);
+  const weekendDays = forecastDays.filter((day) => weekendWeekdays.has(day.weekday));
+  const weekendTotal = weekendDays.reduce((sum, day) => sum + day.amount, 0);
+  const recentWeekendDays = dailySeries.filter((day) => weekendWeekdays.has(day.weekday)).slice(-9);
+  const baselineWeekendTotal =
+    recentWeekendDays.length > 0
+      ? (recentWeekendDays.reduce((sum, day) => sum + day.amount, 0) / recentWeekendDays.length) *
+        Math.max(weekendDays.length, 1)
+      : weekendTotal;
+  const weekendRatio = baselineWeekendTotal > 0 ? weekendTotal / baselineWeekendTotal : 1;
+  const peakDay = forecastDays.reduce((highest, day) => (day.amount > highest.amount ? day : highest), forecastDays[0]);
+
+  const focusStoreCandidates = Array.from(
+    orderedSales.reduce((acc, sale) => {
+      const weekday = getWeekday(sale.date);
+      if (weekday !== peakDay.weekday) {
+        return acc;
+      }
+
+      const storeEntry = acc.get(sale.storeCode) || [];
+      storeEntry.push(sale.amount);
+      acc.set(sale.storeCode, storeEntry.slice(-6));
+      return acc;
+    }, new Map<string, number[]>()),
+  ).map(([storeCode, amounts]) => ({
+    code: storeCode,
+    name: storeNames.get(storeCode) || `Tienda ${storeCode}`,
+    average: amounts.reduce((sum, amount) => sum + amount, 0) / Math.max(amounts.length, 1),
+  }));
+
+  const focusStore =
+    focusStoreCandidates.sort((a, b) => b.average - a.average)[0] || {
+      code: "SIN-DATO",
+      name: "Sin dato",
+      average: 0,
+    };
+
+  if (weekendRatio >= 1.15 || peakDay.amount >= overallAverage * 1.2) {
+    return {
+      nextWeekTotal,
+      weekendTotal,
+      headline: "Fin de semana proyectado con ventas muy altas.",
+      recommendation: `Recomendación: aumentar 1 asistente en el turno de la tarde y preparar reposición temprana para ${peakDay.label}. La tienda con mayor presión esperada es ${focusStore.name}.`,
+      peakDay: {
+        label: peakDay.label,
+        amount: peakDay.amount,
+      },
+      focusStore,
+      days: forecastDays,
+    };
+  }
+
+  if (weekendRatio <= 0.9) {
+    return {
+      nextWeekTotal,
+      weekendTotal,
+      headline: "Fin de semana proyectado con demanda contenida.",
+      recommendation: `Recomendación: mantener la dotación base y usar la tarde para recuperación comercial, vitrina y control de merma. El mayor pico esperado sigue siendo ${peakDay.label}.`,
+      peakDay: {
+        label: peakDay.label,
+        amount: peakDay.amount,
+      },
+      focusStore,
+      days: forecastDays,
+    };
+  }
+
+  return {
+    nextWeekTotal,
+    weekendTotal,
+    headline: "Fin de semana proyectado con ventas estables a altas.",
+    recommendation: `Recomendación: sostener la dotación actual y dejar apoyo flexible en la tarde de ${peakDay.label}. La tienda foco para seguimiento preventivo es ${focusStore.name}.`,
+    peakDay: {
+      label: peakDay.label,
+      amount: peakDay.amount,
+    },
+    focusStore,
+    days: forecastDays,
+  };
 }
 
 function getMonthOverlapDays(monthYear: string, startDate: string, endDate: string) {

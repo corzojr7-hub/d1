@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useState, useTransition, useEffect } from "react";
@@ -15,6 +15,62 @@ import { useProfile } from '@/components/ui/ProfileContext';
 import { compressImage } from "@/lib/image-compression";
 
 type WasteProduct = Tables<"products">;
+
+type OfflineEvidenceFile = {
+  dataUrl: string;
+  name: string;
+  type: string;
+};
+
+type OfflineWasteRecord = {
+  barcode_id: string;
+  product_id: string;
+  product_name: string;
+  qty: string;
+  unit: string;
+  reason: string;
+  deposited_by: string;
+  area: string;
+  observation: string;
+  transport_driver: string;
+  transport_plate: string;
+  transport_comment: string;
+  quality_expiration_date: string;
+  quality_lot: string;
+  quality_supplier: string;
+  evidence_files: Record<string, OfflineEvidenceFile>;
+  queued_at: string;
+};
+
+function fileToDataUrl(file: File) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(reader.error || new Error("No se pudo leer la imagen."));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function registerOfflineWasteSync() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  try {
+    const registration =
+      (await navigator.serviceWorker.getRegistration()) ||
+      (await navigator.serviceWorker.register("/sw.js"));
+    const syncManager = registration as ServiceWorkerRegistration & {
+      sync?: { register(tag: string): Promise<void> };
+    };
+
+    if (syncManager.sync) {
+      await syncManager.sync.register("waste-offline-sync");
+    }
+  } catch (error) {
+    console.error("No se pudo registrar el background sync de merma", error);
+  }
+}
 
 export default function NewWastePage() {
   const router = useRouter();
@@ -39,8 +95,8 @@ export default function NewWastePage() {
       if (draft && draft.barcode) {
         setBarcode(draft.barcode);
         setSearchedBarcode(draft.barcode);
-        // Podríamos restaurar más campos si el form fuera controlado,
-        // pero solo con restaurar el código evitamos que se pierda lo principal.
+        // PodrÃ­amos restaurar mÃ¡s campos si el form fuera controlado,
+        // pero solo con restaurar el cÃ³digo evitamos que se pierda lo principal.
       }
     });
   }, []);
@@ -151,15 +207,15 @@ export default function NewWastePage() {
 
   const REQUIRED_PHOTOS_TRANSPORTE = [
     { id: 'evidence_detra', label: 'Foto de DETRA (Llegada)', optional: false },
-    { id: 'evidence_rotulo', label: 'Foto de Rótulo (Conductor, Placa, Fecha)', optional: false },
-    { id: 'evidence_novedad', label: 'Foto de la Novedad (Daño)', optional: false },
+    { id: 'evidence_rotulo', label: 'Foto de RÃ³tulo (Conductor, Placa, Fecha)', optional: false },
+    { id: 'evidence_novedad', label: 'Foto de la Novedad (DaÃ±o)', optional: false },
     { id: 'evidence_unidades', label: 'Foto de Unidades afectadas', optional: false }
   ];
 
   const REQUIRED_PHOTOS_CALIDAD = [
     { id: 'evidence_proveedor', label: 'Foto de Proveedor', optional: false },
     { id: 'evidence_lote', label: 'Foto de Lote y Vencimiento', optional: false },
-    { id: 'evidence_novedad', label: 'Foto de la Novedad (Daño)', optional: false },
+    { id: 'evidence_novedad', label: 'Foto de la Novedad (DaÃ±o)', optional: false },
     { id: 'evidence_unidades', label: 'Foto de Unidades afectadas', optional: false }
   ];
 
@@ -270,7 +326,7 @@ export default function NewWastePage() {
                 Producto no encontrado
               </p>
               <p className="mt-2 text-sm text-amber-800 leading-snug">
-                El código <strong>{activeBarcode}</strong> no está en la base interna. Puedes continuar la merma sin nombre, o registrarlo en el sistema.
+                El cÃ³digo <strong>{activeBarcode}</strong> no estÃ¡ en la base interna. Puedes continuar la merma sin nombre, o registrarlo en el sistema.
               </p>
               <div className="mt-4">
                 <Link
@@ -298,11 +354,6 @@ export default function NewWastePage() {
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
-            
-            if (!navigator.onLine) {
-              toast.error("Se requiere conexión a internet para registrar merma con fotos obligatorias.");
-              return;
-            }
 
             // Validar fotos manualmente para evitar el error de hidden input
             for (const req of photoRequirements) {
@@ -354,15 +405,56 @@ export default function NewWastePage() {
 
             startTransition(async () => {
               try {
-                const payload = new FormData();
+                                const payload = new FormData();
+                const evidenceFiles: Record<string, OfflineEvidenceFile> = {};
 
                 for (const [key, value] of formData.entries()) {
                   if (value instanceof File && value.size > 0 && value.type.startsWith("image/")) {
-                    payload.append(key, await compressImage(value));
+                    const compressedFile = await compressImage(value);
+                    payload.append(key, compressedFile);
+
+                    if (!navigator.onLine) {
+                      evidenceFiles[key] = {
+                        dataUrl: await fileToDataUrl(compressedFile),
+                        name: compressedFile.name || `${key}.jpg`,
+                        type: compressedFile.type || "image/jpeg",
+                      };
+                    }
                     continue;
                   }
 
                   payload.append(key, value);
+                }
+
+                if (!navigator.onLine) {
+                  const offlineQueue = ((await get("wasteOfflineQueue")) as OfflineWasteRecord[] | null) || [];
+
+                  offlineQueue.push({
+                    barcode_id: String(formData.get("barcode_id") || ""),
+                    product_id: String(formData.get("product_id") || ""),
+                    product_name: String(formData.get("product_name") || ""),
+                    qty: String(formData.get("qty") || ""),
+                    unit: String(formData.get("unit") || ""),
+                    reason: String(formData.get("reason") || ""),
+                    deposited_by: String(formData.get("deposited_by") || ""),
+                    area: String(formData.get("area") || ""),
+                    observation: String(formData.get("observation") || ""),
+                    transport_driver: String(formData.get("transport_driver") || ""),
+                    transport_plate: String(formData.get("transport_plate") || ""),
+                    transport_comment: String(formData.get("transport_comment") || ""),
+                    quality_expiration_date: String(formData.get("quality_expiration_date") || ""),
+                    quality_lot: String(formData.get("quality_lot") || ""),
+                    quality_supplier: String(formData.get("quality_supplier") || ""),
+                    evidence_files: evidenceFiles,
+                    queued_at: new Date().toISOString(),
+                  });
+
+                  await set("wasteOfflineQueue", offlineQueue);
+                  await set("waste_draft", null);
+                  await registerOfflineWasteSync();
+                  toast.success("Guardado offline. Se sincronizará al volver la conexión.");
+                  router.push("/waste");
+                  return;
                 }
 
                 const result = await submitWaste(payload);
@@ -633,7 +725,7 @@ export default function NewWastePage() {
                   Evidencia requerida
                 </p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Toma primero la evidencia del caso y luego confirma la merma. En escritorio esta columna queda separada para revisar más fácil qué foto falta.
+                  Toma primero la evidencia del caso y luego confirma la merma. En escritorio esta columna queda separada para revisar mÃ¡s fÃ¡cil quÃ© foto falta.
                 </p>
               </div>
 
@@ -706,3 +798,4 @@ export default function NewWastePage() {
     </div>
   );
 }
+

@@ -8,61 +8,184 @@ import { submitWaste } from "@/app/waste/actions";
 import { addFefoRecord, updateFefoStatus } from "@/app/waste/fefo/actions";
 import { submitDailyAudit } from "@/app/audits/daily/actions";
 
+type OfflineEvidenceFile = {
+  dataUrl: string;
+  name: string;
+  type: string;
+};
+
+type OfflineWasteRecord = {
+  barcode_id?: string;
+  product_id?: string;
+  product_name?: string;
+  qty?: string;
+  unit?: string;
+  reason?: string;
+  deposited_by?: string;
+  area?: string;
+  observation?: string;
+  transport_driver?: string;
+  transport_plate?: string;
+  transport_comment?: string;
+  quality_expiration_date?: string;
+  quality_lot?: string;
+  quality_supplier?: string;
+  evidence_files?: Record<string, OfflineEvidenceFile>;
+};
+
+type OfflineFefoRecord =
+  | {
+      action: "ADD";
+      barcode_id: string;
+      product_name: string;
+      quantity: number;
+      expiration_date: string;
+      operator_name?: string;
+    }
+  | {
+      action: "UPDATE_STATUS";
+      id: string;
+      newStatus: string;
+    };
+
+type OfflineAuditRecord = {
+  auditType: string;
+  operator: string;
+  answers: string;
+  photo_base64?: string;
+};
+
+const WASTE_SYNC_TAG = "waste-offline-sync";
+
+async function ensureServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register("/sw.js");
+  } catch (error) {
+    console.error("Service worker offline registration failed", error);
+  }
+}
+
+async function requestOfflineSyncRegistration() {
+  if (!("serviceWorker" in navigator)) {
+    return;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration) {
+      return;
+    }
+    const syncManager = registration as ServiceWorkerRegistration & {
+      sync?: { register(tag: string): Promise<void> };
+    };
+
+    if (syncManager.sync) {
+      await syncManager.sync.register(WASTE_SYNC_TAG);
+    }
+  } catch (error) {
+    console.error("Offline background sync registration failed", error);
+  }
+}
+
+async function dataUrlToFile(dataUrl: string, name: string, type: string) {
+  const response = await fetch(dataUrl);
+  const blob = await response.blob();
+  return new File([blob], name, { type });
+}
+
 export default function SyncManager() {
   const [isOffline, setIsOffline] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    async function syncOfflineData() {
-      setIsSyncing(true);
-      try {
-        const wasteQueue = await get("wasteOfflineQueue");
-        const fefoQueue = await get("fefoOfflineQueue");
-        const auditsQueue = await get("auditsOfflineQueue");
+    let syncing = false;
 
-        const totalPending = (wasteQueue?.length || 0) + (fefoQueue?.length || 0) + (auditsQueue?.length || 0);
-        
+    async function syncOfflineData() {
+      if (syncing || !navigator.onLine) {
+        return;
+      }
+
+      syncing = true;
+      setIsSyncing(true);
+
+      try {
+        const wasteQueue = (((await get("wasteOfflineQueue")) as OfflineWasteRecord[] | null) || []).filter(Boolean);
+        const fefoQueue = (((await get("fefoOfflineQueue")) as OfflineFefoRecord[] | null) || []).filter(Boolean);
+        const auditsQueue = (((await get("auditsOfflineQueue")) as OfflineAuditRecord[] | null) || []).filter(Boolean);
+
+        const totalPending = wasteQueue.length + fefoQueue.length + auditsQueue.length;
+
         if (totalPending === 0) {
-          setIsSyncing(false);
           return;
         }
-        
+
         toast("Sincronizando registros offline...");
         let successCount = 0;
+        let failedCount = 0;
 
-        if (wasteQueue && wasteQueue.length > 0) {
+        if (wasteQueue.length > 0) {
+          const pendingWaste: OfflineWasteRecord[] = [];
+
           for (const record of wasteQueue) {
             try {
               const formData = new FormData();
-              formData.append("barcode_id", record.barcode_id || "");
-              if (record.product_id) formData.append("product_id", record.product_id);
-              formData.append("qty", record.qty?.toString() || "");
-              formData.append("unit", record.unit || "");
-              formData.append("reason", record.reason || "");
-              formData.append("deposited_by", record.deposited_by || "");
-              formData.append("area", record.area || "");
-              formData.append("observation", record.observation || "");
-              if (record.transport_driver) formData.append("transport_driver", record.transport_driver);
-              if (record.transport_plate) formData.append("transport_plate", record.transport_plate);
-              if (record.transport_comment) formData.append("transport_comment", record.transport_comment);
-              if (record.transport_evidence) formData.append("transport_evidence", record.transport_evidence);
+              const textFields: Array<keyof OfflineWasteRecord> = [
+                "barcode_id",
+                "product_id",
+                "product_name",
+                "qty",
+                "unit",
+                "reason",
+                "deposited_by",
+                "area",
+                "observation",
+                "transport_driver",
+                "transport_plate",
+                "transport_comment",
+                "quality_expiration_date",
+                "quality_lot",
+                "quality_supplier",
+              ];
 
-              if (record.evidence_base64) {
-                const res = await fetch(record.evidence_base64);
-                const blob = await res.blob();
-                const file = new File([blob], 'offline-evidence.jpg', { type: 'image/jpeg' });
-                formData.append("evidence", file);
+              for (const field of textFields) {
+                const value = record[field];
+                if (typeof value === "string" && value.length > 0) {
+                  formData.append(field, value);
+                }
               }
-              await submitWaste(formData);
+
+              for (const [field, fileMeta] of Object.entries(record.evidence_files || {})) {
+                const file = await dataUrlToFile(
+                  fileMeta.dataUrl,
+                  fileMeta.name || `${field}.jpg`,
+                  fileMeta.type || "image/jpeg",
+                );
+                formData.append(field, file);
+              }
+
+              const result = await submitWaste(formData);
+              if (result?.error) {
+                throw new Error(result.error);
+              }
+
               successCount++;
-            } catch (e) {
-              console.error("Error merma:", e);
+            } catch (error) {
+              console.error("Error merma offline:", error);
+              pendingWaste.push(record);
+              failedCount++;
             }
           }
-          await set("wasteOfflineQueue", []);
+
+          await set("wasteOfflineQueue", pendingWaste);
         }
 
-        if (fefoQueue && fefoQueue.length > 0) {
+        if (fefoQueue.length > 0) {
+          const pendingFefo: OfflineFefoRecord[] = [];
+
           for (const record of fefoQueue) {
             try {
               if (record.action === "ADD") {
@@ -71,77 +194,110 @@ export default function SyncManager() {
                   product_name: record.product_name,
                   quantity: record.quantity,
                   expiration_date: record.expiration_date,
-                  operator_name: record.operator_name || ""
+                  operator_name: record.operator_name || "",
                 });
-              } else if (record.action === "UPDATE_STATUS") {
+              } else {
                 await updateFefoStatus(record.id, record.newStatus);
               }
+
               successCount++;
-            } catch (e) {
-              console.error("Error FEFO:", e);
+            } catch (error) {
+              console.error("Error FEFO offline:", error);
+              pendingFefo.push(record);
+              failedCount++;
             }
           }
-          await set("fefoOfflineQueue", []);
+
+          await set("fefoOfflineQueue", pendingFefo);
         }
 
-        if (auditsQueue && auditsQueue.length > 0) {
+        if (auditsQueue.length > 0) {
+          const pendingAudits: OfflineAuditRecord[] = [];
+
           for (const record of auditsQueue) {
             try {
               const formData = new FormData();
               formData.append("auditType", record.auditType);
               formData.append("operator", record.operator);
               formData.append("answers", record.answers);
+
               if (record.photo_base64) {
-                const res = await fetch(record.photo_base64);
-                const blob = await res.blob();
-                const file = new File([blob], 'offline-audit-photo.jpg', { type: 'image/jpeg' });
+                const file = await dataUrlToFile(record.photo_base64, "offline-audit-photo.jpg", "image/jpeg");
                 formData.append("photo", file);
               }
+
               await submitDailyAudit(formData);
               successCount++;
-            } catch (e) {
-              console.error("Error audit:", e);
+            } catch (error) {
+              console.error("Error audit offline:", error);
+              pendingAudits.push(record);
+              failedCount++;
             }
           }
-          await set("auditsOfflineQueue", []);
+
+          await set("auditsOfflineQueue", pendingAudits);
         }
 
-        toast.success(`Se sincronizaron ${successCount} de ${totalPending} registros pendientes.`);
-      } catch (err) {
-        console.error(err);
+        if (successCount > 0) {
+          toast.success(`Se sincronizaron ${successCount} registros pendientes.`);
+        }
+
+        if (failedCount > 0) {
+          await requestOfflineSyncRegistration();
+          toast.error(`${failedCount} registros siguen pendientes. Se intentará de nuevo.`);
+        }
+      } catch (error) {
+        console.error(error);
+        await requestOfflineSyncRegistration();
         toast.error("Fallo al sincronizar. Se intentará luego.");
       } finally {
+        syncing = false;
         setIsSyncing(false);
       }
     }
 
-    const handleOnline = () => {
+    function handleOnline() {
       setIsOffline(false);
-      syncOfflineData();
-    };
-    const handleOffline = () => setIsOffline(true);
+      void syncOfflineData();
+    }
+
+    function handleOffline() {
+      setIsOffline(true);
+    }
+
+    function handleServiceWorkerMessage(event: MessageEvent<{ type?: string }>) {
+      if (event.data?.type === "SYNC_OFFLINE_DATA") {
+        void syncOfflineData();
+      }
+    }
+
+    setIsOffline(!navigator.onLine);
+    void ensureServiceWorker().then(() => {
+      if (navigator.onLine) {
+        void syncOfflineData();
+      }
+    });
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-
-    if (navigator.onLine) {
-      syncOfflineData();
-    }
+    navigator.serviceWorker?.addEventListener("message", handleServiceWorkerMessage);
 
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      navigator.serviceWorker?.removeEventListener("message", handleServiceWorkerMessage);
     };
   }, []);
-
 
   if (!isOffline && !isSyncing) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 pointer-events-none">
-      <div className={`flex items-center justify-center gap-2 py-1 px-4 text-[11px] font-bold text-white shadow-sm transition-colors ${
-        isOffline ? "bg-amber-500" : "bg-blue-500"
-      }`}>
+    <div className="pointer-events-none fixed left-0 right-0 top-0 z-50">
+      <div
+        className={`flex items-center justify-center gap-2 px-4 py-1 text-[11px] font-bold text-white shadow-sm transition-colors ${
+          isOffline ? "bg-amber-500" : "bg-blue-500"
+        }`}
+      >
         {isOffline ? (
           <>
             <WifiOff className="h-3 w-3" />
