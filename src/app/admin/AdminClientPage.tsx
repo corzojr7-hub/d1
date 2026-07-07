@@ -133,6 +133,7 @@ export default function AdminClientPage({
       label: "Uso IA operativo",
       value: aiUsageSummary.scheduleCount + aiUsageSummary.feedbackCount,
       tone: "border border-rose-100 bg-rose-50/60 text-rose-700 shadow-sm",
+      hidden: true,
     },
   ];
 
@@ -186,7 +187,7 @@ export default function AdminClientPage({
           {adminHighlights.map((item) => (
             <div
               key={item.label}
-              className={`rounded-[24px] px-4 py-3 ${item.tone}`}
+              className={`rounded-[24px] px-4 py-3 ${item.tone} ${item.hidden ? "hidden" : ""}`}
             >
               <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                 {item.label}
@@ -281,7 +282,7 @@ export default function AdminClientPage({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="hidden grid-cols-1 gap-4 sm:grid-cols-2">
               <div className="rounded-[30px] bg-white p-5 shadow-sm ring-1 ring-slate-100 lg:p-6">
                 <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                   Costo IA Estimado Mes
