@@ -35,7 +35,7 @@ export default function LoginPage() {
               required
             />
             <TextField
-              label="Contrasena"
+              label="Contraseña"
               name="password"
               type="password"
               autoComplete="current-password"
