@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { getHydratedProfile } from "@/lib/supabase/require-auth";
-import { cookies } from "next/headers";
 import ClientLayout from "./ClientLayout";
 import "./globals.css";
 
@@ -25,13 +24,9 @@ export default async function RootLayout({
   if (user) {
     profile = await getHydratedProfile(supabase, user.id);
   }
-
-  const cookieStore = await cookies();
-  const initialOperator = cookieStore.get("op_session")?.value || null;
-
   return (
     <html lang="es">
-      <ClientLayout fontClassName={fontClassName} initialProfile={profile} initialOperator={initialOperator}>
+      <ClientLayout fontClassName={fontClassName} initialProfile={profile}>
         {children}
       </ClientLayout>
     </html>

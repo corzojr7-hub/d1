@@ -587,7 +587,11 @@ async function DashboardContent(props: {
         </aside>
       </section>
 
-      <div className="space-y-6 xl:space-y-8">
+      <details className="mt-4 rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+        <summary className="cursor-pointer list-none text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+          Ver detalle
+        </summary>
+        <div className="mt-4 space-y-6 xl:space-y-8">
         <section
           id="ventas-merma"
           data-pdf-section="life-for-life"
@@ -944,7 +948,8 @@ async function DashboardContent(props: {
 
           <PosMetricsCharts data={selectedAssistantMetrics || []} />
         </section>
-      </div>
+        </div>
+      </details>
     </div>
   );
 }

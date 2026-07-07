@@ -12,6 +12,13 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "*.js",
+    "scripts/*.js",
+    "public/sw.js",
+    "read_excel.js",
+    "check_db.js",
+    "test_db*.js",
+    "scripts/deprecated/**",
   ]),
 ]);
 

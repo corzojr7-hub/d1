@@ -155,14 +155,14 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
       <button
         onClick={handleExportExcel}
-        className="flex items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white px-4 py-2.5 text-xs font-bold text-emerald-700 shadow-sm transition hover:border-emerald-300 hover:bg-emerald-100"
+        className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
       >
         <Download className="h-3.5 w-3.5" />
         Excel
       </button>
       <button
         onClick={handlePrintPDF}
-        className="flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-white px-4 py-2.5 text-xs font-bold text-red-700 shadow-sm transition hover:border-red-300 hover:bg-red-100"
+        className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:border-slate-300 hover:bg-slate-50"
       >
         <FileText className="h-3.5 w-3.5" />
         PDF

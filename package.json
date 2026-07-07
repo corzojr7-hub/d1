@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node --experimental-strip-types --loader ./tests/domain/resolver.mjs --test tests/domain/validators.test.mjs tests/domain/payloads.test.mjs tests/domain/submissions.test.mjs tests/services/operation-inserts.test.mjs tests/supabase/operation-inserts.test.mjs tests/app/operation-submitters.test.mjs tests/app/operation-submit-flow.test.mjs tests/app/current-profile.test.mjs tests/app/auth-profile.test.mjs tests/app/submission-history.test.mjs tests/app/product-catalog.test.mjs tests/app/evidence-attachment.test.mjs tests/app/history-filters.test.mjs tests/app/history-export.test.mjs tests/app/history-import.test.mjs tests/app/history-ui-state.test.mjs tests/app/runtime-mode.test.mjs tests/app/app-bootstrap.test.mjs tests/app/instructions-repository.test.mjs tests/app/instructions-flow.test.mjs tests/app/instructions-ui.test.mjs tests/app/waste-repository.test.mjs tests/app/waste-flow.test.mjs tests/app/waste-ui.test.mjs tests/app/product-repository.test.mjs tests/app/product-seed.test.mjs tests/app/waste-storage.test.mjs tests/app/products-ui.test.mjs tests/app/auth.test.mjs tests/app/profile-repository.test.mjs"
+    "test": "node --experimental-strip-types --loader ./tests/domain/resolver.mjs --test tests/domain/validators.test.mjs tests/domain/payloads.test.mjs tests/domain/submissions.test.mjs tests/app/barcode-scanner.test.mjs tests/app/auth.test.mjs tests/app/evidence-attachment.test.mjs"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

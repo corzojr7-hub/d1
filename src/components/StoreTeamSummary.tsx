@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import { useProfile } from '@/components/ui/ProfileContext';
+import type { StoreAssistant } from "@/lib/domain/types";
 
 function getContractLabel(contractType: string): string {
   if (contractType === "part_time") return "PT";
@@ -53,7 +54,7 @@ export default function StoreTeamSummary() {
               <div className="h-px flex-1 bg-slate-100"></div>
             </div>
             <div className="flex flex-col gap-2.5">
-              {profile.assistants.map((assistant: any, index: number) => (
+              {profile.assistants.map((assistant: StoreAssistant, index: number) => (
                 <div
                   key={`${assistant.name}-${index}`}
                   className="flex items-center justify-between gap-3 text-xs"

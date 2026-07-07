@@ -159,7 +159,13 @@ Devuelve solo JSON valido con esta forma:
     storeCode: profile.store_code,
     actionType: AI_ACTIONS.feedback,
     model: "deepseek-v4-flash",
-    usage: completion.usage as any,
+    usage: completion.usage
+      ? {
+          promptTokenCount: completion.usage.prompt_tokens,
+          candidatesTokenCount: completion.usage.completion_tokens,
+          totalTokenCount: completion.usage.total_tokens,
+        }
+      : null,
   });
 
   const jsonMatch = text.match(/\{[\s\S]*\}/);

@@ -156,7 +156,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
 
   if (!data.length || chartData.every((point) => point.amount === 0)) {
     return (
-      <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/40 p-5 shadow-sm">
+      <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
         <div className="flex items-start gap-3">
           <span className="mt-0.5 rounded-2xl bg-red-50 p-2 text-[#e51d2e]">
             <TrendingUp className="h-4 w-4" />
@@ -172,7 +172,7 @@ export default function SalesTrendsChart({ data }: { data: DailySale[] }) {
   }
 
   return (
-    <div className="rounded-[28px] border border-slate-200/80 bg-gradient-to-br from-white to-red-50/40 p-5 shadow-sm">
+    <div className="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.18em] text-[#e51d2e]">Ventas</p>

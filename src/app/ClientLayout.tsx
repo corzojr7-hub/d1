@@ -24,7 +24,6 @@ export default function ClientLayout({
   children: React.ReactNode;
   fontClassName: string;
   initialProfile: Profile | null;
-  initialOperator: string | null;
 }) {
   const pathname = usePathname();
   const isPublic = PUBLIC_ROUTES.includes(pathname);
