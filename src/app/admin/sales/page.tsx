@@ -1,24 +1,22 @@
 import { createClient } from "@/lib/supabase/server";
-import { startOfMonth, endOfMonth } from "date-fns";
+import { format, startOfMonth } from "date-fns";
 
 export default async function AdminSalesPage() {
   const supabase = await createClient();
 
-  const start = startOfMonth(new Date()).toISOString();
-  const end = endOfMonth(new Date()).toISOString();
+  const currentDate = new Date();
+  const start = format(startOfMonth(currentDate), "yyyy-MM-dd");
+  const monthYear = format(currentDate, "yyyy-MM");
 
-  // Fetch sales globally
   const { data: sales } = await supabase
     .from("daily_sales")
-    .select("store_code, actual_sales, customer_count, date")
-    .gte("date", start)
-    .lte("date", end);
+    .select("store_code, amount, date")
+    .gte("date", start);
 
-  // Fetch budgets globally
   const { data: budgets } = await supabase
     .from("sales_budgets")
-    .select("store_code, monthly_budget")
-    .gte("month", start.substring(0, 7) + "-01");
+    .select("store_code, budget_amount")
+    .eq("month_year", monthYear);
 
   const salesByStore: Record<string, number> = {};
   const budgetByStore: Record<string, number> = {};
@@ -27,17 +25,19 @@ export default async function AdminSalesPage() {
 
   if (sales) {
     for (const sale of sales) {
+      const amount = Number(sale.amount || 0);
       if (!salesByStore[sale.store_code]) salesByStore[sale.store_code] = 0;
-      salesByStore[sale.store_code] += sale.actual_sales;
-      totalSales += sale.actual_sales;
+      salesByStore[sale.store_code] += amount;
+      totalSales += amount;
     }
   }
 
   if (budgets) {
     for (const budget of budgets) {
+      const amount = Number(budget.budget_amount || 0);
       if (!budgetByStore[budget.store_code]) budgetByStore[budget.store_code] = 0;
-      budgetByStore[budget.store_code] += budget.monthly_budget;
-      totalBudget += budget.monthly_budget;
+      budgetByStore[budget.store_code] += amount;
+      totalBudget += amount;
     }
   }
 

@@ -6,10 +6,9 @@ export default async function AdminInstructionsPage() {
 
   const sevenDaysAgo = subDays(new Date(), 7).toISOString();
 
-  // Fetch all instructions globally in last 7 days
   const { data: instructions } = await supabase
     .from("instructions")
-    .select("id, store_code, status, title, created_at")
+    .select("id, store_code, status, created_at")
     .gte("created_at", sevenDaysAgo)
     .order("created_at", { ascending: false });
 
@@ -26,13 +25,13 @@ export default async function AdminInstructionsPage() {
       }
       statsByStore[inst.store_code].total += 1;
 
-      if (inst.status === "completado") {
+      if (inst.status === "cumplida") {
         totalCompletadas += 1;
         statsByStore[inst.store_code].completadas += 1;
       } else if (inst.status === "pendiente") {
         totalPendientes += 1;
         statsByStore[inst.store_code].pendientes += 1;
-      } else if (inst.status === "en_progreso") {
+      } else if (inst.status === "en_proceso") {
         totalEnProgreso += 1;
         statsByStore[inst.store_code].pendientes += 1; // Count as pending/in progress
       }
