@@ -8,7 +8,7 @@ import StoreTeamSummary from "@/components/StoreTeamSummary";
 import HomeStartupAlerts from "@/components/dashboard/HomeStartupAlerts";
 import TruckArrivalReportCard from "@/components/dashboard/TruckArrivalReportCard";
 import InstructionCard from "@/components/instructions/InstructionCard";
-import { FEFO_CATEGORIES } from "@/lib/domain/catalogs";
+import { buildPreventiveFefoAlerts, type PreventiveFefoAlert } from "@/lib/fefo-alerts";
 import { parseTruckReportContent } from "@/lib/truck-report";
 
 export const metadata: Metadata = {
@@ -21,20 +21,16 @@ function getBogotaCalendar(now = new Date()) {
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
     hour12: false,
   }).formatToParts(now);
 
   const year = Number(parts.find((part) => part.type === "year")?.value ?? "0");
   const month = Number(parts.find((part) => part.type === "month")?.value ?? "0");
   const day = Number(parts.find((part) => part.type === "day")?.value ?? "0");
-  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
-  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? "0");
   const dateString = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
   const bogotaMidnight = new Date(`${dateString}T00:00:00-05:00`);
 
-  return { year, month, day, hour, minute, dateString, bogotaMidnight };
+  return { year, month, day, dateString, bogotaMidnight };
 }
 
 function getBogotaDateString(input: string | Date) {
@@ -82,7 +78,6 @@ async function HomeContent() {
     year,
     month,
     day: currentDay,
-    hour: currentHour,
     dateString: bogotaToday,
     bogotaMidnight,
   } = getBogotaCalendar();
@@ -189,58 +184,28 @@ async function HomeContent() {
     Math.round((monthlyBudget - accumulatedSales) / remainingDays),
   );
 
-  const calculateDaysLeft = (expDateStr: string) => {
-    const expDate = new Date(`${expDateStr}T00:00:00-05:00`);
-    const diffTime = expDate.getTime() - bogotaMidnight.getTime();
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  const preventiveFefoAlerts = buildPreventiveFefoAlerts(
+    (fefoRecords || []).map((record) => ({
+      id: record.id,
+      product_name: record.product_name,
+      expiration_date: record.expiration_date,
+      quantity: record.quantity,
+    })),
+    bogotaMidnight,
+  );
+  const criticalFefoItems = preventiveFefoAlerts.filter((item) => item.windowDays === 7);
+  const startupFefoItems = criticalFefoItems.map((item) => ({
+    id: item.id,
+    productName: item.productName,
+    quantity: item.quantity,
+    expirationDate: item.expirationDate,
+    actionLabel: item.actionLabel,
+  }));
+  const preventiveFefoSummary = {
+    in7Days: preventiveFefoAlerts.filter((item) => item.windowDays === 7).length,
+    in15Days: preventiveFefoAlerts.filter((item) => item.windowDays === 15).length,
+    in30Days: preventiveFefoAlerts.filter((item) => item.windowDays === 30).length,
   };
-
-  const criticalFefoItems = (fefoRecords || []).filter((rec) => {
-    const nameParts = rec.product_name.split(" ||| ");
-    const categoryVal = nameParts[1] || "otro";
-    const daysLeft = calculateDaysLeft(rec.expiration_date);
-    const catInfo =
-      FEFO_CATEGORIES.find((c) => c.value === categoryVal) ||
-      FEFO_CATEGORIES.find((c) => c.value === "otro");
-    const threshold = catInfo ? catInfo.retirementDays : 0;
-    const delta = daysLeft - threshold;
-    return delta <= 6;
-  });
-
-  const startupFefoItems = (fefoRecords || []).flatMap((rec) => {
-    const nameParts = rec.product_name.split(" ||| ");
-    const cleanName = nameParts[0] || rec.product_name;
-    const categoryVal = nameParts[1] || "otro";
-    const categoryInfo =
-      FEFO_CATEGORIES.find((item) => item.value === categoryVal) ||
-      FEFO_CATEGORIES.find((item) => item.value === "otro");
-    const retirementDays = categoryInfo?.retirementDays ?? 0;
-    const expirationDate = new Date(`${rec.expiration_date}T00:00:00-05:00`);
-    const removalDate = new Date(expirationDate);
-    removalDate.setUTCDate(removalDate.getUTCDate() - retirementDays);
-    const removalDateKey = getBogotaDateString(removalDate);
-    const reminderStart = new Date(removalDate);
-    reminderStart.setUTCDate(reminderStart.getUTCDate() - 1);
-    const reminderStartKey = getBogotaDateString(reminderStart);
-    const shouldWarnTonight = currentHour >= 20 && bogotaToday === reminderStartKey;
-    const shouldWarnToday = bogotaToday >= removalDateKey;
-
-    if (!shouldWarnTonight && !shouldWarnToday) {
-      return [];
-    }
-
-    return [
-      {
-        id: rec.id,
-        productName: cleanName,
-        quantity: rec.quantity,
-        expirationDate: rec.expiration_date,
-        actionLabel: shouldWarnTonight
-          ? "Preparalo desde esta noche para salida o venta final manana."
-          : "Revisalo hoy y sacalo si ya cumplio el retiro FEFO.",
-      },
-    ];
-  });
 
   const dayNames = [
     "domingo",
@@ -570,6 +535,62 @@ async function HomeContent() {
         </div>
       </section>
 
+      <section className="mx-4 mt-6 lg:mx-6 xl:mx-8">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-slate-400">
+              Prevencion FEFO
+            </p>
+            <h2 className="mt-1 text-[18px] font-black tracking-tight text-slate-950">
+              Alertas preventivas FEFO
+            </h2>
+            <p className="mt-1 text-[12px] leading-snug text-slate-500">
+              Productos que vencen en 7, 15 y 30 dias con sugerencias listas para moverlos.
+            </p>
+          </div>
+          <Link
+            href="/waste/fefo"
+            className="inline-flex w-fit items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-[11px] font-bold text-slate-700 transition hover:bg-slate-50"
+          >
+            Abrir radar FEFO
+          </Link>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetricCard
+            label="Vencen en 7 dias"
+            value={String(preventiveFefoSummary.in7Days)}
+            tone="text-[#b91c1c]"
+            hint="Mover ya y definir salida comercial."
+          />
+          <MetricCard
+            label="Vencen en 15 dias"
+            value={String(preventiveFefoSummary.in15Days)}
+            tone="text-[#c2410c]"
+            hint="Impulsar antes de que entren en rojo."
+          />
+          <MetricCard
+            label="Vencen en 30 dias"
+            value={String(preventiveFefoSummary.in30Days)}
+            tone="text-[#a16207]"
+            hint="Ajustar pedido y exhibicion preventiva."
+          />
+        </div>
+
+        <div className="mt-4 grid gap-3 xl:grid-cols-2">
+          {preventiveFefoAlerts.slice(0, 6).map((item) => (
+            <PreventiveFefoCard key={item.id} alert={item} />
+          ))}
+          {preventiveFefoAlerts.length === 0 ? (
+            <div className="rounded-[24px] border border-dashed border-slate-200 bg-white px-4 py-10 text-center shadow-sm xl:col-span-2">
+              <p className="text-sm font-medium text-slate-500">
+                No hay productos en ventana preventiva de 30 dias.
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </section>
+
       <div className="mx-4 mt-6 lg:mx-6 xl:mx-8">
         <TruckArrivalReportCard
           storeName={profile.store_name}
@@ -728,6 +749,67 @@ function FlowGroupCard({
           </Link>
         ))}
       </div>
+    </article>
+  );
+}
+
+function PreventiveFefoCard({ alert }: { alert: PreventiveFefoAlert }) {
+  const tone =
+    alert.severity === "critical"
+      ? {
+          card: "border-rose-200 bg-rose-50/70",
+          badge: "bg-rose-100 text-rose-700",
+          text: "text-rose-700",
+        }
+      : alert.severity === "warning"
+        ? {
+            card: "border-amber-200 bg-amber-50/70",
+            badge: "bg-amber-100 text-amber-700",
+            text: "text-amber-700",
+          }
+        : {
+            card: "border-yellow-200 bg-yellow-50/70",
+            badge: "bg-yellow-100 text-yellow-700",
+            text: "text-yellow-700",
+          };
+
+  return (
+    <article className={`rounded-[24px] border p-4 shadow-sm ${tone.card}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-500">
+            {alert.categoryLabel}
+          </p>
+          <h3 className="mt-1 text-sm font-black text-slate-950">{alert.productName}</h3>
+        </div>
+        <span className={`rounded-full px-3 py-1 text-[10px] font-bold ${tone.badge}`}>
+          {alert.windowDays} dias
+        </span>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="rounded-2xl bg-white px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Vence</p>
+          <p className="mt-1 text-xs font-bold text-slate-800">
+            {new Intl.DateTimeFormat("es-CO", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+              timeZone: "America/Bogota",
+            }).format(new Date(`${alert.expirationDate}T12:00:00`))}
+          </p>
+        </div>
+        <div className="rounded-2xl bg-white px-3 py-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">Cantidad</p>
+          <p className="mt-1 text-xs font-bold text-slate-800">{alert.quantity} uds</p>
+        </div>
+      </div>
+
+      <p className={`mt-3 text-xs font-bold ${tone.text}`}>
+        {alert.daysLeft < 0 ? `Vencio hace ${Math.abs(alert.daysLeft)} dias.` : `Quedan ${alert.daysLeft} dias.`}
+      </p>
+      <p className="mt-1 text-sm font-semibold text-slate-700">{alert.primarySuggestion}</p>
+      <p className="mt-1 text-[12px] leading-snug text-slate-500">{alert.secondarySuggestion}</p>
     </article>
   );
 }

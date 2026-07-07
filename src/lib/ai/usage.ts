@@ -13,6 +13,8 @@ export const AI_ACTIONS = {
   schedule: "AI_SCHEDULE_GENERATE",
   feedback: "AI_FEEDBACK_REWRITE",
   handover: "AI_HANDOVER_SUMMARY",
+  morningBrief: "AI_MORNING_BRIEF",
+  adminChat: "AI_ADMIN_CHAT",
 } as const;
 
 export function estimateGemini35FlashCostUsd(usage?: GeminiUsageMetadata | null) {

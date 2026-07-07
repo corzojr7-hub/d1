@@ -6,7 +6,7 @@ import type { TablesInsert } from "@/lib/supabase/database.types";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
-import webpush from "web-push";
+import { sendPushToAdmins } from "@/lib/push";
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
 
 const HIGH_WASTE_PUSH_THRESHOLD = 100;
@@ -92,18 +92,6 @@ const submitWasteSchema = z.object({
   transportEvidence: z.any().optional()
 });
 
-function configureWebPush() {
-  const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-  const privateVapidKey = process.env.VAPID_PRIVATE_KEY || "";
-
-  if (!publicVapidKey || !privateVapidKey) {
-    return false;
-  }
-
-  webpush.setVapidDetails("mailto:soporte@mi2.com", publicVapidKey, privateVapidKey);
-  return true;
-}
-
 function getAdminClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -112,7 +100,6 @@ function getAdminClient() {
 }
 
 async function notifyAdminsAboutHighWaste({
-  adminClient,
   storeCode,
   storeName,
   qty,
@@ -120,7 +107,6 @@ async function notifyAdminsAboutHighWaste({
   area,
   productName,
 }: {
-  adminClient: ReturnType<typeof getAdminClient>;
   storeCode: string;
   storeName: string;
   qty: number;
@@ -128,41 +114,11 @@ async function notifyAdminsAboutHighWaste({
   area: string | undefined;
   productName: string;
 }) {
-  if (qty <= HIGH_WASTE_PUSH_THRESHOLD || !configureWebPush()) {
+  if (qty <= HIGH_WASTE_PUSH_THRESHOLD) {
     return;
   }
 
-  const { data: admins, error: adminsError } = await adminClient
-    .from("profiles")
-    .select("user_id")
-    .eq("role", "admin")
-    .eq("status", "activo");
-
-  if (adminsError || !admins || admins.length === 0) {
-    return;
-  }
-
-  const adminRows = admins as Array<{ user_id: string }>;
-  const adminUserIds = adminRows.map((admin) => admin.user_id).filter(Boolean);
-  if (adminUserIds.length === 0) {
-    return;
-  }
-
-  const { data: subscriptions, error: subscriptionsError } = await adminClient
-    .from("push_subscriptions")
-    .select("id, subscription")
-    .in("user_id", adminUserIds);
-
-  if (subscriptionsError || !subscriptions || subscriptions.length === 0) {
-    return;
-  }
-
-  const subscriptionRows = subscriptions as Array<{
-    id: string;
-    subscription: webpush.PushSubscription;
-  }>;
-
-  const payload = JSON.stringify({
+  await sendPushToAdmins({
     title: "Pico de merma detectado",
     body: `${storeName || storeCode}: ${qty} uds en ${area || "sin area"} por ${reason}.`,
     tag: `high-waste-${storeCode}`,
@@ -174,25 +130,6 @@ async function notifyAdminsAboutHighWaste({
       productName,
     },
   });
-
-  await Promise.all(
-    subscriptionRows.map(async (item) => {
-      try {
-        await webpush.sendNotification(item.subscription as webpush.PushSubscription, payload);
-      } catch (error) {
-        const statusCode =
-          typeof error === "object" && error !== null && "statusCode" in error
-            ? Number(error.statusCode)
-            : 0;
-
-        if (statusCode === 404 || statusCode === 410) {
-          await adminClient.from("push_subscriptions").delete().eq("id", item.id);
-        } else {
-          console.error("Push error", error);
-        }
-      }
-    }),
-  );
 }
 
 export async function submitWaste(formData: FormData): Promise<{ error?: string }> {
@@ -405,7 +342,6 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
 
     try {
       await notifyAdminsAboutHighWaste({
-        adminClient,
         storeCode: profile.store_code,
         storeName: profile.store_name,
         qty: validatedData.qty,

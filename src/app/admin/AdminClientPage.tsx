@@ -166,12 +166,20 @@ export default function AdminClientPage({
               Visión administrativa de tiendas, equipo, horarios y cuadrantes.
             </p>
           </div>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e51d2e] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#c91528]"
-          >
-            Volver al panel
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/admin/ai-chat"
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-[#e51d2e] px-5 text-sm font-bold text-white shadow-sm transition hover:bg-[#c91528]"
+            >
+              Preguntale a tus tiendas
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-slate-200 bg-white px-5 text-sm font-bold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            >
+              Volver al panel
+            </Link>
+          </div>
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:max-w-xl">
