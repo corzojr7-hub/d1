@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { startOfMonth, format } from "date-fns";
 import { AI_ACTIONS } from "@/lib/ai/usage";
+import { requireAuth } from "@/lib/supabase/require-auth";
 import AdminClientPage from "./AdminClientPage";
 
 export const dynamic = "force-dynamic";
@@ -9,31 +9,23 @@ export const fetchCache = "force-no-store";
 export const revalidate = 0;
 
 export default async function AdminPage() {
-  const supabase = await createClient();
+  const { profile, supabase } = await requireAuth();
 
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    redirect("/login");
-  }
-
-  // Verificar si el usuario es Admin
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("user_id", user.id)
-    .single();
-
-  if (profile?.role !== "admin") {
+  if (profile.role !== "admin") {
     // Si no es admin, no puede entrar aquí, lo devolvemos al panel de tienda
     redirect("/");
   }
 
-  // Si es admin, traemos TODAS las tiendas (profiles)
-  const { data: stores } = await supabase
+  const { data: stores, error: storesError } = await supabase
     .from("profiles")
     .select("*")
-    .order("created_at", { ascending: true });
+    .eq("role", "supervisor")
+    .eq("status", "activo")
+    .order("store_name", { ascending: true });
+
+  if (storesError) {
+    throw new Error(`No se pudieron cargar las tiendas del JDZ: ${storesError.message}`);
+  }
 
   // Datos para el dashboard (Mes actual)
   const currentDate = new Date();
