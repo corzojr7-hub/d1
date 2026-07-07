@@ -15,7 +15,6 @@ import {
 } from "date-fns";
 import { es } from "date-fns/locale";
 import { setMonthlyBudget, setDailySale, setWeeklyWaste, setBulkDailySales } from "./actions";
-import * as XLSX from "xlsx";
 import { SalesBudget, DailySale, WeeklyWaste } from "@/lib/domain/types";
 import { TrendingUp, Target, Save, Calendar, AlertCircle, Upload, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useProfile } from "@/components/ui/ProfileContext";
@@ -190,6 +189,7 @@ export default function SalesClient({
 
     setIsImporting(true);
     try {
+      const XLSX = await import("xlsx");
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const firstSheetName = workbook.SheetNames[0];

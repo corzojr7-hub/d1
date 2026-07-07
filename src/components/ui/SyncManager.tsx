@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Wifi, WifiOff, RefreshCcw } from "lucide-react";
+import { WifiOff, RefreshCcw } from "lucide-react";
 import { get, set } from "idb-keyval";
 import { submitWaste } from "@/app/waste/actions";
 import { addFefoRecord, updateFefoStatus } from "@/app/waste/fefo/actions";

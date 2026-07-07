@@ -42,7 +42,7 @@ export function AutoLogout() {
       clearTimeout(warningId);
       events.forEach((event) => document.removeEventListener(event, resetTimer));
     };
-  }, [router, supabase]);
+  }, [router]);
 
   if (!showWarning) return null;
 

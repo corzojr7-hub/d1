@@ -2,7 +2,6 @@
 
 import { Download, FileText } from "lucide-react";
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import AppSelect from "@/components/dashboard/AppSelect";
 
 type WasteExportRow = {
@@ -50,7 +49,8 @@ export default function ExportDataButton({ wasteData, impulseData, posData }: Ex
     return value;
   };
 
-  const handleExportExcel = () => {
+  const handleExportExcel = async () => {
+    const XLSX = await import("xlsx");
     const wb = XLSX.utils.book_new();
 
     // Hoja 1: Merma

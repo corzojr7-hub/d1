@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import * as XLSX from "xlsx";
 import { Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { setBulkPosMetrics } from "@/app/dashboard/actions";
@@ -146,6 +145,7 @@ export default function PosMetricsImportButton({ date, assistantOptions }: Props
 
     setIsImporting(true);
     try {
+      const XLSX = await import("xlsx");
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data, { type: "array" });
       const sheetName = workbook.SheetNames[0];

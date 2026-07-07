@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
@@ -46,7 +47,15 @@ function getBogotaDateString(input: string | Date) {
   }).format(date);
 }
 
-export default async function Home() {
+export default function Home() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+async function HomeContent() {
   const supabase = await createClient();
   const { profile } = await requireAuth();
 
@@ -664,6 +673,28 @@ export default async function Home() {
           </Link>
         </div>
       )}
+    </div>
+  );
+}
+
+function HomeLoading() {
+  return (
+    <div className="mx-auto min-h-screen max-w-[1600px] bg-[linear-gradient(180deg,#f8fafc_0%,#f3f6fb_100%)] px-4 py-6 pb-24 lg:px-6 xl:px-8">
+      <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white p-6 shadow-[0_12px_28px_rgba(15,23,42,0.06)]">
+        <div className="h-1.5 w-24 rounded-full bg-slate-200" />
+        <div className="mt-5 h-5 w-48 rounded-full bg-slate-100" />
+        <div className="mt-4 h-9 w-full max-w-xl rounded-2xl bg-slate-100" />
+        <div className="mt-3 h-4 w-full max-w-2xl rounded-full bg-slate-100" />
+        <div className="mt-6 grid gap-3 sm:grid-cols-3">
+          {[0, 1, 2].map((item) => (
+            <div key={item} className="rounded-[24px] border border-slate-200 bg-white px-4 py-4 shadow-sm">
+              <div className="h-3 w-28 rounded-full bg-slate-100" />
+              <div className="mt-3 h-8 w-16 rounded-2xl bg-slate-100" />
+              <div className="mt-3 h-3 w-full rounded-full bg-slate-100" />
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

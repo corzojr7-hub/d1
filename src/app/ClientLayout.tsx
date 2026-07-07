@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
 import { Toaster } from "sonner";
 import AppShell from "@/components/AppShell";
 import { ProfileProvider } from "@/components/ui/ProfileContext";
-import SyncManager from "@/components/ui/SyncManager";
-import PushManager from "@/components/ui/PushManager";
-import { AutoLogout } from "@/components/ui/AutoLogout";
+import type { Profile } from "@/lib/domain/types";
+
+const SyncManager = dynamic(() => import("@/components/ui/SyncManager"), { ssr: false });
+const PushManager = dynamic(() => import("@/components/ui/PushManager"), { ssr: false });
+const AutoLogout = dynamic(
+  () => import("@/components/ui/AutoLogout").then((mod) => mod.AutoLogout),
+  { ssr: false },
+);
 
 const PUBLIC_ROUTES = ["/login", "/update-password"];
 
@@ -15,11 +20,10 @@ export default function ClientLayout({
   children,
   fontClassName,
   initialProfile,
-  initialOperator,
 }: {
   children: React.ReactNode;
   fontClassName: string;
-  initialProfile: any;
+  initialProfile: Profile | null;
   initialOperator: string | null;
 }) {
   const pathname = usePathname();
@@ -33,9 +37,13 @@ export default function ClientLayout({
       suppressHydrationWarning={true}
     >
       <ProfileProvider initialProfile={initialProfile}>
-        <SyncManager />
-        <PushManager />
-        {!isPublic && <AutoLogout />}
+        {!isPublic && (
+          <>
+            <SyncManager />
+            <PushManager />
+            <AutoLogout />
+          </>
+        )}
         <AppShell>{children}</AppShell>
       </ProfileProvider>
 
