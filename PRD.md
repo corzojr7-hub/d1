@@ -2,7 +2,7 @@
 
 ## 1. Resumen
 
-El Sistema de Control Operativo de Tienda es una aplicacion web responsive para registrar y consultar instrucciones operativas y eventos de merma en una tienda retail tipo D1.
+El Sistema de Control Operativo de Tienda es una aplicacion web responsive para registrar y consultar instrucciones operativas y eventos de merma en una tienda retail tipo 2.
 
 El objetivo del MVP es mejorar la trazabilidad operativa sin aumentar demasiado la carga administrativa del equipo de mando de tienda.
 

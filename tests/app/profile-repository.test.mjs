@@ -16,7 +16,7 @@ const MOCK_PROFILE = {
   email: "maria@tienda.com",
   role: "supervisor",
   status: "activo",
-  store_name: "D1 Centro",
+  store_name: "2 Centro",
   store_code: "402",
   second_in_charge: "Ana Ruiz",
   third_in_charge: "Luis Mora",

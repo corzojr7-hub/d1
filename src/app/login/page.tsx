@@ -14,7 +14,7 @@ export default function LoginPage() {
       <div className="mx-auto w-full max-w-md">
         <div className="mb-7 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[1.35rem] bg-red-600 text-xl font-black text-white shadow-[0_18px_36px_rgba(229,29,46,0.22)]">
-            D1
+            2
           </div>
           <h1 className="text-[30px] font-black tracking-tight text-slate-950">
             Control Operativo
@@ -30,7 +30,7 @@ export default function LoginPage() {
               label="Usuario"
               name="email"
               type="text"
-              placeholder="Ej. mi.tienda o mi.tienda@mid1.com"
+              placeholder="Ej. mi.tienda o mi.tienda@mi2.com"
               autoComplete="username"
               required
             />

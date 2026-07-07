@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import ChecklistsClient from "./ChecklistsClient";
 
 export const metadata: Metadata = {
@@ -62,12 +61,7 @@ export default async function AuditsPage() {
 
   const today = new Date().toISOString().split("T")[0];
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-
-  const { data: dailyBasics } = await adminClient
+  const { data: dailyBasics } = await supabase
     .from("daily_basics")
     .select("*")
     .eq("store_code", profile.store_code)

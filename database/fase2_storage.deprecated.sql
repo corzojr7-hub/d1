@@ -1,5 +1,5 @@
 -- -------------------------------------------------------------
--- APP D1: Fase 2 - Aislamiento Total de Archivos (Storage RLS)
+-- APP 2: Fase 2 - Aislamiento Total de Archivos (Storage RLS)
 -- -------------------------------------------------------------
 
 -- 1. (Saltado: storage.objects ya tiene RLS por defecto, y altera el owner genera error en algunos entornos)

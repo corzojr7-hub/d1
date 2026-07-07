@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient, createAdminClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 import { startOfMonth, format } from "date-fns";
 import { AI_ACTIONS } from "@/lib/ai/usage";
 import AdminClientPage from "./AdminClientPage";
@@ -29,10 +29,8 @@ export default async function AdminPage() {
     redirect("/");
   }
 
-  const adminSupabase = await createAdminClient();
-
   // Si es admin, traemos TODAS las tiendas (profiles)
-  const { data: stores } = await adminSupabase
+  const { data: stores } = await supabase
     .from("profiles")
     .select("*")
     .order("created_at", { ascending: true });
@@ -48,10 +46,10 @@ export default async function AdminPage() {
     { data: globalWaste },
     { data: aiUsageLogsRaw },
   ] = await Promise.all([
-    adminSupabase.from("daily_sales").select("*").gte("date", startMonthStr),
-    adminSupabase.from("sales_budgets").select("*").eq("month_year", monthYearStr),
-    adminSupabase.from("weekly_waste").select("*").gte("week_start", startMonthStr), // Aproximado para este mes
-    adminSupabase
+    supabase.from("daily_sales").select("*").gte("date", startMonthStr),
+    supabase.from("sales_budgets").select("*").eq("month_year", monthYearStr),
+    supabase.from("weekly_waste").select("*").gte("week_start", startMonthStr), // Aproximado para este mes
+    supabase
       .from("admin_audit_logs")
       .select("id, action_type, store_code, created_at, details")
       .gte("created_at", `${startMonthStr}T00:00:00`)

@@ -65,7 +65,7 @@ function buildActaDocument(feedback: FeedbackRecord) {
       <p class="lead">
         En la tienda, a los ${escapeHtml(formattedDate)}, siendo las ${escapeHtml(formattedTime)},
         se reunieron ${escapeHtml(feedback.directed_to)} en calidad de trabajador(a) y
-        ${escapeHtml(feedback.created_by)} en calidad de representante de D1 S.A.S.
+        ${escapeHtml(feedback.created_by)} en calidad de representante de 2 S.A.S.
       </p>
       <p>
         La presente reunion se realiza en atencion a los incumplimientos por parte del trabajador(a)
@@ -85,7 +85,7 @@ function buildActaDocument(feedback: FeedbackRecord) {
         <p>${escapeHtml(feedback.commitment)}</p>
       </section>
       <p>
-        D1 S.A.S. confia en que el presente compromiso servira para atender las observaciones
+        2 S.A.S. confia en que el presente compromiso servira para atender las observaciones
         senaladas y evitar que situaciones similares vuelvan a repetirse.
       </p>
       <div class="signatures">
@@ -94,7 +94,7 @@ function buildActaDocument(feedback: FeedbackRecord) {
           <strong>${escapeHtml(feedback.directed_to)}</strong>
         </div>
         <div>
-          <span>REPRESENTANTE D1 S.A.S.</span>
+          <span>REPRESENTANTE 2 S.A.S.</span>
           <strong>${escapeHtml(feedback.created_by)}</strong>
         </div>
       </div>

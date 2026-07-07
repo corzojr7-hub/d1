@@ -2,7 +2,6 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import WasteCard from "@/components/waste/WasteCard";
 import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton";
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
@@ -33,7 +32,7 @@ export default async function WasteIndex({
 
   async function signEvidencePath(path: string | null) {
     if (!path) return path;
-    const { data } = await adminClient.storage
+    const { data } = await dataClient.storage
       .from("waste-evidence")
       .createSignedUrl(path, 60 * 10);
     return data?.signedUrl || path;
@@ -59,23 +58,20 @@ export default async function WasteIndex({
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const adminClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
+  const dataClient = supabase;
 
   const [
     { data: cutEntries },
     { data: storeProfiles },
   ] = await Promise.all([
-    adminClient
+    dataClient
       .from("daily_logbook")
       .select("id, author, created_at, content")
       .eq("store_code", storeCode)
       .like("content", `${WASTE_WEEK_CUT_PREFIX}%`)
       .order("created_at", { ascending: false })
       .limit(12),
-    adminClient
+    dataClient
       .from("profiles")
       .select("user_id, display_name")
       .eq("store_code", storeCode),
@@ -91,7 +87,7 @@ export default async function WasteIndex({
   const cycleEnd =
     selectedCutIsValid && selectedCutIndex > 0 ? cuts[selectedCutIndex - 1]?.created_at : "";
 
-  let recordsQuery = adminClient
+  let recordsQuery = dataClient
     .from("waste_records")
     .select("*, products(name)", { count: "exact" })
     .eq("store_code", storeCode)

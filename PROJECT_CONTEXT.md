@@ -2,7 +2,7 @@
 
 ## Contexto general
 
-El proyecto busca crear una aplicacion web responsive para apoyar la trazabilidad operativa en una tienda retail tipo D1 en Colombia.
+El proyecto busca crear una aplicacion web responsive para apoyar la trazabilidad operativa en una tienda retail tipo 2 en Colombia.
 
 El usuario principal es un supervisor con experiencia operativa real en tienda y conocimiento directo de los flujos diarios, presiones de control, comunicacion verbal, seguimiento de tareas y manejo de merma.
 
@@ -48,7 +48,7 @@ No se incluira en el MVP:
 
 - Firma digital.
 - Uso por asistentes.
-- Integracion con sistemas corporativos de D1.
+- Integracion con sistemas corporativos de 2.
 - Aplicacion movil nativa.
 - Publicacion en Play Store.
 - Nomina.

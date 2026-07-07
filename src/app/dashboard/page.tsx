@@ -3,7 +3,7 @@ import Link from "next/link";
 import { format, subDays, subMonths } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowRight } from "lucide-react";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/server";
 import type { DailySale } from "@/lib/domain/types";
 import AppSelect from "@/components/dashboard/AppSelect";
 import ExportDataButton from "@/components/dashboard/ExportDataButton";
@@ -126,36 +126,32 @@ export default async function DashboardPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const { profile } = await requireAuth();
+  const supabase = await createClient();
 
   if (!profile) return <div>Cargando...</div>;
 
-  const adminClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-
-  const impulsePromise = adminClient
+  const impulsePromise = supabase
     .from("impulse_records")
     .select("*")
     .eq("store_code", profile.store_code)
     .order("date", { ascending: false })
     .limit(90);
 
-  const posPromise = adminClient
+  const posPromise = supabase
     .from("pos_metrics")
     .select("*")
     .eq("store_code", profile.store_code)
     .order("date", { ascending: false })
     .limit(450);
 
-  const salesPromise = adminClient
+  const salesPromise = supabase
     .from("daily_sales")
     .select("*")
     .eq("store_code", profile.store_code)
     .order("date", { ascending: true })
     .limit(365);
 
-  const wastePromise = adminClient
+  const wastePromise = supabase
     .from("waste_records")
     .select("created_at, qty, reason, deposited_by, area, status, products(name)")
     .eq("store_code", profile.store_code)

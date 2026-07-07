@@ -1,4 +1,4 @@
-# Sistema Operativo D1
+# Sistema Operativo 2
 
 Plataforma web interna para el control operativo de tiendas retail. Permite a supervisores y mandos intermedios registrar instrucciones operativas, controlar eventos de merma con evidencia fotográfica, y consultar el historial completo de operaciones en tiempo real. La app está diseñada como una aplicación móvil progresiva con interfaz táctil optimizada para uso en piso de venta.
 

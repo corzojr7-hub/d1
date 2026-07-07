@@ -1,7 +1,6 @@
 ﻿import type { Metadata } from "next";
 import Link from "next/link";
 import { AlertCircle, CheckCircle2, ClipboardList, Plus } from "lucide-react";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import InstructionCard from "@/components/instructions/InstructionCard";
 import { requireAuth } from "@/lib/supabase/require-auth";
 
@@ -10,14 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default async function InstructionsIndex() {
-  const { profile } = await requireAuth();
+  const { profile, supabase } = await requireAuth();
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-
-  const { data: instructions } = await adminClient
+  const { data: instructions } = await supabase
     .from("instructions")
     .select("*")
     .eq("store_code", profile.store_code)

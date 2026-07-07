@@ -36,7 +36,7 @@ Motivo: no es necesaria para validar el aprendizaje inicial del producto y aumen
 
 Fecha: 2026-06-02
 
-Decision: el MVP no se integrara con sistemas oficiales de D1.
+Decision: el MVP no se integrara con sistemas oficiales de 2.
 
 Motivo: evitar dependencia externa, riesgos de permisos y exposicion de informacion sensible.
 

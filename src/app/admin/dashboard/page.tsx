@@ -1,8 +1,8 @@
-import { createAdminClient } from "@/lib/supabase/server";
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { createClient } from "@/lib/supabase/server";
+import { startOfMonth, endOfMonth } from "date-fns";
 
 export default async function AdminDashboardPage() {
-  const supabase = await createAdminClient();
+  const supabase = await createClient();
 
   const start = startOfMonth(new Date()).toISOString();
   const end = endOfMonth(new Date()).toISOString();

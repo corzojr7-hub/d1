@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { requireAuth } from "@/lib/supabase/require-auth";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 import ChecklistWizardWrapper from "./ChecklistWizardWrapper";
 import { format } from "date-fns";
 import { CheckCircle2 } from "lucide-react";
@@ -10,17 +9,12 @@ export const metadata: Metadata = {
 };
 
 export default async function DailyAuditPage() {
-  const { profile } = await requireAuth();
-
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const { profile, supabase } = await requireAuth();
 
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
-  const { data: todayAudits } = await adminClient
+  const { data: todayAudits } = await supabase
     .from("audits")
     .select("*")
     .eq("store_code", profile?.store_code)

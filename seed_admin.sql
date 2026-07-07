@@ -3,14 +3,14 @@
 -- 2. Entra a tu proyecto
 -- 3. Ve a la seccin 'SQL Editor' en el men izquierdo
 -- 4. Abre un nuevo 'Query' y pega TODO este cdigo
--- 5. Cambia el correo 'jefedezona@mid1.com' y la contrasea 'D1Segura2026!' por los que t quieras.
+-- 5. Cambia el correo 'jefedezona@mi2.com' y la contrasea '2Segura2026!' por los que t quieras.
 -- 6. Dale al botn 'Run' (Ejecutar)
 
 -- A. Configura las variables (cambia solo lo que est entre comillas simples)
 DO $$
 DECLARE
-  nuevo_email text := 'jefedezona@mid1.com';
-  nueva_password text := 'D1Segura2026!';
+  nuevo_email text := 'jefedezona@mi2.com';
+  nueva_password text := '2Segura2026!';
   nombre_jefe text := 'Jefe de Zona Principal';
   
   -- Variables internas

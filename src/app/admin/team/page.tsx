@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ShieldAlert, Store, User, Users } from "lucide-react";
 import { StoreAssistant } from "@/lib/domain/types";
-import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -28,9 +28,7 @@ export default async function AdminTeamPage() {
     redirect("/");
   }
 
-  const adminSupabase = await createAdminClient();
-
-  const { data: allProfiles } = await adminSupabase
+  const { data: allProfiles } = await supabase
     .from("profiles")
     .select("*")
     .order("store_name", { ascending: true });

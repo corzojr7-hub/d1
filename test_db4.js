@@ -11,7 +11,7 @@ const supabase = createClient(
 
 async function check() {
   const { data: authData, error: authErr } = await supabase.auth.signInWithPassword({
-    email: 'corzojr@tiendad1.com',
+    email: 'corzojr@mi2.com',
     password: 'password123'
   });
   if (authErr) { console.log('Auth Err:', authErr); return; }

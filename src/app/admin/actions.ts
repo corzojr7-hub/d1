@@ -1,6 +1,5 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { z } from "zod";
@@ -97,7 +96,7 @@ export async function createSupervisor(formData: FormData) {
 
   // 1. Crear el usuario en Auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
-    email: username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mid1.com`,
+    email: username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mi2.com`,
     password: password,
     email_confirm: true,
     user_metadata: {
@@ -130,7 +129,7 @@ export async function createSupervisor(formData: FormData) {
       store_name: storeName.trim(),
       display_name: supervisorName.trim(),
       full_name: supervisorName.trim(),
-      email: authData.user?.email || (username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mid1.com`),
+      email: authData.user?.email || (username.trim().toLowerCase().includes('@') ? username.trim().toLowerCase() : `${username.trim().toLowerCase()}@mi2.com`),
       assistant_count: 0,
       requires_password_change: true // obligar a cambiar clave temporal
     });

@@ -13,7 +13,6 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AI_ACTIONS } from "@/lib/ai/usage";
 import type {
   DailySale,
   Profile,
@@ -21,6 +20,11 @@ import type {
   WeeklyWaste,
 } from "@/lib/domain/types";
 import { updateStoreInfo } from "./actions";
+
+const AI_ACTIONS = {
+  schedule: "AI_SCHEDULE_GENERATE",
+  feedback: "AI_FEEDBACK_REWRITE",
+} as const;
 
 type AiUsageLog = {
   id: string;

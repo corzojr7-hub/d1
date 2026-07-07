@@ -6,7 +6,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: "test_insert_2@tiendad1.com",
+    email: "test_insert_2@mi2.com",
     password: "password123",
   });
 
@@ -24,7 +24,7 @@ async function test() {
     role: "supervisor",
     full_name: "Test",
     display_name: "Test",
-    email: "test_insert_2@tiendad1.com",
+    email: "test_insert_2@mi2.com",
     status: "activo",
     store_name: "Test Store",
     store_code: "999",

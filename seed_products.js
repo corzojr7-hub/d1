@@ -2,8 +2,10 @@ require('dotenv').config({ path: '.env' });
 const { createClient } = require('@supabase/supabase-js');
 const xlsx = require('xlsx');
 
-const SUPABASE_SERVICE_ROLE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJkaWxnYnR2a3Rlbm5jbXpqbGlzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDc4MTM3NCwiZXhwIjoyMDk2MzU3Mzc0fQ.brejmSjPnJXgLddUuiMDDFOlN8pq577yTP5k_3qGhiQ';
-const supabase = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 const filePath = 'C:\\Users\\corzo\\Downloads\\Conteo Extraordinarios VCIO- SAN-ANTONIO-14-ABRIL-2026 (2).xlsx';
 
 async function seed() {

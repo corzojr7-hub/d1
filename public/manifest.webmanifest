@@ -1,7 +1,7 @@
 {
-  "name": "Sistema Operativo D1",
-  "short_name": "Op. D1",
-  "description": "Aplicación de control operativo y merma para tiendas D1",
+  "name": "Sistema Operativo 2",
+  "short_name": "Op. 2",
+  "description": "Aplicación de control operativo y merma para tiendas 2",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

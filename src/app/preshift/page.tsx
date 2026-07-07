@@ -1,6 +1,5 @@
 import ClientPreShift from "./ClientPreShift";
 import { requireAuth } from "@/lib/supabase/require-auth";
-import { createClient as createAdminClient } from "@supabase/supabase-js";
 
 export const metadata = {
   title: "Pre-Turno â€” SCO",
@@ -22,12 +21,7 @@ function getBogotaCalendar(now = new Date()) {
 }
 
 export default async function PreShiftPage() {
-  const { profile } = await requireAuth();
-
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  const { profile, supabase } = await requireAuth();
 
   const { year, month, day } = getBogotaCalendar();
   const currentMonthYear = `${year}-${String(month).padStart(2, "0")}`;
@@ -37,13 +31,13 @@ export default async function PreShiftPage() {
   const nextMonthStart = `${nextMonthYear}-${String(nextMonth).padStart(2, "0")}-01`;
 
   const [{ data: currentBudgetRow }, { data: monthlySales }] = await Promise.all([
-    adminClient
+    supabase
       .from("sales_budgets")
       .select("budget_amount")
       .eq("store_code", profile.store_code)
       .eq("month_year", currentMonthYear)
       .single(),
-    adminClient
+    supabase
       .from("daily_sales")
       .select("amount")
       .eq("store_code", profile.store_code)

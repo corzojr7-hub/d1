@@ -4,40 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
-import type {
-  AssistantContractType,
-  StoreAssistant,
-} from "@/lib/domain/types";
 
 type AuthState = { error?: string };
-
-function getString(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function parseAssistants(formData: FormData): StoreAssistant[] {
-  const assistantCount = Number(getString(formData, "assistant_count"));
-  const safeCount = Number.isFinite(assistantCount)
-    ? Math.max(0, Math.min(assistantCount, 50))
-    : 0;
-
-  return Array.from({ length: safeCount }, (_, index): StoreAssistant => {
-    const contract = getString(
-      formData,
-      `assistant_contract_${index}`,
-    ) as AssistantContractType;
-    const contractType: AssistantContractType =
-      contract === "part_time" || contract === "supervisor"
-        ? contract
-        : "full_time";
-
-    return {
-      name: getString(formData, `assistant_name_${index}`),
-      contract_type: contractType,
-    };
-  }).filter((assistant) => assistant.name.length > 0);
-}
 
 export async function login(
   _prev: AuthState | undefined,
@@ -58,7 +26,7 @@ export async function login(
   // Convert username to fake email if it doesn't have @
   if (!emailOrUser.includes("@")) {
     const cleanUser = emailOrUser.toLowerCase().trim();
-    emailOrUser = `${cleanUser}@mid1.com`;
+    emailOrUser = `${cleanUser}@mi2.com`;
   }
 
   const { data: authData, error } = await supabase.auth.signInWithPassword({
@@ -91,6 +59,9 @@ export async function registerUser(
   _prev: AuthState | undefined,
   formData: FormData,
 ): Promise<AuthState | never> {
+  void _prev;
+  void formData;
+
   // BLOQUEO DE SEGURIDAD: El registro público de supervisores está deshabilitado
   // por motivos de auditoría (CRÍTICO-003). Los usuarios deben ser creados
   // exclusivamente desde el módulo de "Equipo" por un administrador/supervisor existente.

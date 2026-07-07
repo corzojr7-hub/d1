@@ -11,7 +11,7 @@ const supabase = createClient(
 
 async function check() {
   const { data: { user }, error: authErr } = await supabase.auth.admin.createUser({
-    email: 'test_dairo@tiendad1.com',
+    email: 'test_dairo@mi2.com',
     password: 'password123',
     email_confirm: true
   }).catch(() => ({}));

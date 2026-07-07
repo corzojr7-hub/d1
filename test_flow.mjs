@@ -5,7 +5,7 @@ const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function testFlow() {
-  const email = `test_flow_${Date.now()}@tiendad1.com`;
+  const email = `test_flow_${Date.now()}@mi2.com`;
   const password = "password123";
 
   // 1. signUp

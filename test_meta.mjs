@@ -6,7 +6,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function test() {
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: "test_metadata@tiendad1.com",
+    email: "test_metadata@mi2.com",
     password: "password123",
     options: {
       data: {

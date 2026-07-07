@@ -6,7 +6,7 @@ const publicVapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const privateVapidKey = process.env.VAPID_PRIVATE_KEY || "";
 
 webpush.setVapidDetails(
-  "mailto:soporte@d1.com",
+  "mailto:soporte@mi2.com",
   publicVapidKey,
   privateVapidKey
 );

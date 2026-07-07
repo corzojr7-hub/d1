@@ -1,8 +1,8 @@
-import { createAdminClient } from "@/lib/supabase/server";
-import { format, subDays } from "date-fns";
+import { createClient } from "@/lib/supabase/server";
+import { subDays } from "date-fns";
 
 export default async function AdminInstructionsPage() {
-  const supabase = await createAdminClient();
+  const supabase = await createClient();
 
   const sevenDaysAgo = subDays(new Date(), 7).toISOString();
 

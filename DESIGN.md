@@ -1,5 +1,5 @@
 ---
-product: APP D1
+product: APP 2
 personality:
   - clear
   - serious
@@ -40,18 +40,18 @@ density:
 
 # DESIGN.md
 
-This file is the visual contract for APP D1.
+This file is the visual contract for APP 2.
 Before touching any UI, read this file first.
 
 ## Purpose
 
-APP D1 is an operational retail tool, not a marketing site.
+APP 2 is an operational retail tool, not a marketing site.
 It should feel clear, serious, fast, and light.
 The interface must help supervisors act quickly without visual noise.
 
 ## Visual Identity
 
-- Use red D1 as an accent, not a dominant block.
+- Use red 2 as an accent, not a dominant block.
 - Prefer soft backgrounds and white surfaces.
 - Keep cards light, with minimal or soft shadows.
 - Use clean hierarchy: title, context, primary action, support.
@@ -66,9 +66,9 @@ The interface must help supervisors act quickly without visual noise.
 - Mobile must remain usable without crowding.
 - Do not create a new visual language per screen.
 
-## Correct Use of Red D1
+## Correct Use of Red 2
 
-- Red D1 is for emphasis, alerts, and key actions.
+- Red 2 is for emphasis, alerts, and key actions.
 - Do not use large solid red backgrounds unless there is a strong reason.
 - Prefer small accent bars, badges, icons, borders, or compact hero highlights.
 - Red should guide attention, not dominate the full page.
@@ -139,7 +139,7 @@ The interface must help supervisors act quickly without visual noise.
 ## Rules for AI Agents
 
 - Read this file before editing any UI.
-- Reuse existing patterns already present in APP D1.
+- Reuse existing patterns already present in APP 2.
 - Make the smallest safe visual change.
 - Do not introduce new visual systems unless this file is updated.
 - If a screen feels crowded, simplify first.

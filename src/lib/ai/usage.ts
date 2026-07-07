@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const GEMINI_35_FLASH_INPUT_USD_PER_1M = 1.5;
 const GEMINI_35_FLASH_OUTPUT_USD_PER_1M = 9;
@@ -38,10 +38,10 @@ export async function logAiUsage({
   usage?: GeminiUsageMetadata | null;
 }) {
   try {
-    const adminClient = createAdminClient();
+    const supabase = await createClient();
     const estimatedCostUsd = estimateGemini35FlashCostUsd(usage);
 
-    await adminClient.from("admin_audit_logs").insert({
+    await supabase.from("admin_audit_logs").insert({
       admin_id: adminId,
       target_id: adminId,
       store_code: storeCode,

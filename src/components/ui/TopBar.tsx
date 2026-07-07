@@ -30,7 +30,7 @@ export default function TopBar() {
 
   const profile = contextProfile || {
     store_code: "",
-    store_name: "Tiendas D1",
+    store_name: "Tiendas 2",
     role: "user",
     display_name: "",
     basic_tasks: [],
@@ -100,11 +100,11 @@ export default function TopBar() {
             href="/"
             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-[#e51d2e]/10 bg-[#fff1f2] text-base font-extrabold text-[#e51d2e] shadow-none transition-transform hover:scale-105 active:scale-95"
           >
-            D1
+            2
           </Link>
           <div className="flex min-w-0 flex-col">
             <span className="max-w-[150px] truncate text-[15px] font-extrabold leading-tight tracking-tight text-slate-900 sm:max-w-none">
-              {profile.store_name || "Tiendas D1"}
+              {profile.store_name || "Tiendas 2"}
             </span>
             <span className="max-w-[170px] truncate text-[11px] font-medium text-slate-500 sm:max-w-none">
               Control de Operaciones - {storeLine}

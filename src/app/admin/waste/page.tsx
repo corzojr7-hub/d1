@@ -1,9 +1,8 @@
-import { createAdminClient } from "@/lib/supabase/server";
-import { format, subDays } from "date-fns";
-import { es } from "date-fns/locale";
+import { createClient } from "@/lib/supabase/server";
+import { subDays } from "date-fns";
 
 export default async function AdminWastePage() {
-  const supabase = await createAdminClient();
+  const supabase = await createClient();
 
   const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
 
@@ -47,8 +46,9 @@ export default async function AdminWastePage() {
           eventCost += wpcost;
           
           const prod = Array.isArray(wp.products) ? wp.products[0] : wp.products;
-          const pName = (prod as any)?.name || "Desconocido";
-          const pQuad = (prod as any)?.quadrant || "N/A";
+          const productInfo = prod as { name?: string | null; quadrant?: string | null } | null;
+          const pName = productInfo?.name || "Desconocido";
+          const pQuad = productInfo?.quadrant || "N/A";
           
           if (!wasteByProduct[pName]) {
             wasteByProduct[pName] = { name: pName, qty: 0, cost: 0, quadrant: pQuad };

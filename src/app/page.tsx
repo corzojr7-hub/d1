@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import StoreTeamSummary from "@/components/StoreTeamSummary";
 import HomeStartupAlerts from "@/components/dashboard/HomeStartupAlerts";
@@ -70,11 +69,6 @@ export default async function Home() {
     redirect("/update-password");
   }
 
-  const adminClient = createSupabaseClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  );
-
   const {
     year,
     month,
@@ -109,33 +103,33 @@ export default async function Home() {
     { data: rawTruckReports },
     { data: pendingDispatches },
   ] = await Promise.all([
-    adminClient
+    supabase
       .from("instructions")
       .select("*", { count: "exact", head: true })
       .in("status", ["pendiente", "en_proceso"])
       .eq("store_code", storeCode),
-    adminClient
+    supabase
       .from("waste_records")
       .select("*", { count: "exact", head: true })
       .eq("store_code", storeCode),
-    adminClient
+    supabase
       .from("waste_records")
       .select("*", { count: "exact", head: true })
       .eq("store_code", storeCode)
       .gte("created_at", startOfWeekIso),
-    adminClient
+    supabase
       .from("sales_budgets")
       .select("budget_amount")
       .eq("store_code", storeCode)
       .eq("month_year", currentMonthYear)
       .single(),
-    adminClient
+    supabase
       .from("daily_sales")
       .select("amount")
       .eq("store_code", storeCode)
       .gte("date", monthStart)
       .lt("date", nextMonthStart),
-    adminClient
+    supabase
       .from("pre_shifts")
       .select("*")
       .eq("store_code", storeCode)
@@ -143,31 +137,31 @@ export default async function Home() {
       .order("created_at", { ascending: false })
       .limit(1)
       .single(),
-    adminClient
+    supabase
       .from("fefo_records")
       .select("id, product_name, expiration_date, quantity")
       .eq("store_code", storeCode)
       .eq("status", "vigente"),
-    adminClient
+    supabase
       .from("profiles")
       .select("basic_tasks")
       .eq("store_code", storeCode)
       .in("role", ["supervisor", "admin"])
       .limit(1)
       .single(),
-    adminClient
+    supabase
       .from("instructions")
       .select("id, responsible, content, priority, status, created_at")
       .eq("store_code", storeCode)
       .order("created_at", { ascending: false })
       .limit(4),
-    adminClient
+    supabase
       .from("daily_logbook")
       .select("id, author, content, created_at")
       .eq("store_code", storeCode)
       .order("created_at", { ascending: false })
       .limit(12),
-    adminClient
+    supabase
       .from("dispatch_differences")
       .select("id, category, description, dispatch_date, created_at, status")
       .eq("store_code", storeCode)

@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { createClient as createClientSync } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 import FefoClient from "./FefoClient";
 
@@ -24,13 +23,8 @@ export default async function FefoPage() {
 
   if (!profile) return <div>Cargando...</div>;
 
-  const adminClient = createClientSync(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
-
   // Fetch FEFO records
-  const { data: fefoRecords } = await adminClient
+  const { data: fefoRecords } = await supabase
     .from("fefo_records")
     .select("*")
     .eq("store_code", profile.store_code)
