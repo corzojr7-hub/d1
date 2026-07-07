@@ -148,11 +148,13 @@ export default async function AdminDashboardPage({
   const yellowCount = healthRows.filter((store) => store.light.label === "Amarillo").length;
   const redCount = healthRows.filter((store) => store.light.label === "Rojo").length;
   const forecast = buildSalesForecast({
-    sales: (forecastSales || []).map((sale) => ({
-      storeCode: sale.store_code,
-      date: sale.date,
-      amount: Number(sale.amount || 0),
-    })),
+    sales: (forecastSales || [])
+      .filter((sale) => activeStoreCodes.has(sale.store_code))
+      .map((sale) => ({
+        storeCode: sale.store_code,
+        date: sale.date,
+        amount: Number(sale.amount || 0),
+      })),
     storeNames,
     referenceDate: todayKey,
   });
@@ -360,9 +362,11 @@ export default async function AdminDashboardPage({
 
 function MetricCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{label}</p>
-      <p className="mt-2 text-2xl font-black text-slate-950">{value}</p>
+    <div className="min-w-0 overflow-hidden rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+      <p className="truncate text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">{label}</p>
+      <p className="mt-2 min-w-0 break-words text-lg font-black leading-tight text-slate-950 sm:text-xl xl:text-2xl">
+        {value}
+      </p>
     </div>
   );
 }
