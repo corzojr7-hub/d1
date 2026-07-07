@@ -811,7 +811,9 @@ function PreventiveFefoCard({ alert }: { alert: PreventiveFefoAlert }) {
         {alert.daysLeft < 0 ? `Vencio hace ${Math.abs(alert.daysLeft)} dias.` : `Quedan ${alert.daysLeft} dias.`}
       </p>
       <p className="mt-1 text-sm font-semibold text-slate-700">{alert.primarySuggestion}</p>
-      <p className="mt-1 text-[12px] leading-snug text-slate-500">{alert.secondarySuggestion}</p>
+      {alert.secondarySuggestion ? (
+        <p className="mt-1 text-[12px] leading-snug text-slate-500">{alert.secondarySuggestion}</p>
+      ) : null}
     </article>
   );
 }

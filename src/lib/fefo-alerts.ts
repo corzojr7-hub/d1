@@ -61,8 +61,8 @@ function resolveSeverity(windowDays: 7 | 15 | 30) {
 function resolveSuggestions(windowDays: 7 | 15 | 30) {
   if (windowDays === 7) {
     return {
-      primarySuggestion: "Mover a vitrina principal",
-      secondarySuggestion: "Descuento 30%",
+      primarySuggestion: "Mover a impulso en POS.",
+      secondarySuggestion: "",
     };
   }
 
@@ -111,7 +111,9 @@ export function buildPreventiveFefoAlerts(
         severity,
         primarySuggestion: suggestions.primarySuggestion,
         secondarySuggestion: suggestions.secondarySuggestion,
-        actionLabel: `${suggestions.primarySuggestion}. ${suggestions.secondarySuggestion}.`,
+        actionLabel: suggestions.secondarySuggestion
+          ? `${suggestions.primarySuggestion}. ${suggestions.secondarySuggestion}.`
+          : suggestions.primarySuggestion,
         storeCode: record.store_code,
       });
   }
