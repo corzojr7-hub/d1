@@ -24,17 +24,20 @@ export default async function AdminSalesPage({
     supabase
       .from("daily_sales")
       .select("store_code, amount, date")
+      .neq("store_code", "ADMIN-CENTRAL")
       .gte("date", period.startDate)
       .lte("date", period.endDate),
     supabase
       .from("sales_budgets")
       .select("store_code, budget_amount, month_year")
+      .neq("store_code", "ADMIN-CENTRAL")
       .in("month_year", budgetMonths),
     supabase
       .from("profiles")
       .select("store_code, store_name")
       .eq("role", "supervisor")
-      .eq("status", "activo"),
+      .eq("status", "activo")
+      .neq("store_code", "ADMIN-CENTRAL"),
   ]);
 
   if (salesError) {
@@ -46,15 +49,18 @@ export default async function AdminSalesPage({
   }
 
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
+  const activeStoreCodes = new Set(storeNames.keys());
   const salesByStore = new Map<string, number>();
   const budgetsByStore = new Map<string, number>();
 
   for (const sale of sales || []) {
+    if (!activeStoreCodes.has(sale.store_code)) continue;
     const amount = Number(sale.amount || 0);
     salesByStore.set(sale.store_code, (salesByStore.get(sale.store_code) || 0) + amount);
   }
 
   for (const budget of budgets || []) {
+    if (!activeStoreCodes.has(budget.store_code)) continue;
     const amount = Number(budget.budget_amount || 0);
     budgetsByStore.set(budget.store_code, (budgetsByStore.get(budget.store_code) || 0) + amount);
   }

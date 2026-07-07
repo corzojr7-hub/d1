@@ -19,13 +19,15 @@ export default async function AdminDashboardPage({
     supabase
       .from("daily_sales")
       .select("store_code, amount, date")
+      .neq("store_code", "ADMIN-CENTRAL")
       .gte("date", period.startDate)
       .lte("date", period.endDate),
     supabase
       .from("profiles")
       .select("store_code, store_name")
       .eq("role", "supervisor")
-      .eq("status", "activo"),
+      .eq("status", "activo")
+      .neq("store_code", "ADMIN-CENTRAL"),
   ]);
 
   if (salesError) {
@@ -33,10 +35,12 @@ export default async function AdminDashboardPage({
   }
 
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
+  const activeStoreCodes = new Set(storeNames.keys());
   const salesByStore = new Map<string, number>();
   const activeDates = new Set<string>();
 
   for (const sale of sales || []) {
+    if (!activeStoreCodes.has(sale.store_code)) continue;
     const amount = Number(sale.amount || 0);
     salesByStore.set(sale.store_code, (salesByStore.get(sale.store_code) || 0) + amount);
     activeDates.add(sale.date);

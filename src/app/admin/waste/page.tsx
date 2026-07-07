@@ -23,11 +23,13 @@ export default async function AdminWastePage({
     supabase
       .from("weekly_waste")
       .select("store_code, waste_amount, week_start, week_end")
+      .neq("store_code", "ADMIN-CENTRAL")
       .gte("week_end", period.startDate)
       .lte("week_start", period.endDate),
     supabase
       .from("waste_records")
       .select("store_code, qty, reason, area, created_at, products(name)")
+      .neq("store_code", "ADMIN-CENTRAL")
       .gte("created_at", period.startIso)
       .lte("created_at", period.endIso)
       .order("created_at", { ascending: false }),
@@ -35,7 +37,8 @@ export default async function AdminWastePage({
       .from("profiles")
       .select("store_code, store_name")
       .eq("role", "supervisor")
-      .eq("status", "activo"),
+      .eq("status", "activo")
+      .neq("store_code", "ADMIN-CENTRAL"),
   ]);
 
   if (weeklyWasteError) {
@@ -47,16 +50,19 @@ export default async function AdminWastePage({
   }
 
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
+  const activeStoreCodes = new Set(storeNames.keys());
   const costByStore = new Map<string, number>();
   const unitsByStore = new Map<string, number>();
   const productsByQty = new Map<string, { name: string; qty: number; area: string }>();
 
   for (const entry of weeklyWaste || []) {
+    if (!activeStoreCodes.has(entry.store_code)) continue;
     const amount = Number(entry.waste_amount || 0);
     costByStore.set(entry.store_code, (costByStore.get(entry.store_code) || 0) + amount);
   }
 
   for (const record of wasteRecords || []) {
+    if (!activeStoreCodes.has(record.store_code)) continue;
     const qty = Number(record.qty || 0);
     const product = Array.isArray(record.products) ? record.products[0] : record.products;
     const productInfo = product as { name?: string | null } | null;

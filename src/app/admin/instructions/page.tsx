@@ -18,6 +18,7 @@ export default async function AdminInstructionsPage({
     supabase
       .from("instructions")
       .select("id, store_code, status, created_at")
+      .neq("store_code", "ADMIN-CENTRAL")
       .gte("created_at", period.startIso)
       .lte("created_at", period.endIso)
       .order("created_at", { ascending: false }),
@@ -25,7 +26,8 @@ export default async function AdminInstructionsPage({
       .from("profiles")
       .select("store_code, store_name")
       .eq("role", "supervisor")
-      .eq("status", "activo"),
+      .eq("status", "activo")
+      .neq("store_code", "ADMIN-CENTRAL"),
   ]);
 
   if (instructionsError) {
@@ -33,12 +35,14 @@ export default async function AdminInstructionsPage({
   }
 
   const storeNames = new Map((stores || []).map((store) => [store.store_code, store.store_name]));
+  const activeStoreCodes = new Set(storeNames.keys());
   const statsByStore = new Map<string, { completed: number; pending: number; inProgress: number; total: number }>();
   let completed = 0;
   let pending = 0;
   let inProgress = 0;
 
   for (const instruction of instructions || []) {
+    if (!activeStoreCodes.has(instruction.store_code)) continue;
     const stats =
       statsByStore.get(instruction.store_code) ||
       { completed: 0, pending: 0, inProgress: 0, total: 0 };

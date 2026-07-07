@@ -20,8 +20,12 @@ const createSupervisorSchema = z.object({
   storeName: z.string().min(1, "El nombre de la tienda es obligatorio")
 });
 
+const deleteStoreSchema = z.object({
+  profileId: z.string().min(1, "El ID de perfil es obligatorio"),
+});
+
 export async function updateStoreInfo(formData: FormData) {
-  const { profile, supabase } = await requireAuth();
+  const { profile } = await requireAuth();
 
   if (profile.role !== "admin") {
     return { error: "No tienes permisos de administrador" };
@@ -41,29 +45,144 @@ export async function updateStoreInfo(formData: FormData) {
   }
 
   const { profileId, storeName, storeCode, supervisorName } = parsed.data;
+  const normalizedStoreCode = storeCode.trim().toUpperCase();
 
-  // Asegurar que la tienda exista en stores para evitar error de foreign key
-  await supabase.from("stores").upsert({
-    code: storeCode.trim(),
-    name: storeName.trim(),
-  }, { onConflict: "code" });
+  if (normalizedStoreCode === "ADMIN-CENTRAL") {
+    return { error: "Ese codigo esta reservado para la cuenta admin" };
+  }
 
-  const { error } = await supabase
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabaseAdmin = createAdminClient();
+
+  const { data: currentProfile, error: currentProfileError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, store_code")
+    .eq("id", profileId)
+    .eq("role", "supervisor")
+    .single();
+
+  if (currentProfileError || !currentProfile) {
+    return { error: "No se encontro la tienda a editar" };
+  }
+
+  if (currentProfile.store_code === "ADMIN-CENTRAL") {
+    return { error: "No se puede editar la cuenta admin desde tiendas" };
+  }
+
+  const { data: duplicatedStore } = await supabaseAdmin
+    .from("profiles")
+    .select("id")
+    .eq("store_code", normalizedStoreCode)
+    .eq("role", "supervisor")
+    .neq("id", profileId)
+    .neq("status", "inactivo")
+    .maybeSingle();
+
+  if (duplicatedStore) {
+    return { error: "Ya existe otra tienda activa con ese codigo" };
+  }
+
+  const { error: storeError } = await supabaseAdmin.from("stores").upsert(
+    {
+      code: normalizedStoreCode,
+      name: storeName.trim(),
+    },
+    { onConflict: "code" },
+  );
+
+  if (storeError) {
+    console.error("Admin Store Upsert Error:", storeError);
+    return { error: "Error al actualizar el registro maestro de tienda" };
+  }
+
+  const { error: teamError } = await supabaseAdmin
     .from("profiles")
     .update({
       store_name: storeName.trim(),
-      store_code: storeCode.trim(),
+      store_code: normalizedStoreCode,
+    })
+    .eq("store_code", currentProfile.store_code);
+
+  if (teamError) {
+    console.error("Admin team store update error:", teamError);
+    return { error: "Error al actualizar la tienda del equipo" };
+  }
+
+  const { error: supervisorError } = await supabaseAdmin
+    .from("profiles")
+    .update({
+      store_name: storeName.trim(),
+      store_code: normalizedStoreCode,
       display_name: supervisorName.trim(),
-      full_name: supervisorName.trim(), // mantenemos sincronizados display/full_name para evitar confusiones
+      full_name: supervisorName.trim(),
     })
     .eq("id", profileId);
 
-  if (error) {
-    console.error("Admin Update Error:", error);
+  if (supervisorError) {
+    console.error("Admin Update Error:", supervisorError);
     return { error: "Error al actualizar los datos de la tienda" };
   }
 
   revalidatePath("/admin");
+  revalidatePath("/admin/team");
+  return { success: true };
+}
+
+export async function deleteStoreProfile(formData: FormData) {
+  const { profile } = await requireAuth();
+
+  if (profile.role !== "admin") {
+    return { error: "No tienes permisos de administrador" };
+  }
+
+  if (!(await checkRateLimit(profile.id, 10, 60000))) return { error: "Rate limit exceeded" };
+
+  const parsed = deleteStoreSchema.safeParse({
+    profileId: formData.get("profile_id") as string,
+  });
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Error de validacion" };
+  }
+
+  const { createAdminClient } = await import("@/lib/supabase/admin");
+  const supabaseAdmin = createAdminClient();
+
+  const { data: targetProfile, error: targetError } = await supabaseAdmin
+    .from("profiles")
+    .select("id, store_code")
+    .eq("id", parsed.data.profileId)
+    .eq("role", "supervisor")
+    .single();
+
+  if (targetError || !targetProfile) {
+    return { error: "No se encontro la tienda a eliminar" };
+  }
+
+  if (targetProfile.store_code === "ADMIN-CENTRAL") {
+    return { error: "No se puede eliminar la cuenta admin" };
+  }
+
+  const { error } = await supabaseAdmin
+    .from("profiles")
+    .update({ status: "inactivo" })
+    .eq("store_code", targetProfile.store_code);
+
+  if (error) {
+    console.error("Admin Store Soft Delete Error:", error);
+    return { error: "Error al desactivar la tienda" };
+  }
+
+  await supabaseAdmin.from("admin_audit_logs").insert({
+    admin_id: profile.id,
+    store_code: profile.store_code,
+    action_type: "DELETE_STORE_SOFT",
+    target_id: targetProfile.id,
+    details: { store_code: targetProfile.store_code, mode: "soft_delete" },
+  });
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/team");
   return { success: true };
 }
 

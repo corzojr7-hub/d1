@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ShieldAlert, Store, User, Users } from "lucide-react";
-import { StoreAssistant } from "@/lib/domain/types";
+import { ArrowLeft } from "lucide-react";
+import type { Profile, StoreAssistant } from "@/lib/domain/types";
 import { createClient } from "@/lib/supabase/server";
+import AdminTeamClient from "./AdminTeamClient";
 
 export const dynamic = "force-dynamic";
 export const fetchCache = "force-no-store";
@@ -31,15 +32,14 @@ export default async function AdminTeamPage() {
   const { data: allProfiles } = await supabase
     .from("profiles")
     .select("*")
+    .eq("role", "supervisor")
+    .eq("status", "activo")
+    .neq("store_code", "ADMIN-CENTRAL")
     .order("store_name", { ascending: true });
 
-  const supervisorProfiles =
-    allProfiles?.filter((item) => item.role === "supervisor") || [];
-
+  const supervisorProfiles = (allProfiles || []) as Profile[];
   const totalAssistants = supervisorProfiles.reduce((sum, storeProfile) => {
-    const assistants =
-      (storeProfile.assistants as unknown as StoreAssistant[]) || [];
-
+    const assistants = (storeProfile.assistants as StoreAssistant[]) || [];
     return sum + assistants.length;
   }, 0);
 
@@ -63,7 +63,7 @@ export default async function AdminTeamPage() {
               Equipos por tienda
             </h1>
             <p className="mt-2 text-sm text-slate-600">
-              Directorio global de talento, rotación y estructura operativa por tienda.
+              Directorio global de talento, rotacion y estructura operativa por tienda.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 lg:min-w-[280px]">
@@ -85,126 +85,7 @@ export default async function AdminTeamPage() {
         </div>
       </div>
 
-      <div className="mt-6 space-y-6">
-        {supervisorProfiles.map((storeProfile) => {
-          const secondInCharge =
-            storeProfile.second_in_charge || "Sin asignar";
-          const thirdInCharge =
-            storeProfile.third_in_charge || "Sin asignar";
-          const assistants =
-            (storeProfile.assistants as unknown as StoreAssistant[]) || [];
-
-          return (
-            <div
-              key={storeProfile.id}
-              className="rounded-[30px] border border-slate-200/80 bg-white p-5 shadow-sm lg:p-6"
-            >
-              <div className="mb-5 flex items-center gap-3 border-b border-slate-100 pb-4">
-                <div className="rounded-2xl bg-[#fff1f2] p-3 text-[#e51d2e]">
-                  <Store className="h-6 w-6" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-950">
-                    {storeProfile.store_name}
-                  </h2>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">
-                    Tienda {storeProfile.store_code}
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                <div>
-                  <h3 className="mb-3 text-xs font-bold uppercase tracking-wider text-slate-400">
-                    Mando operativo
-                  </h3>
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3 rounded-2xl border border-[#e51d2e]/15 bg-[#fff1f2] p-3">
-                      <ShieldAlert className="h-5 w-5 text-[#e51d2e]" />
-                      <div>
-                        <p className="text-sm font-bold text-slate-950">
-                          {storeProfile.display_name}
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-[#b91c1c]">
-                          Supervisor
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                      <User className="h-5 w-5 text-slate-400" />
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
-                          {secondInCharge}
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
-                          Segundo(a) Encargado(a)
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3">
-                      <User className="h-5 w-5 text-slate-400" />
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">
-                          {thirdInCharge}
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-slate-500">
-                          Tercero(a) Encargado(a)
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-400">
-                    <span>Equipo de tienda</span>
-                    <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] text-slate-600">
-                      {assistants.length}
-                    </span>
-                  </h3>
-
-                  {assistants.length === 0 ? (
-                    <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-4 text-center text-xs text-slate-400">
-                      Aún no hay asistentes en esta tienda
-                    </div>
-                  ) : (
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {assistants.map((assistant: StoreAssistant, idx: number) => (
-                        <div
-                          key={idx}
-                          className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50/80 p-3"
-                        >
-                          <Users className="h-4 w-4 text-emerald-500" />
-                          <div className="flex-1">
-                            <p className="text-sm font-bold text-slate-900">
-                              {assistant.name}
-                            </p>
-                            <p className="text-[10px] font-semibold text-slate-500">
-                              {assistant.contract_type === "full_time"
-                                ? "Full Time"
-                                : assistant.contract_type === "part_time"
-                                  ? "Part Time"
-                                  : "Supervisor"}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        {supervisorProfiles.length === 0 && (
-          <div className="rounded-[30px] border border-slate-100 bg-white py-12 text-center text-slate-500">
-            No hay equipos registrados todavía.
-          </div>
-        )}
-      </div>
+      <AdminTeamClient stores={supervisorProfiles} />
     </div>
   );
 }
