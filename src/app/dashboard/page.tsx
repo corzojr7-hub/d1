@@ -225,6 +225,7 @@ async function DashboardContent(props: {
     .from("waste_records")
     .select("created_at, qty, reason, deposited_by, area, status, products(name)")
     .eq("store_code", profile.store_code)
+    .eq("is_archived", false)
     .order("created_at", { ascending: false })
     .limit(365);
 

@@ -30,6 +30,7 @@ export default async function AdminWastePage({
       .from("waste_records")
       .select("store_code, qty, reason, area, created_at, products(name)")
       .neq("store_code", "ADMIN-CENTRAL")
+      .eq("is_archived", false)
       .gte("created_at", period.startIso)
       .lte("created_at", period.endIso)
       .order("created_at", { ascending: false }),

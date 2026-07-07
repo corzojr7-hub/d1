@@ -69,6 +69,7 @@ export async function updateFefoStatus(id: string, status: string) {
         created_by: user.id,
         operator_name: fefoRecord.operator_name || profile.display_name || "",
         deposited_by: fefoRecord.operator_name || profile.display_name || "",
+        is_archived: false,
      });
   }
 

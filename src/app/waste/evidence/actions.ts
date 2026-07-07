@@ -18,6 +18,7 @@ export async function fetchEvidenceByDate(startDateISO: string, endDateISO: stri
       .from("waste_records")
       .select("id, reason, transport_evidence, image_url, created_at, qty, unit, area, observation, transport_driver, transport_plate, transport_comment, deposited_by, store_code, products(name)")
       .eq("store_code", profile.store_code)
+      .eq("is_archived", true)
       .in("reason", ["averia_transporte", "reporte_calidad", "calidad_nacional", "fecha_corta_cedi"])
       .gte("created_at", startDateISO)
       .lte("created_at", endDateISO);

@@ -330,6 +330,7 @@ export async function submitWaste(formData: FormData): Promise<{ error?: string 
     store_code: profile.store_code,
     created_by: profile.id,
     operator_name: validatedData.depositedBy || "", // Identidad del asistente seleccionado
+    is_archived: false,
   };
 
     // Usamos el cliente nativo con la Service Role Key para saltarnos RLS completamente y evitar problemas de políticas desincronizadas
@@ -472,6 +473,38 @@ export async function deleteWasteRecord(id: string) {
 
   revalidatePath("/waste");
   revalidatePath("/");
+}
+
+export async function archiveStoreWaste(storeCode: string) {
+  const { profile } = await requireSupervisor();
+
+  if (!storeCode || storeCode !== profile.store_code) {
+    throw new Error("No puedes cerrar la merma de otra tienda.");
+  }
+
+  const adminClient = createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
+  const { data, error } = await adminClient
+    .from("waste_records")
+    .update({ is_archived: true })
+    .eq("store_code", profile.store_code)
+    .eq("is_archived", false)
+    .select("id");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/waste");
+  revalidatePath("/waste/evidence");
+  revalidatePath("/history");
+  revalidatePath("/dashboard");
+  revalidatePath("/");
+
+  return { success: true, archivedCount: data?.length || 0 };
 }
 
 export async function startWasteWeekCut() {

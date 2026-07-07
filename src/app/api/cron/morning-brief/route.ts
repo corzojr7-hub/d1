@@ -139,6 +139,7 @@ export async function GET(request: Request) {
       .from("waste_records")
       .select("store_code, qty, reason, created_at")
       .neq("store_code", "ADMIN-CENTRAL")
+      .eq("is_archived", false)
       .gte("created_at", startIso)
       .lte("created_at", endIso),
   ]);

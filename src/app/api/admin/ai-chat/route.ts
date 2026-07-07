@@ -228,6 +228,7 @@ export async function POST(request: Request) {
         .from("waste_records")
         .select("store_code, qty, reason, created_at")
         .neq("store_code", "ADMIN-CENTRAL")
+        .eq("is_archived", false)
         .gte("created_at", `${weekStartKey}T00:00:00-05:00`)
         .lte("created_at", `${todayKey}T23:59:59-05:00`),
       adminClient

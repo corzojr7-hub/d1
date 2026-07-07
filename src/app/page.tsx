@@ -115,11 +115,13 @@ async function HomeContent() {
     supabase
       .from("waste_records")
       .select("*", { count: "exact", head: true })
-      .eq("store_code", storeCode),
+      .eq("store_code", storeCode)
+      .eq("is_archived", false),
     supabase
       .from("waste_records")
       .select("*", { count: "exact", head: true })
       .eq("store_code", storeCode)
+      .eq("is_archived", false)
       .gte("created_at", startOfWeekIso),
     supabase
       .from("sales_budgets")

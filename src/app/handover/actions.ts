@@ -72,6 +72,7 @@ export async function generateHandoverSummary(input: {
       .from("waste_records")
       .select("qty, reason, area, created_at, products(name)")
       .eq("store_code", profile.store_code)
+      .eq("is_archived", false)
       .gte("created_at", startIso)
       .lte("created_at", endIso)
       .order("created_at", { ascending: false })

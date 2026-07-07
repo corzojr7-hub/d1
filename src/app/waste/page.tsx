@@ -1,10 +1,9 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import WasteCard from "@/components/waste/WasteCard";
-import StartWasteWeekCutButton from "@/components/waste/StartWasteWeekCutButton";
-import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
+import WasteClosingNagModal from "@/components/waste/WasteClosingNagModal";
 
 export const metadata: Metadata = {
   title: "Prevención y Pérdida — Sistema de Control Operativo de Tienda",
@@ -12,23 +11,14 @@ export const metadata: Metadata = {
 
 type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
 
-function formatCutDate(value: string) {
-  return new Intl.DateTimeFormat("es-CO", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    timeZone: "America/Bogota",
-  }).format(new Date(value));
-}
-
 export default async function WasteIndex({
   searchParams,
 }: {
   searchParams: SearchParams;
 }) {
   const evidenceImageKeys = new Set(["novedad", "lote", "proveedor", "cantidades"]);
+  const supabase = await createClient();
+  const dataClient = supabase;
 
   async function signEvidencePath(path: string | null) {
     if (!path) return path;
@@ -38,70 +28,61 @@ export default async function WasteIndex({
     return data?.signedUrl || path;
   }
 
-  const supabase = await createClient();
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: currentUserProfile } = await supabase
     .from("profiles")
-    .select("store_code, store_name, role, security_pin")
+    .select("store_code, store_name, role")
     .eq("user_id", user?.id)
     .single();
 
-  const storeCode = currentUserProfile?.store_code;
-
+  const storeCode = currentUserProfile?.store_code || "";
   const params = await searchParams;
   const page = Number(params?.page) || 1;
-  const selectedCut = typeof params?.cut === "string" ? params.cut : "";
+  const view = params?.view === "archived" ? "archived" : "active";
+  const isArchivedView = view === "archived";
   const pageSize = 50;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
 
-  const dataClient = supabase;
-
   const [
-    { data: cutEntries },
+    { count: activeCount },
+    { count: archivedCount },
+    { data: oldestActiveRecord },
     { data: storeProfiles },
   ] = await Promise.all([
     dataClient
-      .from("daily_logbook")
-      .select("id, author, created_at, content")
+      .from("waste_records")
+      .select("id", { count: "exact", head: true })
       .eq("store_code", storeCode)
-      .like("content", `${WASTE_WEEK_CUT_PREFIX}%`)
-      .order("created_at", { ascending: false })
-      .limit(12),
+      .eq("is_archived", false),
+    dataClient
+      .from("waste_records")
+      .select("id", { count: "exact", head: true })
+      .eq("store_code", storeCode)
+      .eq("is_archived", true),
+    dataClient
+      .from("waste_records")
+      .select("created_at")
+      .eq("store_code", storeCode)
+      .eq("is_archived", false)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle(),
     dataClient
       .from("profiles")
       .select("user_id, display_name")
       .eq("store_code", storeCode),
   ]);
 
-  const cuts = (cutEntries || []).filter((entry) =>
-    entry.content.startsWith(WASTE_WEEK_CUT_PREFIX),
-  );
-  const activeCut = cuts[0]?.created_at || "";
-  const selectedCutIndex = cuts.findIndex((cut) => cut.created_at === selectedCut);
-  const selectedCutIsValid = selectedCutIndex >= 0;
-  const cycleStart = selectedCutIsValid ? selectedCut : activeCut;
-  const cycleEnd =
-    selectedCutIsValid && selectedCutIndex > 0 ? cuts[selectedCutIndex - 1]?.created_at : "";
-
-  let recordsQuery = dataClient
+  const { data: records, count: totalRecords } = await dataClient
     .from("waste_records")
     .select("*, products(name)", { count: "exact" })
     .eq("store_code", storeCode)
-    .order("created_at", { ascending: false });
-
-  if (cycleStart) {
-    recordsQuery = recordsQuery.gte("created_at", cycleStart);
-  }
-
-  if (cycleEnd) {
-    recordsQuery = recordsQuery.lt("created_at", cycleEnd);
-  }
-
-  const { data: records, count: totalRecords } = await recordsQuery.range(from, to);
+    .eq("is_archived", isArchivedView)
+    .order("created_at", { ascending: false })
+    .range(from, to);
 
   const signedRecords = await Promise.all(
     (records || []).map(async (record) => {
@@ -114,7 +95,7 @@ export default async function WasteIndex({
             }
 
             return [key, await signEvidencePath(path as string | null)] as const;
-          })
+          }),
         );
         transportEvidence = Object.fromEntries(signedEntries);
       }
@@ -124,23 +105,30 @@ export default async function WasteIndex({
         image_url: await signEvidencePath(record.image_url),
         transport_evidence: transportEvidence,
       };
-    })
+    }),
   );
 
-  const profileMap = new Map(
-    (storeProfiles || []).map((p) => [p.user_id, p.display_name]),
-  );
-  const canManageWasteCut = currentUserProfile?.role === "supervisor";
+  const profileMap = new Map((storeProfiles || []).map((p) => [p.user_id, p.display_name]));
+  const canArchiveWasteCycle = currentUserProfile?.role === "supervisor";
   const pageHref = (nextPage: number) => {
     const query = new URLSearchParams({ page: String(nextPage) });
-    if (selectedCutIsValid) {
-      query.set("cut", selectedCut);
+    if (isArchivedView) {
+      query.set("view", "archived");
     }
     return `/waste?${query.toString()}`;
   };
 
   return (
     <div className="mx-auto min-h-screen w-full max-w-md bg-slate-50 px-4 py-8 sm:max-w-2xl md:max-w-4xl md:px-6 lg:max-w-5xl lg:px-6 xl:max-w-6xl xl:px-8">
+      {!isArchivedView ? (
+        <WasteClosingNagModal
+          storeCode={storeCode}
+          canArchive={canArchiveWasteCycle}
+          activeCount={activeCount || 0}
+          oldestActiveCreatedAt={oldestActiveRecord?.created_at || null}
+        />
+      ) : null}
+
       <div className="mb-2">
         <Link
           href="/"
@@ -160,18 +148,18 @@ export default async function WasteIndex({
             Centro de control de Merma
           </h1>
           <p className="mt-2 max-w-[38rem] text-[13px] leading-relaxed text-slate-600">
-            Registra pérdidas, revisa vencimientos y soportes, y cierra la semana desde una sola
-            entrada operativa.
+            Registra pérdidas, revisa vencimientos y soportes, y cierra el ciclo semanal de cada
+            tienda sin mezclar semanas anteriores.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <div className="inline-flex items-center rounded-full bg-white px-3 py-1.5 text-[11px] font-bold text-slate-700 shadow-sm ring-1 ring-slate-200">
-              {totalRecords ?? 0} registros totales
-            </div>
-            <div className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
-              {selectedCutIsValid ? "Semana cerrada" : "Semana activa"}
+              {activeCount ?? 0} mermas activas
             </div>
             <div className="inline-flex items-center rounded-full bg-slate-900 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
-              Página {page}
+              {archivedCount ?? 0} en historial
+            </div>
+            <div className="inline-flex items-center rounded-full bg-blue-600 px-3 py-1.5 text-[11px] font-bold text-white shadow-sm">
+              {isArchivedView ? "Historial / Soportes" : "Merma actual"}
             </div>
           </div>
         </div>
@@ -181,7 +169,7 @@ export default async function WasteIndex({
             Acción prioritaria
           </p>
           <h2 className="mt-2 text-lg font-black tracking-tight text-slate-950">
-            Lo primero que debe hacer el supervisor
+            {isArchivedView ? "Consulta soportes cerrados" : "Opera sobre la merma actual"}
           </h2>
           <div className="mt-4 space-y-3">
             <div className="rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3">
@@ -189,7 +177,9 @@ export default async function WasteIndex({
                 1. Registrar
               </p>
               <p className="mt-1 text-sm font-semibold text-slate-900">
-                Abrir el flujo principal de merma.
+                {isArchivedView
+                  ? "Revisa lo que ya fue destruido y archivado."
+                  : "Abre el flujo principal de merma y registra lo nuevo."}
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
@@ -203,18 +193,18 @@ export default async function WasteIndex({
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  3. Evidencias
+                  3. Soportes
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  Revisar y descargar soportes.
+                  Descargar evidencias ya cerradas.
                 </p>
               </div>
               <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
                 <p className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-                  4. Corte semanal
+                  4. Cierre
                 </p>
                 <p className="mt-1 text-sm font-semibold text-slate-800">
-                  Cerrar y revisar el ciclo de la semana.
+                  El cierre deja la merma activa en cero y mueve los soportes al historial.
                 </p>
               </div>
             </div>
@@ -233,8 +223,8 @@ export default async function WasteIndex({
             </h2>
           </div>
           <p className="max-w-sm text-right text-[11px] font-medium leading-relaxed text-slate-500">
-            La ruta principal para registrar pérdida; FEFO, evidencias y corte semanal quedan como
-            controles secundarios.
+            La merma actual y el historial quedan separados para que el tablero operativo no mezcle
+            ciclos ya destruidos.
           </p>
         </div>
 
@@ -245,42 +235,16 @@ export default async function WasteIndex({
           >
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-white p-2.5 text-[#e51d2e] ring-1 ring-red-100">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M5 12h14" />
-                  <path d="M12 5v14" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="M12 5v14" /></svg>
               </div>
               <div className="text-left">
                 <h2 className="text-sm font-bold">Registrar Merma</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-600">
-                  Abre el flujo principal de perdida
+                  Abre el flujo principal de pérdida
                 </p>
               </div>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-slate-400"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
 
           <Link
@@ -289,47 +253,16 @@ export default async function WasteIndex({
           >
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-red-50 p-2.5 text-red-600">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" />
-                  <path d="M4 6h.01" />
-                  <path d="M2.29 9.62A10 10 0 1 0 21.31 8.35" />
-                  <path d="M16.24 7.76A6 6 0 1 0 8.25 16.23" />
-                  <path d="M12 12h.01" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34" /><path d="M4 6h.01" /><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35" /><path d="M16.24 7.76A6 6 0 1 0 8.25 16.23" /><path d="M12 12h.01" /></svg>
               </div>
               <div className="text-left">
-                <h2 className="text-sm font-bold">
-                  Radar de Vencimientos (FEFO)
-                </h2>
+                <h2 className="text-sm font-bold">Radar de Vencimientos (FEFO)</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
                   Previene merma por vencimiento antes de que toque salir
                 </p>
               </div>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-slate-300"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
 
           <Link
@@ -338,43 +271,16 @@ export default async function WasteIndex({
           >
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-blue-50 p-2.5 text-blue-700">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                  <circle cx="9" cy="9" r="2" />
-                  <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-                </svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><circle cx="9" cy="9" r="2" /><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" /></svg>
               </div>
               <div className="text-left">
                 <h2 className="text-sm font-bold">Descargar Evidencias (ZIP)</h2>
                 <p className="mt-0.5 text-[11px] font-medium text-slate-500">
-                  Reúne los soportes de transporte y calidad por producto
+                  Reúne los soportes archivados de transporte y calidad
                 </p>
               </div>
             </div>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="text-slate-300"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="m9 18 6-6-6-6" /></svg>
           </Link>
         </div>
       </section>
@@ -383,56 +289,40 @@ export default async function WasteIndex({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-extrabold uppercase tracking-[0.16em] text-slate-400">
-              Corte semanal
+              Ciclo operativo
             </p>
             <h2 className="mt-1 text-sm font-black text-slate-900">
-              {selectedCutIsValid
-                ? "Semana cerrada en Revisión"
-                : "Semana activa de prevención y pérdida"}
+              {isArchivedView ? "Historial / Soportes" : "Merma actual en seguimiento"}
             </h2>
             <p className="mt-1 text-[11px] text-slate-500">
-              {selectedCutIsValid
-                ? `Mostrando registros desde ${formatCutDate(selectedCut)}${
-                    cycleEnd ? ` hasta ${formatCutDate(cycleEnd)}` : ""
-                  }.`
-                : activeCut
-                  ? `La semana actual inició en ${formatCutDate(activeCut)}.`
-                  : "Todavía no hay un corte manual. Estás viendo todos los registros actuales."}
+              {isArchivedView
+                ? "Aquí quedan los registros ya destruidos y archivados por el Jefe de Zona."
+                : "Solo ves las mermas activas. Cuando se cierre el ciclo, esta lista volverá a cero."}
             </p>
           </div>
-
-          {canManageWasteCut && (
-            <StartWasteWeekCutButton
-              hasPin={Boolean(currentUserProfile?.security_pin)}
-            />
-          )}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Link
             href="/waste"
             className={`rounded-full px-3 py-2 text-[11px] font-bold ring-1 transition ${
-              !selectedCutIsValid
+              !isArchivedView
                 ? "bg-slate-900 text-white ring-slate-900"
                 : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
             }`}
           >
-            Semana activa
+            Merma actual ({activeCount ?? 0})
           </Link>
-
-          {cuts.map((cut) => (
-            <Link
-              key={cut.id}
-              href={`/waste?cut=${encodeURIComponent(cut.created_at)}`}
-              className={`rounded-full px-3 py-2 text-[11px] font-bold ring-1 transition ${
-                selectedCut === cut.created_at
-                  ? "bg-blue-600 text-white ring-blue-600"
-                  : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
-              }`}
-            >
-              {formatCutDate(cut.created_at)}
-            </Link>
-          ))}
+          <Link
+            href="/waste?view=archived"
+            className={`rounded-full px-3 py-2 text-[11px] font-bold ring-1 transition ${
+              isArchivedView
+                ? "bg-blue-600 text-white ring-blue-600"
+                : "bg-white text-slate-600 ring-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            Historial / Soportes ({archivedCount ?? 0})
+          </Link>
         </div>
       </section>
 
@@ -456,31 +346,8 @@ export default async function WasteIndex({
             />
           </div>
         </div>
-
-        <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
-          <button
-            type="button"
-            className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
-          >
-            Motivo
-            <span className="text-[10px]">v</span>
-          </button>
-          <button
-            type="button"
-            className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
-          >
-            Depositó
-            <span className="text-[10px]">v</span>
-          </button>
-          <button
-            type="button"
-            className="flex min-h-10 items-center gap-1 rounded-full bg-white px-3 py-2 text-slate-500 ring-1 ring-slate-200 transition hover:bg-slate-50 hover:text-slate-700"
-          >
-            Revisión
-            <span className="text-[10px]">v</span>
-          </button>
-        </div>
       </section>
+
       <div className="mt-6 space-y-4">
         {signedRecords.length > 0 ? (
           signedRecords.map((rec) => (
@@ -498,14 +365,16 @@ export default async function WasteIndex({
         ) : (
           <div className="flex flex-col items-center justify-center rounded-[28px] border border-dashed border-slate-200 bg-white px-4 py-14 text-center shadow-sm">
             <p className="text-sm font-medium text-zinc-500">
-              No hay registros de merma
+              {isArchivedView ? "No hay soportes archivados." : "No hay registros de merma activos."}
             </p>
-            <Link
-              href="/waste/new"
-              className="app-cta-primary mt-4 px-6 text-sm font-bold"
-            >
-              Registrar primera merma
-            </Link>
+            {!isArchivedView ? (
+              <Link
+                href="/waste/new"
+                className="app-cta-primary mt-4 px-6 text-sm font-bold"
+              >
+                Registrar primera merma
+              </Link>
+            ) : null}
           </div>
         )}
       </div>
@@ -542,4 +411,3 @@ export default async function WasteIndex({
     </div>
   );
 }
-

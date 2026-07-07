@@ -114,6 +114,7 @@ async function WasteList({
   const { data: records } = await supabase
     .from("waste_records")
     .select("*, products(name)")
+    .eq("is_archived", true)
     .order("created_at", { ascending: false })
     .range(from, to);
 

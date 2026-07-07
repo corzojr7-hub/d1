@@ -30,6 +30,7 @@ type WasteRecord = {
   transport_plate?: string | null;
   transport_comment?: string | null;
   transport_evidence?: Record<string, string> | null;
+  is_archived?: boolean;
 };
 
 const statuses = [
@@ -164,6 +165,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
     record.reason === "reporte_calidad" ||
     record.reason === "calidad_nacional" ||
     record.reason === "fecha_corta_cedi";
+  const isArchived = Boolean(record.is_archived);
 
   async function handleCopyTransportReport() {
     try {
@@ -194,7 +196,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
         }`}
       >
         <div className="absolute right-4 top-4 flex items-center gap-1">
-          {userRole === "supervisor" && (
+          {userRole === "supervisor" && !isArchived && (
             <button
               onClick={() => setShowEdit(true)}
               disabled={isDeleting}
@@ -205,7 +207,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             </button>
           )}
 
-          {userRole === "supervisor" && (
+          {userRole === "supervisor" && !isArchived && (
             <button
               onClick={async () => {
                 if (window.confirm("¿Seguro que deseas eliminar esta merma de forma permanente?")) {
@@ -232,6 +234,11 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
           <span className="max-w-[140px] truncate rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-blue-800 ring-1 ring-blue-100">
             {record.area || "Sin área"}
           </span>
+          {isArchived ? (
+            <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-white">
+              Archivada
+            </span>
+          ) : null}
           <span className="text-[11px] text-slate-400">
             {formattedDate || "\u00A0"}
           </span>
@@ -343,7 +350,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                 </span>
               </div>
             )}
-            {hasWhatsappReport && (
+            {hasWhatsappReport && !isArchived && (
               <button
                 type="button"
                 onClick={() => setShowReportPreview((current) => !current)}
@@ -364,7 +371,7 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
                 </span>
               </button>
             )}
-            {hasWhatsappReport && (
+            {hasWhatsappReport && !isArchived && (
               <button
                 type="button"
                 onClick={handleMarkReportSent}
@@ -383,13 +390,13 @@ export default function WasteCard({ record, userRole }: { record: WasteRecord, u
             ) : null}
           </div>
 
-          <AppSelect
-            label="Estado"
-            hideLabel
-            value={record.status}
-            onChange={handleChange}
-            disabled={pending || userRole !== "supervisor"}
-            containerClassName="min-w-[174px]"
+            <AppSelect
+              label="Estado"
+              hideLabel
+              value={record.status}
+              onChange={handleChange}
+              disabled={pending || userRole !== "supervisor" || isArchived}
+              containerClassName="min-w-[174px]"
             buttonClassName={`rounded-full border-0 px-3 py-1.5 text-[11px] font-bold ring-1 ring-slate-200 shadow-none ${statusTextColors[record.status] ?? "text-slate-600"}`}
             panelClassName="right-0 left-auto w-56"
             options={statuses.map((status) => ({

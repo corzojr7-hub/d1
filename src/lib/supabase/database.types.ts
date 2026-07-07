@@ -286,6 +286,7 @@ export interface Database {
           created_by: string;
           operator_name: string | null;
           created_at: string;
+          is_archived: boolean;
           transport_driver: string | null;
           transport_plate: string | null;
           transport_comment: string | null;
@@ -317,6 +318,7 @@ export interface Database {
           created_by: string;
           operator_name?: string | null;
           created_at?: string;
+          is_archived?: boolean;
           transport_driver?: string | null;
           transport_plate?: string | null;
           transport_comment?: string | null;
@@ -347,6 +349,7 @@ export interface Database {
           idempotency_key?: string | null;
           created_by?: string;
           created_at?: string;
+          is_archived?: boolean;
           transport_driver?: string | null;
           transport_plate?: string | null;
           transport_comment?: string | null;

@@ -41,6 +41,7 @@ export default async function AdminDashboardPage({
       .from("waste_records")
       .select("store_code, qty, created_at")
       .neq("store_code", "ADMIN-CENTRAL")
+      .eq("is_archived", false)
       .gte("created_at", period.startIso)
       .lte("created_at", period.endIso),
     supabase
