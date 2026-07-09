@@ -14,9 +14,11 @@ export function getAiClientConfig(): AiClientConfig | null {
   }
 
   if (process.env.DEEPSEEK_API_KEY) {
+    if (!process.env.DEEPSEEK_BASE_URL) return null;
+
     return {
       client: new OpenAI({
-        baseURL: "https://api.deepseek.com",
+        baseURL: process.env.DEEPSEEK_BASE_URL,
         apiKey: process.env.DEEPSEEK_API_KEY,
       }),
       model: process.env.DEEPSEEK_DEFAULT_MODEL || "deepseek-v3",

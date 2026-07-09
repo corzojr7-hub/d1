@@ -7,13 +7,14 @@ import { z } from "zod";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import type { Database } from "@/lib/supabase/database.types";
+import { sanitizedTextSchema } from "@/lib/security";
 
 type FeedbackInsert = Database["public"]["Tables"]["feedbacks"]["Insert"];
 
 const whatsappRewriteSchema = z.object({
-  directedTo: z.string().min(1, "Selecciona para quien es el mensaje."),
+  directedTo: sanitizedTextSchema(1, 120, "Selecciona para quien es el mensaje."),
   type: z.enum(["mensaje_normal", "retroalimentacion", "llamado_atencion"]),
-  rawMessage: z.string().min(8, "Escribe mas contexto para mejorar el mensaje."),
+  rawMessage: sanitizedTextSchema(8, 2000, "Escribe mas contexto para mejorar el mensaje."),
   tone: z.enum(["suave", "directo", "formal"]),
 });
 
@@ -72,13 +73,14 @@ export async function rewriteFeedbackWhatsappMessage(input: {
 }) {
   const { profile } = await requireAuth();
 
-  if (!process.env.DEEPSEEK_API_KEY) {
-    throw new Error("La API Key de DeepSeek no está configurada en este momento.");
+  const feedbackModel = process.env.DEEPSEEK_FEEDBACK_MODEL || process.env.DEEPSEEK_DEFAULT_MODEL;
+  if (!process.env.DEEPSEEK_API_KEY || !process.env.DEEPSEEK_BASE_URL || !feedbackModel) {
+    throw new Error("DeepSeek no esta configurado en este momento.");
   }
 
   const openai = new OpenAI({
-    baseURL: 'https://api.deepseek.com',
-    apiKey: process.env.DEEPSEEK_API_KEY || "",
+    baseURL: process.env.DEEPSEEK_BASE_URL,
+    apiKey: process.env.DEEPSEEK_API_KEY,
   });
 
   const validated = whatsappRewriteSchema.parse(input);
@@ -145,7 +147,7 @@ Devuelve solo JSON valido con esta forma:
 `.trim();
 
   const completion = await openai.chat.completions.create({
-    model: "deepseek-v4-flash",
+    model: feedbackModel,
     messages: [
       { role: "system", content: "Devuelve solo JSON raw." },
       { role: "user", content: prompt }
@@ -158,7 +160,7 @@ Devuelve solo JSON valido con esta forma:
     adminId: profile.id,
     storeCode: profile.store_code,
     actionType: AI_ACTIONS.feedback,
-    model: "deepseek-v4-flash",
+    model: feedbackModel,
     usage: completion.usage
       ? {
           promptTokenCount: completion.usage.prompt_tokens,

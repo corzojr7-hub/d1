@@ -8,6 +8,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 import { sendPushToAdmins } from "@/lib/push";
 import { WASTE_WEEK_CUT_PREFIX } from "./cutoff";
+import { sanitizedTextSchema } from "@/lib/security";
 
 const HIGH_WASTE_PUSH_THRESHOLD = 100;
 
@@ -75,20 +76,20 @@ function hasUploadedFile(formData: FormData, key: string): boolean {
 }
 
 const submitWasteSchema = z.object({
-  barcodeId: z.string().min(1, "El código de barras es obligatorio."),
+  barcodeId: sanitizedTextSchema(1, 80, "El codigo de barras es obligatorio."),
   productId: z.string().optional(),
   qty: z.number().positive("La cantidad debe ser mayor a cero."),
-  unit: z.string().min(1, "La unidad es obligatoria."),
-  reason: z.string().min(1, "El motivo es obligatorio."),
-  depositedBy: z.string().optional(),
-  area: z.string().optional(),
-  observation: z.string().optional(),
-  transportDriver: z.string().optional(),
-  transportPlate: z.string().optional(),
-  transportComment: z.string().optional(),
-  qualityExpirationDate: z.string().optional(),
-  qualityLot: z.string().optional(),
-  qualitySupplier: z.string().optional(),
+  unit: sanitizedTextSchema(1, 40, "La unidad es obligatoria."),
+  reason: sanitizedTextSchema(1, 80, "El motivo es obligatorio."),
+  depositedBy: sanitizedTextSchema(0, 120, "Responsable invalido").optional(),
+  area: sanitizedTextSchema(0, 80, "Area invalida").optional(),
+  observation: sanitizedTextSchema(0, 1000, "Observacion invalida").optional(),
+  transportDriver: sanitizedTextSchema(0, 120, "Conductor invalido").optional(),
+  transportPlate: sanitizedTextSchema(0, 20, "Placa invalida").optional(),
+  transportComment: sanitizedTextSchema(0, 1000, "Comentario invalido").optional(),
+  qualityExpirationDate: sanitizedTextSchema(0, 20, "Fecha invalida").optional(),
+  qualityLot: sanitizedTextSchema(0, 80, "Lote invalido").optional(),
+  qualitySupplier: sanitizedTextSchema(0, 120, "Proveedor invalido").optional(),
   transportEvidence: z.any().optional()
 });
 

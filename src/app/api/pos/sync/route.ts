@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sanitizeText } from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
@@ -18,14 +19,21 @@ const rawPosSaleSchema = z
   })
   .passthrough()
   .transform((value, ctx) => {
-    const storeCode = (value.store_code || value.storeCode || "").trim();
-    const rawDate = (value.date || value.sale_date || value.saleDate || "").trim();
+    const storeCode = sanitizeText(value.store_code || value.storeCode || "").toUpperCase();
+    const rawDate = sanitizeText(value.date || value.sale_date || value.saleDate || "");
     const amount = value.amount ?? value.total_sales ?? value.totalSales;
 
     if (!storeCode) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "store_code es obligatorio.",
+      });
+    }
+
+    if (storeCode && !/^[A-Z0-9_-]{2,30}$/.test(storeCode)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "store_code invalido.",
       });
     }
 

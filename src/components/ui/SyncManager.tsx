@@ -98,7 +98,9 @@ async function dataUrlToFile(dataUrl: string, name: string, type: string) {
 }
 
 export default function SyncManager() {
-  const [isOffline, setIsOffline] = useState(false);
+  const [isOffline, setIsOffline] = useState(() =>
+    typeof navigator !== "undefined" ? !navigator.onLine : false,
+  );
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
@@ -271,7 +273,6 @@ export default function SyncManager() {
       }
     }
 
-    setIsOffline(!navigator.onLine);
     void ensureServiceWorker().then(() => {
       if (navigator.onLine) {
         void syncOfflineData();

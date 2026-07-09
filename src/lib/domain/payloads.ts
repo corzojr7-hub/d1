@@ -2,6 +2,7 @@ import type {
   InstructionPriority,
   WasteReason,
 } from "./types";
+import { sanitizeText } from "@/lib/security";
 
 // ---------------------------------------------------------------------------
 // CreateData (input aceptado por el constructor)
@@ -96,12 +97,12 @@ export function buildInstructionInsertPayload(
   currentProfileId: string,
 ): InstructionInsertPayload {
   return {
-    responsible_person: data.responsible_person,
-    instruction_text: data.instruction_text,
+    responsible_person: sanitizeText(data.responsible_person),
+    instruction_text: sanitizeText(data.instruction_text),
     priority: data.priority,
     status: "pendiente",
     observations: data.observations && data.observations.length > 0
-      ? data.observations
+      ? sanitizeText(data.observations)
       : null,
     created_by: currentProfileId,
   };
@@ -119,22 +120,22 @@ export function buildWasteRecordInsertPayload(
   const productNotFound = userSaysNotFound || !hasProductId;
 
   return {
-    barcode: data.barcode,
+    barcode: sanitizeText(data.barcode),
     product_id: productNotFound ? null : data.product_id!,
-    product_name: data.product_name ?? null,
-    category: data.category ?? null,
+    product_name: data.product_name ? sanitizeText(data.product_name) : null,
+    category: data.category ? sanitizeText(data.category) : null,
     quantity: data.quantity,
-    unit: data.unit,
+    unit: sanitizeText(data.unit),
     reason: data.reason,
-    responsible_person: data.responsible_person,
-    area: data.area,
-    observation: data.observation,
+    responsible_person: sanitizeText(data.responsible_person),
+    area: sanitizeText(data.area),
+    observation: sanitizeText(data.observation),
     review_status: "pendiente_revision",
     product_not_found: productNotFound,
     evidence_path: data.evidence_path ?? null,
-    transport_driver: data.transport_driver ?? null,
-    transport_plate: data.transport_plate ?? null,
-    transport_comment: data.transport_comment ?? null,
+    transport_driver: data.transport_driver ? sanitizeText(data.transport_driver) : null,
+    transport_plate: data.transport_plate ? sanitizeText(data.transport_plate) : null,
+    transport_comment: data.transport_comment ? sanitizeText(data.transport_comment) : null,
     transport_evidence: data.transport_evidence ?? null,
     created_by: currentProfileId,
   };

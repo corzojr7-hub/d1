@@ -5,6 +5,7 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
+import { sanitizeText } from "@/lib/security";
 
 function getAdminClient() {
   return createAdminClient(
@@ -42,12 +43,14 @@ function getHandoverAiClient() {
   }
 
   if (process.env.DEEPSEEK_API_KEY) {
+    if (!process.env.DEEPSEEK_BASE_URL) return null;
+
     return {
       client: new OpenAI({
-        baseURL: "https://api.deepseek.com",
+        baseURL: process.env.DEEPSEEK_BASE_URL,
         apiKey: process.env.DEEPSEEK_API_KEY,
       }),
-      model: "deepseek-v3",
+      model: process.env.DEEPSEEK_DEFAULT_MODEL || "deepseek-v3",
     };
   }
 
@@ -118,9 +121,9 @@ Redacta un solo parrafo en espanol, claro y operativo, listo para guardar como o
 Contexto:
 - Tienda: ${profile.store_name} (${profile.store_code})
 - Fecha del turno: ${dateKey}
-- Entrega: ${input.handedBy?.trim() || "Sin definir"}
-- Recibe: ${input.receivedBy?.trim() || "Sin definir"}
-- Observaciones manuales: ${input.observations?.trim() || "Sin observaciones manuales"}
+- Entrega: ${input.handedBy ? sanitizeText(input.handedBy) : "Sin definir"}
+- Recibe: ${input.receivedBy ? sanitizeText(input.receivedBy) : "Sin definir"}
+- Observaciones manuales: ${input.observations ? sanitizeText(input.observations) : "Sin observaciones manuales"}
 
 Merma del turno:
 ${wasteSummary}
@@ -173,9 +176,9 @@ Reglas:
 export async function submitHandover(formData: FormData) {
   const { profile } = await requireAuth();
 
-  const handed_by = formData.get("handed_by") as string;
-  const received_by = formData.get("received_by") as string;
-  const observations = formData.get("observations") as string;
+  const handed_by = sanitizeText((formData.get("handed_by") as string) || "");
+  const received_by = sanitizeText((formData.get("received_by") as string) || "");
+  const observations = sanitizeText((formData.get("observations") as string) || "");
   const photo = formData.get("photo") as File;
 
   if (!handed_by || !received_by || !photo) {

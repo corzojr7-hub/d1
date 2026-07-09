@@ -31,9 +31,12 @@ export default function UpdatePasswordPage() {
               name="password"
               type="password"
               required
-              minLength={6}
+              minLength={8}
+              pattern="(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+              title="Minimo 8 caracteres, una mayuscula, un numero y un caracter especial."
+              autoComplete="new-password"
               className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-[15px] font-medium text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-red-500"
-              placeholder="Minimo 6 caracteres"
+              placeholder="Minimo 8 caracteres"
             />
           </div>
           <div>
@@ -44,7 +47,10 @@ export default function UpdatePasswordPage() {
               name="confirmPassword"
               type="password"
               required
-              minLength={6}
+              minLength={8}
+              pattern="(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+              title="Debe repetir una contrasena fuerte valida."
+              autoComplete="new-password"
               className="min-h-12 w-full rounded-2xl bg-slate-50 px-4 text-[15px] font-medium text-slate-950 outline-none ring-1 ring-inset ring-slate-200 transition-all focus:bg-white focus:ring-2 focus:ring-red-500"
               placeholder="Confirmar contraseña"
             />

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAuth, requireSupervisor, validateOperatorName } from "@/lib/supabase/require-auth";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { z } from "zod";
+import { sanitizedTextSchema } from "@/lib/security";
 
 function getAdminClient() {
   return createAdminClient(
@@ -21,6 +22,12 @@ const instructionStatusSchema = z.enum([
   "requiere_seguimiento",
   "anulada",
 ]);
+
+const createInstructionSchema = z.object({
+  responsible: sanitizedTextSchema(1, 80, "Responsable obligatorio"),
+  content: sanitizedTextSchema(1, 1000, "Contenido obligatorio"),
+  priority: z.enum(["Baja", "Media", "Alta", "Critica"]),
+});
 
 export async function fetchInstructions() {
   const { profile, supabase } = await requireAuth();
@@ -75,18 +82,16 @@ export async function createInstruction(_prev: unknown, formData: FormData) {
   const { profile } = await requireSupervisor();
   const adminClient = getAdminClient();
 
-  const responsible = formData.get("responsible") as string;
-  const content = formData.get("content") as string;
-  const priority = formData.get("priority") as string;
+  const parsed = createInstructionSchema.safeParse({
+    responsible: formData.get("responsible"),
+    content: formData.get("content"),
+    priority: formData.get("priority"),
+  });
 
-  if (!responsible || !content || !priority) {
-    return { error: "Todos los campos son obligatorios" };
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Datos invalidos" };
   }
-
-  const validPriorities = ["Baja", "Media", "Alta", "Critica"];
-  if (!validPriorities.includes(priority)) {
-    return { error: "Prioridad invalida" };
-  }
+  const { responsible, content, priority } = parsed.data;
 
   const { error } = await adminClient.from("instructions").insert({
     responsible,

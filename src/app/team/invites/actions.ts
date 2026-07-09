@@ -4,6 +4,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { z } from "zod";
+import { sanitizedTextSchema, strongPasswordSchema } from "@/lib/security";
+
+const createTeamMemberSchema = z.object({
+  role: z.enum(["segundo_al_mando", "tercero_al_mando"]),
+  name: sanitizedTextSchema(1, 80, "El nombre es obligatorio"),
+  email: z.string().email("Correo invalido").transform((value) => value.trim().toLowerCase()),
+  password: strongPasswordSchema,
+});
 
 export async function createTeamMember(_prev: unknown, formData: FormData) {
   let profile;
@@ -20,23 +29,17 @@ export async function createTeamMember(_prev: unknown, formData: FormData) {
     };
   }
 
-  const role = formData.get("role") as string;
-  const name = formData.get("name") as string;
-  const email = formData.get("email") as string;
-  const password = formData.get("password") as string;
+  const parsed = createTeamMemberSchema.safeParse({
+    role: formData.get("role"),
+    name: formData.get("name"),
+    email: formData.get("email"),
+    password: formData.get("password"),
+  });
 
-  if (!role || !name || !email || !password) {
-    return { error: "Todos los campos son requeridos" };
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message || "Datos invalidos" };
   }
-
-  if (password.length < 8) {
-    return { error: "La contraseña debe tener al menos 8 caracteres" };
-  }
-
-  const validRoles = ["segundo_al_mando", "tercero_al_mando"];
-  if (!validRoles.includes(role)) {
-    return { error: "Solo puedes crear Segundo(a) y Tercero(a) Encargado(a)" };
-  }
+  const { role, name, email, password } = parsed.data;
 
   try {
     if (!(await checkRateLimit(profile.id, 5, 60000))) {

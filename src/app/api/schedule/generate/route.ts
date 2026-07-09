@@ -6,6 +6,7 @@ import { AI_ACTIONS, logAiUsage } from "@/lib/ai/usage";
 import { z } from "zod";
 import path from "path";
 import fs from "fs";
+import { sanitizedTextSchema } from "@/lib/security";
 
 export const maxDuration = 60;
 
@@ -296,12 +297,12 @@ function validateKeyRoleRules(scheduleData: ScheduleResponse, keyRoles: KeyRoleA
   }
 }
 
-async function requestScheduleCompletion(openai: OpenAI, prompt: string) {
+async function requestScheduleCompletion(openai: OpenAI, model: string, prompt: string) {
   let lastText = "";
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const completion = await openai.chat.completions.create({
-      model: "deepseek-v4-pro",
+      model,
       response_format: { type: "json_object" },
       messages: [
         {
@@ -329,11 +330,6 @@ async function requestScheduleCompletion(openai: OpenAI, prompt: string) {
 }
 
 export async function POST(request: Request) {
-  const openai = new OpenAI({
-    baseURL: "https://api.deepseek.com",
-    apiKey: process.env.DEEPSEEK_API_KEY || "",
-  });
-
   try {
     const { profile, supabase } = await requireSupervisor();
 
@@ -346,14 +342,19 @@ export async function POST(request: Request) {
     const schema = z.object({
       weekStart: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato invalido (YYYY-MM-DD)"),
       weekEnd: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato invalido (YYYY-MM-DD)"),
-      holidays: z.array(z.string().regex(/^[a-zA-Z0-9\s\-_,]+$/)),
+      holidays: z.array(sanitizedTextSchema(0, 80, "Festivo invalido").pipe(z.string().regex(/^[a-zA-Z0-9\s\-_,]*$/))),
     });
 
     const { weekStart, weekEnd, holidays } = schema.parse(payload);
 
-    if (!process.env.DEEPSEEK_API_KEY) {
-      return NextResponse.json({ error: "API Key de DeepSeek no configurada." }, { status: 500 });
+    const scheduleModel = process.env.DEEPSEEK_SCHEDULE_MODEL || process.env.DEEPSEEK_DEFAULT_MODEL;
+    if (!process.env.DEEPSEEK_API_KEY || !process.env.DEEPSEEK_BASE_URL || !scheduleModel) {
+      return NextResponse.json({ error: "DeepSeek no esta configurado." }, { status: 500 });
     }
+    const openai = new OpenAI({
+      baseURL: process.env.DEEPSEEK_BASE_URL,
+      apiKey: process.env.DEEPSEEK_API_KEY,
+    });
 
     const realNames: Record<string, string> = {};
     const team: TeamMemberPayload[] = [];
@@ -451,7 +452,7 @@ export async function POST(request: Request) {
     }
     `;
 
-    const { completion, responseText } = await requestScheduleCompletion(openai, finalPrompt);
+    const { completion, responseText } = await requestScheduleCompletion(openai, scheduleModel, finalPrompt);
 
     const usage = (completion.usage ?? null) as ProviderUsage | null;
 
@@ -459,7 +460,7 @@ export async function POST(request: Request) {
       adminId: profile.id,
       storeCode: profile.store_code,
       actionType: AI_ACTIONS.schedule,
-      model: "deepseek-v4-pro",
+      model: scheduleModel,
       usage: usage
         ? {
             promptTokenCount: usage.prompt_tokens ?? 0,

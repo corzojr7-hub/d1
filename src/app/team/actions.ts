@@ -128,11 +128,12 @@ export async function updateTeam(formData: FormData): Promise<void> {
 import { createAdminClient } from "@/lib/supabase/server";
 import { z } from "zod";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sanitizedTextSchema, strongPasswordSchema } from "@/lib/security";
 
 const createEncargadoSchema = z.object({
   email: z.string().email("Correo invalido"),
-  password: z.string().min(6, "Minimo 6 caracteres"),
-  name: z.string().min(1, "El nombre es obligatorio"),
+  password: strongPasswordSchema,
+  name: sanitizedTextSchema(1, 80, "El nombre es obligatorio"),
   role: z.enum(["segundo_al_mando", "tercero_al_mando"])
 });
 

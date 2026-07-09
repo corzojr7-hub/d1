@@ -4,20 +4,27 @@ import { revalidatePath } from "next/cache";
 import { requireAuth } from "@/lib/supabase/require-auth";
 import { z } from "zod";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { sanitizedTextSchema, strongPasswordSchema } from "@/lib/security";
 
 const updateStoreSchema = z.object({
   profileId: z.string().min(1, "El ID de perfil es obligatorio"),
-  storeName: z.string().min(1, "El nombre de tienda es obligatorio"),
-  storeCode: z.string().regex(/^[A-Z0-9_-]{2,20}$/, "El store_code debe tener 2-20 caracteres alfanuméricos"),
-  supervisorName: z.string().min(1, "El nombre del supervisor es obligatorio")
+  storeName: sanitizedTextSchema(1, 80, "El nombre de tienda es obligatorio"),
+  storeCode: z
+    .string()
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(z.string().regex(/^[A-Z0-9_-]{2,20}$/, "El store_code debe tener 2-20 caracteres alfanumericos")),
+  supervisorName: sanitizedTextSchema(1, 80, "El nombre del supervisor es obligatorio")
 });
 
 const createSupervisorSchema = z.object({
-  username: z.string().min(3, "Mínimo 3 caracteres"),
-  password: z.string().min(6, "Mínimo 6 caracteres"),
-  supervisorName: z.string().min(1, "El nombre es obligatorio"),
-  storeCode: z.string().regex(/^[A-Z0-9_-]{2,20}$/, "El store_code debe tener 2-20 caracteres alfanuméricos"),
-  storeName: z.string().min(1, "El nombre de la tienda es obligatorio")
+  username: sanitizedTextSchema(3, 80, "Minimo 3 caracteres"),
+  password: strongPasswordSchema,
+  supervisorName: sanitizedTextSchema(1, 80, "El nombre es obligatorio"),
+  storeCode: z
+    .string()
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(z.string().regex(/^[A-Z0-9_-]{2,20}$/, "El store_code debe tener 2-20 caracteres alfanumericos")),
+  storeName: sanitizedTextSchema(1, 80, "El nombre de la tienda es obligatorio")
 });
 
 const deleteStoreSchema = z.object({

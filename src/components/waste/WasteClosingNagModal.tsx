@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -52,10 +52,6 @@ export default function WasteClosingNagModal({
   activeCount,
   oldestActiveCreatedAt,
 }: Props) {
-  const router = useRouter();
-  const [step, setStep] = useState<"closed" | "question" | "confirm">("closed");
-  const [isPending, startTransition] = useTransition();
-
   const shouldPrompt = useMemo(() => {
     if (!canArchive || activeCount <= 0 || !oldestActiveCreatedAt) {
       return false;
@@ -63,12 +59,11 @@ export default function WasteClosingNagModal({
 
     return new Date(oldestActiveCreatedAt).getTime() < getLastFridayThreshold().getTime();
   }, [activeCount, canArchive, oldestActiveCreatedAt]);
-
-  useEffect(() => {
-    if (shouldPrompt) {
-      setStep("question");
-    }
-  }, [shouldPrompt]);
+  const router = useRouter();
+  const [step, setStep] = useState<"closed" | "question" | "confirm">(
+    shouldPrompt ? "question" : "closed",
+  );
+  const [isPending, startTransition] = useTransition();
 
   if (step === "closed") {
     return null;

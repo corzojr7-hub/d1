@@ -5,11 +5,12 @@ import { requireAuth } from "@/lib/supabase/require-auth";
 import { getAiClientConfig } from "@/lib/ai/provider";
 import { AI_ACTIONS, estimateGemini35FlashCostUsd } from "@/lib/ai/usage";
 import { buildPreventiveFefoAlerts } from "@/lib/fefo-alerts";
+import { sanitizedTextSchema } from "@/lib/security";
 
 export const maxDuration = 60;
 
 const chatInputSchema = z.object({
-  question: z.string().min(3, "Escribe una pregunta mas clara."),
+  question: sanitizedTextSchema(3, 300, "Escribe una pregunta mas clara."),
 });
 
 function getBogotaDateKey(now = new Date()) {
